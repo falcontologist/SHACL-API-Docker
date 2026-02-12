@@ -1,0 +1,8 @@
+person_entity.ttl filter=lfs diff=lfs merge=lfs -text
+person_entry.ttl filter=lfs diff=lfs merge=lfs -text
+organization_entity.ttl filter=lfs diff=lfs merge=lfs -text
+organization_entry.ttl filter=lfs diff=lfs merge=lfs -text
+gpe_entity.ttl filter=lfs diff=lfs merge=lfs -text
+gpe_entry.ttl filter=lfs diff=lfs merge=lfs -text
+product_entity.ttl filter=lfs diff=lfs merge=lfs -text
+product_entry.ttl filter=lfs diff=lfs merge=lfs -text
