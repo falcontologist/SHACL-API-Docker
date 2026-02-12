@@ -1,0 +1,619 @@
+@prefix ex: <http://example.org/ontology/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:ActionShape a sh:NodeShape ;
+    rdfs:label "Form for Action"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:name "target"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:target ],
+        [ sh:class ex:Entity ;
+            sh:name "actor"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:actor ],
+        [ sh:class ex:Entity ;
+            sh:name "action"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:action ],
+        [ sh:class ex:Entity ;
+            sh:name "implement"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:implement ] ;
+    sh:targetClass ex:Action .
+
+ex:AffectShape a sh:NodeShape ;
+    rdfs:label "Form for Affect"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:name "reaction"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:reaction ],
+        [ sh:class ex:Entity ;
+            sh:name "affecter"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:affecter ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "affectee"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:affectee ] ;
+    sh:targetClass ex:Affect .
+
+ex:AffiliationShape a sh:NodeShape ;
+    rdfs:label "Form for Affiliation"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:name "affiliator"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:affiliator ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "participant"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:participant ],
+        [ sh:class ex:Entry ;
+            sh:name "role"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:role ],
+        [ sh:class ex:Entry ;
+            sh:name "task"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:task ],
+        [ sh:class ex:Entity ;
+            sh:name "institution"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:institution ],
+        [ sh:class ex:Entity ;
+            sh:name "rite"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:rite ] ;
+    sh:targetClass ex:Affiliation .
+
+ex:AttitudeShape a sh:NodeShape ;
+    rdfs:label "Form for Attitude"@en ;
+    sh:property [ sh:class ex:Entry ;
+            sh:name "polarity"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:polarity ],
+        [ sh:class ex:Entry ;
+            sh:name "attitude"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:attitude ],
+        [ sh:class ex:Entry ;
+            sh:minCount 1 ;
+            sh:name "proposition"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:proposition ],
+        [ sh:class ex:Entry ;
+            sh:name "certainty"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:certainty ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "adherent"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:adherent ],
+        [ sh:class ex:Entry ;
+            sh:name "modality"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:modality ] ;
+    sh:targetClass ex:Attitude .
+
+ex:AuthorityShape a sh:NodeShape ;
+    rdfs:label "Form for Authority"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "ruler"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:ruler ],
+        [ sh:class ex:Entry ;
+            sh:minCount 1 ;
+            sh:name "jurisdiction"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:jurisdiction ] ;
+    sh:targetClass ex:Authority .
+
+ex:CausationShape a sh:NodeShape ;
+    rdfs:label "Form for Causation"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "effect"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:effect ],
+        [ sh:class ex:Entity ;
+            sh:name "cause"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:cause ],
+        [ sh:class ex:Entity ;
+            sh:name "causee"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:causee ] ;
+    sh:targetClass ex:Causation .
+
+ex:CognitionShape a sh:NodeShape ;
+    rdfs:label "Form for Cognition"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:name "educator"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:educator ],
+        [ sh:class ex:Entity ;
+            sh:name "method"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:method ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "student"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:student ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "concept"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:concept ],
+        [ sh:class ex:Entry ;
+            sh:name "field"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:field ] ;
+    sh:targetClass ex:Cognition .
+
+ex:CommunicationShape a sh:NodeShape ;
+    rdfs:label "Form for Communication"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "communicator"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:communicator ],
+        [ sh:class ex:Entry ;
+            sh:name "characterization"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:characterization ],
+        [ sh:class ex:Entry ;
+            sh:name "topic"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:topic ],
+        [ sh:class ex:Entity ;
+            sh:name "addressee"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:addressee ],
+        [ sh:class ex:Entry ;
+            sh:name "signal"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:signal ],
+        [ sh:class ex:Entry ;
+            sh:name "language"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:language ],
+        [ sh:class ex:Entity ;
+            sh:name "medium"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:medium ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "message"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:message ] ;
+    sh:targetClass ex:Communication .
+
+ex:ContinuationShape a sh:NodeShape ;
+    rdfs:label "Form for Continuation"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "entity"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:entity ],
+        [ sh:class ex:Entry ;
+            sh:name "state"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:state ] ;
+    sh:targetClass ex:Continuation .
+
+ex:ControlShape a sh:NodeShape ;
+    rdfs:label "Form for Control"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "regulation"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:regulation ],
+        [ sh:class ex:Entity ;
+            sh:name "rule"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:rule ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "subordinate"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:subordinate ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "controller"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:controller ] ;
+    sh:targetClass ex:Control .
+
+ex:CreationShape a sh:NodeShape ;
+    rdfs:label "Form for Creation"@en ;
+    sh:property [ sh:class ex:Entry ;
+            sh:name "material"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:material ],
+        [ sh:class ex:Entity ;
+            sh:name "product"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:product ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "maker"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:maker ],
+        [ sh:class ex:Entity ;
+            sh:name "instrument"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:instrument ],
+        [ sh:class ex:Entity ;
+            sh:name "work"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:work ] ;
+    sh:targetClass ex:Creation .
+
+ex:DesireShape a sh:NodeShape ;
+    rdfs:label "Form for Desire"@en ;
+    sh:property [ sh:class ex:Entry ;
+            sh:minCount 1 ;
+            sh:name "wish"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:wish ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "wisher"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:wisher ] ;
+    sh:targetClass ex:Desire .
+
+ex:EvaluationShape a sh:NodeShape ;
+    rdfs:label "Form for Evaluation"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:name "standard"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:standard ],
+        [ sh:class ex:Entity ;
+            sh:name "item"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:item ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "evaluator"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:evaluator ],
+        [ sh:class ex:Entry ;
+            sh:minCount 1 ;
+            sh:name "sentiment"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:sentiment ],
+        [ sh:class ex:Entry ;
+            sh:minCount 1 ;
+            sh:name "attribute"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:attribute ],
+        [ sh:class ex:Entry ;
+            sh:minCount 1 ;
+            sh:name "value"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:value ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "conclusion"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:conclusion ],
+        [ sh:class ex:Entry ;
+            sh:minCount 1 ;
+            sh:name "multiplier"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:multiplier ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "phenomenon"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:phenomenon ] ;
+    sh:targetClass ex:Evaluation .
+
+ex:ExecutionShape a sh:NodeShape ;
+    rdfs:label "Form for Execution"@en ;
+    sh:property [ sh:class ex:Entry ;
+            sh:name "pe"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:phase ],
+        [ sh:class ex:Entry ;
+            sh:name "modulation"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:modulation ],
+        [ sh:class ex:Entity ;
+            sh:name "executor"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:executor ],
+        [ sh:class ex:Entry ;
+            sh:name "task"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:task ] ;
+    sh:targetClass ex:Execution .
+
+ex:ExistenceShape a sh:NodeShape ;
+    rdfs:label "Form for Existence"@en ;
+    sh:property [ sh:class ex:Entry ;
+            sh:name "mode"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:mode ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "being"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:being ] ;
+    sh:targetClass ex:Existence .
+
+ex:ExperienceShape a sh:NodeShape ;
+    rdfs:label "Form for Experience"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "experiencer"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:experiencer ],
+        [ sh:class ex:Entry ;
+            sh:minCount 1 ;
+            sh:name "stimulus"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:stimulus ] ;
+    sh:targetClass ex:Experience .
+
+ex:ForceShape a sh:NodeShape ;
+    rdfs:label "Form for Force"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "agonist"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:agonist ],
+        [ sh:class ex:Entity ;
+            sh:name "antagonist"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:antagonist ],
+        [ sh:class ex:Entity ;
+            sh:name "means"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:means ] ;
+    sh:targetClass ex:Force .
+
+ex:GovernanceShape a sh:NodeShape ;
+    rdfs:label "Form for Governance"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:name "rule"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:rule ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "subordinate"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:subordinate ] ;
+    sh:targetClass ex:Governance .
+
+ex:InformationShape a sh:NodeShape ;
+    rdfs:label "Form for Information"@en ;
+    sh:property [ sh:class ex:Entry ;
+            sh:name "source"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:source ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "content"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:content ] ;
+    sh:targetClass ex:Information .
+
+ex:InteractionShape a sh:NodeShape ;
+    rdfs:label "Form for Interaction"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:name "interaction"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:interaction ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "interactor"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:interactor ] ;
+    sh:targetClass ex:Interaction .
+
+ex:KinshipShape a sh:NodeShape ;
+    rdfs:label "Form for Kinship"@en ;
+    sh:property [ sh:class ex:Entry ;
+            sh:name "relation"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:relation ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "relative"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:relative ] ;
+    sh:targetClass ex:Kinship .
+
+ex:KnowledgeShape a sh:NodeShape ;
+    rdfs:label "Form for Knowledge"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "knower"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:knower ],
+        [ sh:class ex:Entry ;
+            sh:minCount 1 ;
+            sh:name "knowledge"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:knowledge ] ;
+    sh:targetClass ex:Knowledge .
+
+ex:LocationShape a sh:NodeShape ;
+    rdfs:label "Form for Location"@en ;
+    sh:property [ sh:class ex:Entry ;
+            sh:minCount 1 ;
+            sh:name "landmark"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:landmark ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "trajector"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:trajector ] ;
+    sh:targetClass ex:Location .
+
+ex:MemoryShape a sh:NodeShape ;
+    rdfs:label "Form for Memory"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "witness"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:witness ],
+        [ sh:class ex:Entry ;
+            sh:minCount 1 ;
+            sh:name "impression"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:impression ] ;
+    sh:targetClass ex:Memory .
+
+ex:MotionShape a sh:NodeShape ;
+    rdfs:label "Form for Motion"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:name "mover"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:mover ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "theme"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:theme ],
+        [ sh:class ex:Entry ;
+            sh:name "orientation"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:orientation ],
+        [ sh:class ex:Entity ;
+            sh:name "conveyance"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:conveyance ] ;
+    sh:targetClass ex:Motion .
+
+ex:OccurrenceShape a sh:NodeShape ;
+    rdfs:label "Form for Occurrence"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "situation"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:situation ],
+        [ sh:class ex:Entry ;
+            sh:name "order"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:order ],
+        [ sh:class ex:Entry ;
+            sh:name "manner"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:manner ],
+        [ sh:class ex:Entry ;
+            sh:name "time"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:time ] ;
+    sh:targetClass ex:Occurrence .
+
+ex:PerceptionShape a sh:NodeShape ;
+    rdfs:label "Form for Perception"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:name "sense"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:sense ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "percept"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:percept ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "perceiver"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:perceiver ] ;
+    sh:targetClass ex:Perception .
+
+ex:PossessionShape a sh:NodeShape ;
+    rdfs:label "Form for Possession"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "possessor"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:possessor ],
+        [ sh:class ex:Entry ;
+            sh:minCount 1 ;
+            sh:name "possession"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:possession ] ;
+    sh:targetClass ex:Possession .
+
+ex:TransactionShape a sh:NodeShape ;
+    rdfs:label "Form for Transaction"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:name "recipient"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:recipient ],
+        [ sh:class ex:Entity ;
+            sh:name "transactor"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:transactor ],
+        [ sh:class ex:Entity ;
+            sh:name "item"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:item ],
+        [ sh:class ex:Entity ;
+            sh:name "asset"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:asset ] ;
+    sh:targetClass ex:Transaction .
+
+ex:TransformationShape a sh:NodeShape ;
+    rdfs:label "Form for Transformation"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "undergoer"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:undergoer ],
+        [ sh:class ex:Entity ;
+            sh:name "result"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:result ],
+        [ sh:class ex:Entity ;
+            sh:name "transformer"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:transformer ],
+        [ sh:class ex:Entity ;
+            sh:name "catalyst"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:catalyst ] ;
+    sh:targetClass ex:Transformation .
+
+ex:VolitionShape a sh:NodeShape ;
+    rdfs:label "Form for Volition"@en ;
+    sh:property [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "aim"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:aim ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "aversion"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:aversion ],
+        [ sh:class ex:Entity ;
+            sh:name "stratagem"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:stratagem ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "intender"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:intender ],
+        [ sh:class ex:Entity ;
+            sh:minCount 1 ;
+            sh:name "object"@en ;
+            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:path ex:object ] ;
+    sh:targetClass ex:Volition .
+
