@@ -37,47 +37,70 @@ public class App {
         app.get("/api/forms", App::getForms);
         app.get("/api/lookup", App::lookupVerb);
         app.post("/api/validate", App::validate);
-        app.get("/api/infer-test", App::inferTest);  // ← TEST ENDPOINT
+        app.get("/api/infer-test", App::inferTest);
     }
 
     // -------------------------------------------------------------------------
-    // INFER-TEST: Hardcoded data, bypasses frontend entirely.
-    // Hit GET /api/infer-test in a browser to see raw inference output.
-    // inferred_count > 0 means the rule fired.
-    // inferred_count = 0 means the rule is not firing (TTL/engine problem).
+    // INFER-TEST: Uses Wikidata IRIs for Alphabet and Wiz.
+    // IRIs survive CONSTRUCT without identity loss, confirming whether the
+    // bnode disconnect is the only remaining issue.
+    // GET /api/infer-test
     // -------------------------------------------------------------------------
     private static void inferTest(Context ctx) {
-    try {
-        String testTurtle =
-            "@prefix :    <http://example.org/ontology/> .\n" +
-            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
-            "@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .\n" +
-            "_:s1 a :Dynamic_Possession ;\n" +
-            "    :acquirer _:e1 ; :acquisition _:e2 .\n" +
-            "_:e1 a :Entity ; rdfs:label \"Alphabet\" .\n" +
-            "_:e2 a :Entity ; rdfs:label \"Wiz\" .\n";
+        try {
+            // Alphabet: https://www.wikidata.org/wiki/Q20800404
+            // Wiz:      https://www.wikidata.org/wiki/Q108871753
+            String testTurtle =
+                "@prefix :    <http://example.org/ontology/> .\n" +
+                "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
+                "@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .\n" +
+                "@prefix wd:  <https://www.wikidata.org/wiki/> .\n" +
+                "\n" +
+                "_:s1 a :Dynamic_Possession ;\n" +
+                "    rdfs:label \"acquire\" ;\n" +
+                "    :root      \"acquire\" ;\n" +
+                "    :acquirer  wd:Q20800404 ;\n" +
+                "    :acquisition wd:Q108871753 .\n" +
+                "\n" +
+                "wd:Q20800404  a :Entity ; rdfs:label \"Alphabet\" .\n" +
+                "wd:Q108871753 a :Entity ; rdfs:label \"Wiz\" .\n";
 
-        Model dataModel = JenaUtil.createMemoryModel();
-        dataModel.read(new ByteArrayInputStream(testTurtle.getBytes()), null, "TURTLE");
+            Model dataModel = JenaUtil.createMemoryModel();
+            dataModel.read(new ByteArrayInputStream(testTurtle.getBytes()), null, "TURTLE");
 
-        // No merge
-        Model inferred = RuleUtil.executeRules(dataModel, UNIFIED_GRAPH, null, null);
+            System.out.println("=== INFER-TEST (IRI): data triples ===");
+            RDFDataMgr.write(System.out, dataModel, RDFFormat.TURTLE);
 
-        StringWriter sw = new StringWriter();
-        RDFDataMgr.write(sw, inferred, RDFFormat.TURTLE);
+            System.out.println("=== INFER-TEST (IRI): INFERRED TRIPLES START ===");
+            Model inferred = RuleUtil.executeRules(dataModel, UNIFIED_GRAPH, null, null);
+            RDFDataMgr.write(System.out, inferred, RDFFormat.TURTLE);
+            System.out.println("=== INFER-TEST (IRI): INFERRED TRIPLES END ===");
+            System.out.println("Inferred count: " + inferred.size());
 
-        ctx.json(Map.of(
-            "inferred_count", inferred.size(),
-            "inferred_ttl",   sw.toString()
-        ));
-    } catch (Exception e) {
-        e.printStackTrace();
-        ctx.status(500).json(Map.of(
-            "error",   e.getClass().getName(),
-            "message", String.valueOf(e.getMessage())
-        ));
+            // Merge inferred triples back — IRIs unambiguously identify the
+            // same resources, so the :acquires arc lands on the right subjects.
+            dataModel.add(inferred);
+
+            StringWriter swInferred = new StringWriter();
+            RDFDataMgr.write(swInferred, inferred, RDFFormat.TURTLE);
+
+            StringWriter swExpanded = new StringWriter();
+            RDFDataMgr.write(swExpanded, dataModel, RDFFormat.TURTLE);
+
+            ctx.json(Map.of(
+                "inferred_count",  inferred.size(),
+                "inferred_ttl",    swInferred.toString(),
+                "expanded_data",   swExpanded.toString()
+            ));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            ctx.status(500).json(Map.of(
+                "error",   e.getClass().getName(),
+                "message", String.valueOf(e.getMessage())
+            ));
+        }
     }
-}
 
     // -------------------------------------------------------------------------
     // VALIDATE
@@ -86,25 +109,23 @@ public class App {
         try {
             Model dataModel = JenaUtil.createMemoryModel();
             dataModel.read(new ByteArrayInputStream(ctx.bodyAsBytes()), null, "TURTLE");
-    
-            // No merge — shapes and data stay separate, preserving bnode identity
-            Model inferred = RuleUtil.executeRules(dataModel, UNIFIED_GRAPH, null, null);
-    
+
             System.out.println("==== INFERRED TRIPLES START ====");
+            Model inferred = RuleUtil.executeRules(dataModel, UNIFIED_GRAPH, null, null);
             RDFDataMgr.write(System.out, inferred, RDFFormat.TURTLE);
             System.out.println("==== INFERRED TRIPLES END ====");
             System.out.println("Inferred count: " + inferred.size());
-    
+
             dataModel.add(inferred);
-    
+
             Resource report = ValidationUtil.validateModel(dataModel, UNIFIED_GRAPH, true);
-    
+
             StringWriter swReport = new StringWriter();
             RDFDataMgr.write(swReport, report.getModel(), RDFFormat.TURTLE);
-    
+
             StringWriter swData = new StringWriter();
             RDFDataMgr.write(swData, dataModel, RDFFormat.TURTLE);
-    
+
             ctx.json(Map.of(
                 "conforms",      report.getProperty(SH.conforms).getBoolean(),
                 "report_text",   swReport.toString(),
