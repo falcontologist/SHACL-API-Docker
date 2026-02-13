@@ -17,27 +17,17 @@ app.add_middleware(
 )
 
 # --- CONFIGURATION ---
-# Fetch the ontology from your data repo
-ONTOLOGY_URL = "https://raw.githubusercontent.com/falcontologist/Verbs_to_Situations/main/roles_ontology_clean.ttl"
-# SHACL shapes remain in the local API repo
-SHACL_FILE = "roles_shacl.ttl"
+# Single Source of Truth: This file now contains BOTH Ontology and SHACL Shapes
+DATA_FILE = "roles_shacl.ttl" 
 
-# Load the Graphs
-print("Loading Ontology from GitHub...")
-ONT_GRAPH = rdflib.Graph()
+# Load the Unified Graph
+print(f"Loading unified data from {DATA_FILE}...")
+UNIFIED_GRAPH = rdflib.Graph()
 try:
-    ONT_GRAPH.parse(location=ONTOLOGY_URL, format="turtle")
-    print("Ontology loaded successfully.")
+    UNIFIED_GRAPH.parse(DATA_FILE, format="turtle")
+    print("Graph loaded successfully.")
 except Exception as e:
-    print(f"Error loading ontology: {e}")
-
-print("Loading SHACL Shapes...")
-SHACL_GRAPH = rdflib.Graph()
-try:
-    SHACL_GRAPH.parse(SHACL_FILE, format="turtle")
-    print("SHACL shapes loaded successfully.")
-except Exception as e:
-    print(f"Error loading SHACL file: {e}")
+    print(f"Error loading graph: {e}")
 
 # Define Namespaces
 SH = Namespace("http://www.w3.org/ns/shacl#")
@@ -52,21 +42,21 @@ class ValidateRequest(BaseModel):
 @app.get("/api/forms")
 def get_forms():
     """
-    Returns form definitions based on SHACL shapes found in roles_shacl.ttl
+    Returns form definitions based on SHACL NodeShapes in the unified graph.
     """
     forms = {}
-    for shape in SHACL_GRAPH.subjects(RDF.type, SH.NodeShape):
-        target_class = SHACL_GRAPH.value(shape, SH.targetClass)
+    for shape in UNIFIED_GRAPH.subjects(RDF.type, SH.NodeShape):
+        target_class = UNIFIED_GRAPH.value(shape, SH.targetClass)
         if not target_class:
             continue
             
         shape_name = str(target_class).split("/")[-1]
         fields = []
         
-        for prop in SHACL_GRAPH.objects(shape, SH.property):
-            path = SHACL_GRAPH.value(prop, SH.path)
-            name = SHACL_GRAPH.value(prop, SH.name)
-            min_count = SHACL_GRAPH.value(prop, SH.minCount)
+        for prop in UNIFIED_GRAPH.objects(shape, SH.property):
+            path = UNIFIED_GRAPH.value(prop, SH.path)
+            name = UNIFIED_GRAPH.value(prop, SH.name)
+            min_count = UNIFIED_GRAPH.value(prop, SH.minCount)
             
             if path and name:
                 fields.append({
@@ -80,31 +70,31 @@ def get_forms():
 @app.get("/api/lookup")
 def lookup_verb(verb: str):
     """
-    Queries the remote ontology for a verb's Situation and Semantic Domain.
+    Queries the unified graph for a verb's Situation and Semantic Domain.
     """
     verb_clean = verb.lower().strip().replace(" ", "_")
     verb_uri = ONT[verb_clean]
     
     results = []
     
-    # Find all situations the verb evokes
-    situations = list(ONT_GRAPH.objects(verb_uri, ONT.evokes))
+    # 1. Find all situations the verb evokes
+    situations = list(UNIFIED_GRAPH.objects(verb_uri, ONT.evokes))
     
     if not situations:
-        # Fallback check: maybe the verb exists but doesn't have an evokes triple yet
-        if (verb_uri, RDF.type, ONT.Verb) in ONT_GRAPH:
+        # Fallback: Check if verb exists at all
+        if (verb_uri, RDF.type, ONT.Verb) in UNIFIED_GRAPH:
              return {"found": True, "verb": verb, "mappings": [], "message": "Verb exists but no situations mapped."}
         return {"found": False, "message": f"Verb '{verb}' not found in ontology."}
 
     for sit in situations:
         sit_name = str(sit).split("/")[-1]
         
-        # Find the Semantic Domain (used for SHACL form fallback)
-        domain = ONT_GRAPH.value(verb_uri, ONT.semantic_domain)
+        # 2. Find the Semantic Domain (Fallback for SHACL)
+        domain = UNIFIED_GRAPH.value(verb_uri, ONT.semantic_domain)
         domain_name = str(domain).split("/")[-1] if domain else None
         
-        # Get VN Class if available
-        vn = ONT_GRAPH.value(verb_uri, ONT.vn_class)
+        # 3. Get VN Class
+        vn = UNIFIED_GRAPH.value(verb_uri, ONT.vn_class)
         vn_name = str(vn).split("/")[-1] if vn else "Unknown"
 
         results.append({
@@ -128,10 +118,11 @@ def validate_graph(request: ValidateRequest):
     except Exception as e:
         return {"conforms": False, "detail": str(e)}
 
+    # Validate using the Unified Graph as both the SHACL file and the Ontology file
     conforms, report_graph, report_text = validate(
         data_graph,
-        shacl_graph=SHACL_GRAPH,
-        ont_graph=ONT_GRAPH,
+        shacl_graph=UNIFIED_GRAPH,
+        ont_graph=UNIFIED_GRAPH,
         inference='rdfs',
         abort_on_first=False,
         meta_shacl=False,
