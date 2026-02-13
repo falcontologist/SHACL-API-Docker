@@ -8,6 +8,8 @@ import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
+// The Critical Import
+import org.topbraid.shacl.util.JenaUtil;
 import org.topbraid.shacl.rules.RuleUtil;
 import org.topbraid.shacl.validation.ValidationUtil;
 import org.topbraid.shacl.vocabulary.SH;
@@ -18,42 +20,78 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class App {
-    // Single Source of Truth
+    // Unified Graph (Ontology + Shapes)
     private static final Model UNIFIED_GRAPH = RDFDataMgr.loadModel("roles_shacl.ttl");
     private static final String ONT_NS = "http://example.org/ontology/";
 
     public static void main(String[] args) {
+        // --- 1. THE FIX: INITIALIZE TOPBRAID SHACL ENGINE ---
+        JenaUtil.init(); 
+        System.out.println("TopBraid SHACL Engine Initialized.");
+
         Javalin app = Javalin.create(config -> {
             config.bundledPlugins.enableCors(cors -> cors.addRule(it -> it.anyHost()));
         }).start(8000);
 
-        app.get("/", ctx -> ctx.result("TopBraid SHACL API Online"));
+        app.get("/", ctx -> ctx.result("TopBraid SHACL API Online (JenaUtil Initialized)"));
         app.get("/api/stats", App::getStats);
         app.get("/api/forms", App::getForms);
         app.get("/api/lookup", App::lookupVerb);
         app.post("/api/validate", App::validate);
     }
 
+    private static void validate(Context ctx) {
+        try {
+            // 1. Load User Data
+            Model dataModel = ModelFactory.createDefaultModel();
+            dataModel.read(new ByteArrayInputStream(ctx.bodyAsBytes()), null, "TURTLE");
+
+            // 2. EXECUTE RULES (Native TopBraid Engine)
+            // This now works because JenaUtil.init() was called!
+            Model inferred = RuleUtil.executeRules(dataModel, UNIFIED_GRAPH, null, null);
+            
+            // --- DEBUG: Print Inferences to Console ---
+            System.out.println("==== INFERRED TRIPLES START ====");
+            RDFDataMgr.write(System.out, inferred, RDFFormat.TURTLE);
+            System.out.println("==== INFERRED TRIPLES END ====");
+            
+            dataModel.add(inferred);
+
+            // 3. VALIDATE
+            Resource report = ValidationUtil.validateModel(dataModel, UNIFIED_GRAPH, true);
+            
+            StringWriter swReport = new StringWriter();
+            RDFDataMgr.write(swReport, report.getModel(), RDFFormat.TURTLE);
+            
+            StringWriter swData = new StringWriter();
+            RDFDataMgr.write(swData, dataModel, RDFFormat.TURTLE);
+
+            ctx.json(Map.of(
+                "conforms", report.getProperty(SH.conforms).getBoolean(),
+                "report_text", swReport.toString(),
+                "expanded_data", swData.toString()
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            ctx.status(500).result("Error: " + e.getMessage());
+        }
+    }
+
     private static void getForms(Context ctx) {
         Map<String, Object> response = new HashMap<>();
         Map<String, Map<String, Object>> forms = new HashMap<>();
 
-        // Iterate all Shapes
         UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).forEachRemaining(shape -> {
             if (!shape.hasProperty(SH.targetClass)) return;
-            
             Resource targetClass = shape.getPropertyResourceValue(SH.targetClass);
             String name = targetClass.getLocalName();
 
-            // Create entry for this Target Class
             forms.putIfAbsent(name, new HashMap<>(Map.of(
                 "target_class", targetClass.getURI(),
                 "fields", new ArrayList<Map<String, Object>>()
             )));
 
             List<Map<String, Object>> fields = (List<Map<String, Object>>) forms.get(name).get("fields");
-
-            // Avoid duplicates
             Set<String> existingPaths = new HashSet<>();
             for(Map<String, Object> f : fields) existingPaths.add((String) f.get("path"));
 
@@ -64,7 +102,6 @@ public class App {
                 String path = prop.getPropertyResourceValue(SH.path).getURI();
                 if (existingPaths.contains(path)) return; 
 
-                // Field Type Logic
                 String type = "text";
                 Resource datatype = prop.getPropertyResourceValue(SH.datatype);
                 if (datatype != null && (datatype.equals(XSD.integer) || datatype.equals(XSD.xint))) type = "number";
@@ -74,6 +111,30 @@ public class App {
 
                 fields.add(Map.of("path", path, "label", label, "type", type, "required", required));
             });
+        });
+
+        // Form Inheritance Logic
+        Property semanticDomainProp = UNIFIED_GRAPH.createProperty(ONT_NS + "semantic_domain");
+        UNIFIED_GRAPH.listSubjectsWithProperty(semanticDomainProp).forEachRemaining(situation -> {
+            Resource domain = situation.getPropertyResourceValue(semanticDomainProp);
+            String situationName = situation.getLocalName();
+            String domainName = domain.getLocalName();
+
+            if (forms.containsKey(domainName)) {
+                forms.putIfAbsent(situationName, new HashMap<>(Map.of(
+                    "target_class", situation.getURI(),
+                    "fields", new ArrayList<Map<String, Object>>()
+                )));
+                List<Map<String, Object>> sitFields = (List<Map<String, Object>>) forms.get(situationName).get("fields");
+                List<Map<String, Object>> domainFields = (List<Map<String, Object>>) forms.get(domainName).get("fields");
+                
+                Set<String> existing = new HashSet<>();
+                for(Map<String, Object> f : sitFields) existing.add((String) f.get("path"));
+                
+                for(Map<String, Object> f : domainFields) {
+                    if(!existing.contains((String) f.get("path"))) sitFields.add(f);
+                }
+            }
         });
 
         response.put("forms", forms);
@@ -90,54 +151,25 @@ public class App {
         Property evokesProp = UNIFIED_GRAPH.createProperty(ONT_NS + "evokes");
         Property semanticDomainProp = UNIFIED_GRAPH.createProperty(ONT_NS + "semantic_domain");
 
-        // 1. Find Verb
         ResIterator verbs = UNIFIED_GRAPH.listSubjectsWithProperty(evokesProp);
         while (verbs.hasNext()) {
             Resource v = verbs.next();
             if (v.hasProperty(labelProp) && v.getProperty(labelProp).getString().toLowerCase().equals(verb)) {
-                
-                // 2. Find Evoked Situations
                 StmtIterator evokes = v.listProperties(evokesProp);
                 while (evokes.hasNext()) {
                     Resource situation = evokes.next().getResource();
-                    
-                    // 3. CRITICAL: Follow semantic_domain link
-                    // This is the bridge from "Dynamic_Possession" -> "Possession"
                     Resource domain = situation;
                     if (situation.hasProperty(semanticDomainProp)) {
                         domain = situation.getPropertyResourceValue(semanticDomainProp);
                     }
-                    
                     mappings.add(Map.of(
-                        "situation", situation.getLocalName(),    // Display Name
-                        "fallback_domain", domain.getLocalName()  // Form Lookup Key
+                        "situation", situation.getLocalName(),
+                        "fallback_domain", domain.getLocalName()
                     ));
                 }
             }
         }
         ctx.json(Map.of("found", !mappings.isEmpty(), "mappings", mappings));
-    }
-
-    private static void validate(Context ctx) {
-        try {
-            Model dataModel = ModelFactory.createDefaultModel();
-            dataModel.read(new ByteArrayInputStream(ctx.bodyAsBytes()), null, "TURTLE");
-
-            Model inferred = RuleUtil.executeRules(dataModel, UNIFIED_GRAPH, null, null);
-            dataModel.add(inferred);
-
-            Resource report = ValidationUtil.validateModel(dataModel, UNIFIED_GRAPH, true);
-            
-            StringWriter swReport = new StringWriter();
-            RDFDataMgr.write(swReport, report.getModel(), RDFFormat.TURTLE);
-            StringWriter swData = new StringWriter();
-            RDFDataMgr.write(swData, dataModel, RDFFormat.TURTLE);
-
-            ctx.json(Map.of("conforms", report.getProperty(SH.conforms).getBoolean(), "report_text", swReport.toString(), "expanded_data", swData.toString()));
-        } catch (Exception e) {
-            e.printStackTrace();
-            ctx.status(500).result(e.getMessage());
-        }
     }
 
     private static void getStats(Context ctx) {
