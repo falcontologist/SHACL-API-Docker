@@ -7,7 +7,7 @@ from rdflib.namespace import RDF, RDFS
 
 app = FastAPI()
 
-# Enable CORS for CodePen
+# Enable CORS for CodePen access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,22 +17,30 @@ app.add_middleware(
 )
 
 # --- CONFIGURATION ---
-# Points to your clean ontology as the source of truth
-ONTOLOGY_FILE = "roles_ontology_clean.ttl"
+# Fetch the ontology from your data repo
+ONTOLOGY_URL = "https://raw.githubusercontent.com/falcontologist/Verbs_to_Situations/main/roles_ontology_clean.ttl"
+# SHACL shapes remain in the local API repo
 SHACL_FILE = "roles_shacl.ttl"
 
 # Load the Graphs
-print("Loading Ontology...")
+print("Loading Ontology from GitHub...")
 ONT_GRAPH = rdflib.Graph()
-ONT_GRAPH.parse(ONTOLOGY_FILE, format="turtle")
+try:
+    ONT_GRAPH.parse(location=ONTOLOGY_URL, format="turtle")
+    print("Ontology loaded successfully.")
+except Exception as e:
+    print(f"Error loading ontology: {e}")
 
 print("Loading SHACL Shapes...")
 SHACL_GRAPH = rdflib.Graph()
-SHACL_GRAPH.parse(SHACL_FILE, format="turtle")
+try:
+    SHACL_GRAPH.parse(SHACL_FILE, format="turtle")
+    print("SHACL shapes loaded successfully.")
+except Exception as e:
+    print(f"Error loading SHACL file: {e}")
 
 # Define Namespaces
 SH = Namespace("http://www.w3.org/ns/shacl#")
-# We use the empty prefix from your clean ontology
 ONT = Namespace("http://example.org/ontology/")
 
 # --- DATA MODELS ---
@@ -44,13 +52,10 @@ class ValidateRequest(BaseModel):
 @app.get("/api/forms")
 def get_forms():
     """
-    Returns form definitions based on SHACL shapes.
+    Returns form definitions based on SHACL shapes found in roles_shacl.ttl
     """
     forms = {}
-    
-    # Find all NodeShapes
     for shape in SHACL_GRAPH.subjects(RDF.type, SH.NodeShape):
-        # Get the target class (e.g., :Possession)
         target_class = SHACL_GRAPH.value(shape, SH.targetClass)
         if not target_class:
             continue
@@ -58,7 +63,6 @@ def get_forms():
         shape_name = str(target_class).split("/")[-1]
         fields = []
         
-        # Find all property constraints
         for prop in SHACL_GRAPH.objects(shape, SH.property):
             path = SHACL_GRAPH.value(prop, SH.path)
             name = SHACL_GRAPH.value(prop, SH.name)
@@ -70,44 +74,43 @@ def get_forms():
                     "name": str(name),
                     "required": (min_count is not None and int(min_count) > 0)
                 })
-        
         forms[shape_name] = fields
-        
     return {"forms": forms}
 
 @app.get("/api/lookup")
 def lookup_verb(verb: str):
     """
-    Searches the ontology for a verb and returns its Situation 
-    and Semantic Domain fallback.
+    Queries the remote ontology for a verb's Situation and Semantic Domain.
     """
-    verb_uri = ONT[verb.lower().replace(" ", "_")]
+    verb_clean = verb.lower().strip().replace(" ", "_")
+    verb_uri = ONT[verb_clean]
     
-    # Query: Find what this verb evokes and its domain
-    # We look for: :verb :evokes ?sit . :verb :semantic_domain ?domain
     results = []
     
-    # 1. Find evoked situations
+    # Find all situations the verb evokes
     situations = list(ONT_GRAPH.objects(verb_uri, ONT.evokes))
     
     if not situations:
-        return {"found": False, "message": "Verb not found in ontology."}
+        # Fallback check: maybe the verb exists but doesn't have an evokes triple yet
+        if (verb_uri, RDF.type, ONT.Verb) in ONT_GRAPH:
+             return {"found": True, "verb": verb, "mappings": [], "message": "Verb exists but no situations mapped."}
+        return {"found": False, "message": f"Verb '{verb}' not found in ontology."}
 
     for sit in situations:
         sit_name = str(sit).split("/")[-1]
         
-        # 2. Find the Semantic Domain for this verb (The Fallback)
-        # Note: In your ontology, the domain is attached to the VERB, not always the situation subclass
+        # Find the Semantic Domain (used for SHACL form fallback)
         domain = ONT_GRAPH.value(verb_uri, ONT.semantic_domain)
+        domain_name = str(domain).split("/")[-1] if domain else None
         
-        domain_name = None
-        if domain:
-            domain_name = str(domain).split("/")[-1]
-            
+        # Get VN Class if available
+        vn = ONT_GRAPH.value(verb_uri, ONT.vn_class)
+        vn_name = str(vn).split("/")[-1] if vn else "Unknown"
+
         results.append({
-            "situation": sit_name,      # The specific event (e.g. Dynamic_Possession)
-            "fallback_domain": domain_name, # The Shape to use (e.g. Possession)
-            "vn_class": "Unknown"       # Placeholder if needed later
+            "situation": sit_name,
+            "fallback_domain": domain_name,
+            "vn_class": vn_name
         })
 
     return {
@@ -119,14 +122,12 @@ def lookup_verb(verb: str):
 @app.post("/api/validate")
 def validate_graph(request: ValidateRequest):
     from pyshacl import validate
-    
     data_graph = rdflib.Graph()
     try:
         data_graph.parse(data=request.turtle_data, format="turtle")
     except Exception as e:
         return {"conforms": False, "detail": str(e)}
 
-    # Run Validation
     conforms, report_graph, report_text = validate(
         data_graph,
         shacl_graph=SHACL_GRAPH,
@@ -141,3 +142,7 @@ def validate_graph(request: ValidateRequest):
         "conforms": conforms,
         "report_text": report_text
     }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
