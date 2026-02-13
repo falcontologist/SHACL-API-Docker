@@ -534,19 +534,51 @@ ex:PerceptionShape a sh:NodeShape ;
             sh:path ex:perceiver ] ;
     sh:targetClass ex:Perception .
 
-ex:PossessionShape a sh:NodeShape ;
+:PossessionShape a sh:NodeShape ;
     rdfs:label "Form for Possession"@en ;
-    sh:property [ sh:class ex:Entity ;
-            sh:minCount 1 ;
-            sh:name "possessor"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
-            sh:path ex:possessor ],
-        [ sh:class ex:Entry ;
-            sh:minCount 1 ;
-            sh:name "possession"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
-            sh:path ex:possession ] ;
-    sh:targetClass ex:Possession .
+    sh:targetClass :Possession ;
+    sh:property [ 
+        sh:path :possessor ;
+        sh:name "possessor"@en ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:BlankNodeOrIRIOrLiteral 
+    ] ,
+    [ 
+        sh:path :possession ;
+        sh:name "possession"@en ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:BlankNodeOrIRIOrLiteral 
+    ] ,
+    [ 
+        sh:path :transactor ;
+        sh:name "transactor"@en ;
+        sh:nodeKind sh:BlankNodeOrIRIOrLiteral 
+    ] ,
+    [ 
+        sh:path :asset ;
+        sh:name "asset"@en ;
+        sh:nodeKind sh:BlankNodeOrIRIOrLiteral 
+    ] ,
+    [ 
+        sh:path :item ;
+        sh:name "item"@en ;
+        sh:nodeKind sh:BlankNodeOrIRIOrLiteral 
+    ] ,
+    [ 
+        sh:path :recipient ;
+        sh:name "recipient"@en ;
+        sh:nodeKind sh:BlankNodeOrIRIOrLiteral 
+    ] ,
+    [ 
+        sh:path :origin ;
+        sh:name "origin"@en ;
+        sh:nodeKind sh:BlankNodeOrIRIOrLiteral 
+    ] ,
+    [ 
+        sh:path :affectee ;
+        sh:name "affectee"@en ;
+        sh:nodeKind sh:BlankNodeOrIRIOrLiteral 
+    ] .
 
 ex:TransactionShape a sh:NodeShape ;
     rdfs:label "Form for Transaction"@en ;
