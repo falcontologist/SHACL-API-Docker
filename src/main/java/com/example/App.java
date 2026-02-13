@@ -48,6 +48,7 @@ public class App {
             //    registers the SHACL/DASH system namespaces that TopBraid needs internally.
             Model dataModel = JenaUtil.createMemoryModel();
             dataModel.read(new ByteArrayInputStream(ctx.bodyAsBytes()), null, "TURTLE");
+            dataModel.setNsPrefixes(UNIFIED_GRAPH.getNsPrefixMap());
 
             // 2. Merge: give RuleUtil a combined view of ontology + user data so the
             //    SPARQL WHERE clauses in sh:SPARQLRule blocks can resolve ontology-level
@@ -55,6 +56,7 @@ public class App {
             Model dataWithContext = JenaUtil.createMemoryModel();
             dataWithContext.add(UNIFIED_GRAPH);
             dataWithContext.add(dataModel);
+            dataWithContext.setNsPrefixes(UNIFIED_GRAPH.getNsPrefixMap());
 
             // 3. Execute SHACL Advanced Features rules.
             //    Rules are read from UNIFIED_GRAPH; they execute against dataWithContext.
