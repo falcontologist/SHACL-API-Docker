@@ -8,8 +8,6 @@ import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
-// The Critical Import
-import org.topbraid.shacl.util.JenaUtil;
 import org.topbraid.shacl.rules.RuleUtil;
 import org.topbraid.shacl.validation.ValidationUtil;
 import org.topbraid.shacl.vocabulary.SH;
@@ -25,21 +23,18 @@ public class App {
     private static final String ONT_NS = "http://example.org/ontology/";
 
     public static void main(String[] args) {
-        // --- 1. THE FIX: INITIALIZE TOPBRAID SHACL ENGINE ---
-        JenaUtil.init(); 
-        System.out.println("TopBraid SHACL Engine Initialized.");
 
-        Javalin app = Javalin.create(config -> {
-            config.bundledPlugins.enableCors(cors -> cors.addRule(it -> it.anyHost()));
-        }).start(8000);
+    Javalin app = Javalin.create(config -> {
+        config.bundledPlugins.enableCors(cors -> cors.addRule(it -> it.anyHost()));
+    }).start(8000);
 
-        app.get("/", ctx -> ctx.result("TopBraid SHACL API Online (JenaUtil Initialized)"));
-        app.get("/api/stats", App::getStats);
-        app.get("/api/forms", App::getForms);
-        app.get("/api/lookup", App::lookupVerb);
-        app.post("/api/validate", App::validate);
-    }
-
+    app.get("/", ctx -> ctx.result("TopBraid SHACL API Online"));
+    app.get("/api/stats", App::getStats);
+    app.get("/api/forms", App::getForms);
+    app.get("/api/lookup", App::lookupVerb);
+    app.post("/api/validate", App::validate);
+}
+    
     private static void validate(Context ctx) {
         try {
             // 1. Load User Data
