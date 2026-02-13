@@ -42,7 +42,7 @@ public class App {
             Resource targetClass = shape.getPropertyResourceValue(SH.targetClass);
             String name = targetClass.getLocalName();
 
-            // 1. Initialize map if not present (Merge logic)
+            // Initialize the Form Entry for this Domain
             forms.putIfAbsent(name, new HashMap<>(Map.of(
                 "target_class", targetClass.getURI(),
                 "fields", new ArrayList<Map<String, Object>>()
@@ -51,7 +51,7 @@ public class App {
             Map<String, Object> formData = forms.get(name);
             List<Map<String, Object>> fields = (List<Map<String, Object>>) formData.get("fields");
 
-            // 2. Track existing paths to prevent duplicates during merge
+            // Track existing paths to prevent duplicates when aggregating
             Set<String> existingPaths = new HashSet<>();
             for(Map<String, Object> f : fields) existingPaths.add((String) f.get("path"));
 
@@ -60,17 +60,23 @@ public class App {
                 if (!prop.hasProperty(SH.path)) return;
                 
                 String path = prop.getPropertyResourceValue(SH.path).getURI();
-                if (existingPaths.contains(path)) return; // Skip dupes
+                if (existingPaths.contains(path)) return; // Already have this field
 
+                // Determine Field Type (Text vs Number)
                 String type = "text";
                 Resource datatype = prop.getPropertyResourceValue(SH.datatype);
-                if (datatype != null && datatype.equals(XSD.integer)) type = "number";
+                if (datatype != null && (datatype.equals(XSD.integer) || datatype.equals(XSD.xint))) {
+                    type = "number";
+                }
                 
                 String label = prop.hasProperty(SH.name) ? prop.getProperty(SH.name).getString() : path.substring(path.lastIndexOf('/')+1);
                 boolean required = prop.hasProperty(SH.minCount) && prop.getProperty(SH.minCount).getInt() > 0;
 
                 fields.add(Map.of(
-                    "path", path, "label", label, "type", type, "required", required
+                    "path", path, 
+                    "label", label, 
+                    "type", type, 
+                    "required", required
                 ));
             });
         });
@@ -79,47 +85,16 @@ public class App {
         ctx.json(response);
     }
 
-    private static void validate(Context ctx) {
-        try {
-            Model dataModel = ModelFactory.createDefaultModel();
-            dataModel.read(new ByteArrayInputStream(ctx.bodyAsBytes()), null, "TURTLE");
-
-            Model inferred = RuleUtil.executeRules(dataModel, UNIFIED_GRAPH, null, null);
-            dataModel.add(inferred);
-
-            Resource report = ValidationUtil.validateModel(dataModel, UNIFIED_GRAPH, true);
-            
-            StringWriter swReport = new StringWriter();
-            RDFDataMgr.write(swReport, report.getModel(), RDFFormat.TURTLE);
-            StringWriter swData = new StringWriter();
-            RDFDataMgr.write(swData, dataModel, RDFFormat.TURTLE);
-
-            ctx.json(Map.of("conforms", report.getProperty(SH.conforms).getBoolean(), "report_text", swReport.toString(), "expanded_data", swData.toString()));
-        } catch (Exception e) {
-            ctx.status(500).result(e.getMessage());
-        }
-    }
-
-    private static void getStats(Context ctx) {
-        long shapes = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).toList().size();
-        Set<String> roles = new HashSet<>();
-        UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).forEachRemaining(s -> 
-            s.listProperties(SH.property).forEachRemaining(p -> {
-                if(p.getResource().hasProperty(SH.path)) roles.add(p.getResource().getPropertyResourceValue(SH.path).getURI());
-            })
-        );
-        long lemmas = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, UNIFIED_GRAPH.createResource(ONT_NS + "Verb")).toList().size();
-        long senses = UNIFIED_GRAPH.listStatements(null, UNIFIED_GRAPH.createProperty(ONT_NS + "evokes"), (RDFNode) null).toList().size();
-        ctx.json(Map.of("shapes", shapes, "roles", roles.size(), "lemmas", lemmas, "senses", senses));
-    }
-
     private static void lookupVerb(Context ctx) {
         String query = ctx.queryParam("verb");
         if (query == null) { ctx.json(Map.of("found", false)); return; }
         String verb = query.trim().toLowerCase();
+
         List<Map<String, String>> mappings = new ArrayList<>();
         Property labelProp = RDFS.label;
         Property evokesProp = UNIFIED_GRAPH.createProperty(ONT_NS + "evokes");
+        Property semanticDomainProp = UNIFIED_GRAPH.createProperty(ONT_NS + "semantic_domain");
+
         ResIterator verbs = UNIFIED_GRAPH.listSubjectsWithProperty(evokesProp);
         while (verbs.hasNext()) {
             Resource v = verbs.next();
@@ -127,11 +102,12 @@ public class App {
                 StmtIterator evokes = v.listProperties(evokesProp);
                 while (evokes.hasNext()) {
                     Resource situation = evokes.next().getResource();
-                    String name = situation.getLocalName();
-                    mappings.add(Map.of("situation", name, "fallback_domain", name));
-                }
-            }
-        }
-        ctx.json(Map.of("found", !mappings.isEmpty(), "mappings", mappings));
-    }
-}
+                    
+                    // WORKFLOW LOGIC: Verb -> Situation -> Semantic Domain
+                    Resource domain = situation;
+                    if (situation.hasProperty(semanticDomainProp)) {
+                        domain = situation.getPropertyResourceValue(semanticDomainProp);
+                    }
+                    
+                    String name = domain.getLocalName();
+                    mappings.add(Map.of
