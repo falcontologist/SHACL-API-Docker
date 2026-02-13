@@ -27866,12 +27866,6 @@
     sh:declare [ sh:prefix "xsd" ;
                  sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ] .
 
-:acquires a rdf:Property ;
-    rdfs:label "acquires"@en .
-
-:acquirer a rdf:Property ;
-    rdfs:label "acquirer"@en .
-
 :acquisition a rdf:Property ;
     rdfs:label "acquisition"@en .
 
