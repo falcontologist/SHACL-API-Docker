@@ -24,40 +24,50 @@ public class App {
 
     public static void main(String[] args) {
 
-    Javalin app = Javalin.create(config -> {
-        config.bundledPlugins.enableCors(cors -> cors.addRule(it -> it.anyHost()));
-    }).start(8000);
+        Javalin app = Javalin.create(config -> {
+            config.bundledPlugins.enableCors(cors -> cors.addRule(it -> it.anyHost()));
+        }).start(8000);
 
-    app.get("/", ctx -> ctx.result("TopBraid SHACL API Online"));
-    app.get("/api/stats", App::getStats);
-    app.get("/api/forms", App::getForms);
-    app.get("/api/lookup", App::lookupVerb);
-    app.post("/api/validate", App::validate);
-}
-    
+        app.get("/", ctx -> ctx.result("TopBraid SHACL API Online"));
+        app.get("/api/stats", App::getStats);
+        app.get("/api/forms", App::getForms);
+        app.get("/api/lookup", App::lookupVerb);
+        app.post("/api/validate", App::validate);
+    }
+
     private static void validate(Context ctx) {
         try {
-            // 1. Load User Data
+            // 1. Load user data
             Model dataModel = ModelFactory.createDefaultModel();
             dataModel.read(new ByteArrayInputStream(ctx.bodyAsBytes()), null, "TURTLE");
 
-            // 2. EXECUTE RULES (Native TopBraid Engine)
-            // This now works because JenaUtil.init() was called!
-            Model inferred = RuleUtil.executeRules(dataModel, UNIFIED_GRAPH, null, null);
-            
-            // --- DEBUG: Print Inferences to Console ---
+            // 2. Build a merged model: ontology context + user data.
+            //    RuleUtil needs the full graph so the SPARQL WHERE clauses in
+            //    sh:SPARQLRule blocks can resolve ontology-level terms (class
+            //    definitions, property declarations, etc.) alongside the user triples.
+            Model dataWithContext = ModelFactory.createDefaultModel();
+            dataWithContext.add(UNIFIED_GRAPH);
+            dataWithContext.add(dataModel);
+
+            // 3. Execute SHACL Advanced Features rules (TopBraid engine).
+            //    Rules are read from UNIFIED_GRAPH; they fire against dataWithContext.
+            Model inferred = RuleUtil.executeRules(dataWithContext, UNIFIED_GRAPH, null, null);
+
+            // --- DEBUG: print inferred triples to console ---
             System.out.println("==== INFERRED TRIPLES START ====");
             RDFDataMgr.write(System.out, inferred, RDFFormat.TURTLE);
             System.out.println("==== INFERRED TRIPLES END ====");
-            
+
+            // 4. Add only the net-new inferred triples back into the user model
+            //    (not the full ontology context).
             dataModel.add(inferred);
 
-            // 3. VALIDATE
+            // 5. Validate the enriched user data against the shapes.
             Resource report = ValidationUtil.validateModel(dataModel, UNIFIED_GRAPH, true);
-            
+
             StringWriter swReport = new StringWriter();
             RDFDataMgr.write(swReport, report.getModel(), RDFFormat.TURTLE);
-            
+
             StringWriter swData = new StringWriter();
             RDFDataMgr.write(swData, dataModel, RDFFormat.TURTLE);
 
@@ -88,20 +98,20 @@ public class App {
 
             List<Map<String, Object>> fields = (List<Map<String, Object>>) forms.get(name).get("fields");
             Set<String> existingPaths = new HashSet<>();
-            for(Map<String, Object> f : fields) existingPaths.add((String) f.get("path"));
+            for (Map<String, Object> f : fields) existingPaths.add((String) f.get("path"));
 
             shape.listProperties(SH.property).forEachRemaining(p -> {
                 Resource prop = p.getResource();
                 if (!prop.hasProperty(SH.path)) return;
-                
+
                 String path = prop.getPropertyResourceValue(SH.path).getURI();
-                if (existingPaths.contains(path)) return; 
+                if (existingPaths.contains(path)) return;
 
                 String type = "text";
                 Resource datatype = prop.getPropertyResourceValue(SH.datatype);
                 if (datatype != null && (datatype.equals(XSD.integer) || datatype.equals(XSD.xint))) type = "number";
-                
-                String label = prop.hasProperty(SH.name) ? prop.getProperty(SH.name).getString() : path.substring(path.lastIndexOf('/')+1);
+
+                String label = prop.hasProperty(SH.name) ? prop.getProperty(SH.name).getString() : path.substring(path.lastIndexOf('/') + 1);
                 boolean required = prop.hasProperty(SH.minCount) && prop.getProperty(SH.minCount).getInt() > 0;
 
                 fields.add(Map.of("path", path, "label", label, "type", type, "required", required));
@@ -122,12 +132,12 @@ public class App {
                 )));
                 List<Map<String, Object>> sitFields = (List<Map<String, Object>>) forms.get(situationName).get("fields");
                 List<Map<String, Object>> domainFields = (List<Map<String, Object>>) forms.get(domainName).get("fields");
-                
+
                 Set<String> existing = new HashSet<>();
-                for(Map<String, Object> f : sitFields) existing.add((String) f.get("path"));
-                
-                for(Map<String, Object> f : domainFields) {
-                    if(!existing.contains((String) f.get("path"))) sitFields.add(f);
+                for (Map<String, Object> f : sitFields) existing.add((String) f.get("path"));
+
+                for (Map<String, Object> f : domainFields) {
+                    if (!existing.contains((String) f.get("path"))) sitFields.add(f);
                 }
             }
         });
@@ -170,9 +180,9 @@ public class App {
     private static void getStats(Context ctx) {
         long shapes = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).toList().size();
         Set<String> roles = new HashSet<>();
-        UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).forEachRemaining(s -> 
+        UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).forEachRemaining(s ->
             s.listProperties(SH.property).forEachRemaining(p -> {
-                if(p.getResource().hasProperty(SH.path)) 
+                if (p.getResource().hasProperty(SH.path))
                     roles.add(p.getResource().getPropertyResourceValue(SH.path).getURI());
             })
         );
