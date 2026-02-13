@@ -47,59 +47,37 @@ public class App {
     // inferred_count = 0 means the rule is not firing (TTL/engine problem).
     // -------------------------------------------------------------------------
     private static void inferTest(Context ctx) {
-        try {
-            // Hardcoded minimal data — exactly equivalent to what the frontend sends
-            String testTurtle =
-                "@prefix :    <http://example.org/ontology/> .\n" +
-                "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
-                "@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .\n" +
-                "\n" +
-                "_:s1 a :Dynamic_Possession ;\n" +
-                "    rdfs:label \"acquire\" ;\n" +
-                "    :root \"acquire\" ;\n" +
-                "    :acquirer _:e1 ;\n" +
-                "    :acquisition _:e2 .\n" +
-                "\n" +
-                "_:e1 a :Entity ; rdfs:label \"Alphabet\" .\n" +
-                "_:e2 a :Entity ; rdfs:label \"Wiz\" .\n";
+    try {
+        String testTurtle =
+            "@prefix :    <http://example.org/ontology/> .\n" +
+            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
+            "@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .\n" +
+            "_:s1 a :Dynamic_Possession ;\n" +
+            "    :acquirer _:e1 ; :acquisition _:e2 .\n" +
+            "_:e1 a :Entity ; rdfs:label \"Alphabet\" .\n" +
+            "_:e2 a :Entity ; rdfs:label \"Wiz\" .\n";
 
-            Model dataModel = JenaUtil.createMemoryModel();
-            dataModel.read(new ByteArrayInputStream(testTurtle.getBytes()), null, "TURTLE");
+        Model dataModel = JenaUtil.createMemoryModel();
+        dataModel.read(new ByteArrayInputStream(testTurtle.getBytes()), null, "TURTLE");
 
-            Model dataWithContext = JenaUtil.createMemoryModel();
-            dataWithContext.add(UNIFIED_GRAPH);
-            dataWithContext.add(dataModel);
-            dataWithContext.setNsPrefixes(UNIFIED_GRAPH.getNsPrefixMap());
+        // No merge
+        Model inferred = RuleUtil.executeRules(dataModel, UNIFIED_GRAPH, null, null);
 
-            // Log prefix map so we can confirm it is populated
-            System.out.println("=== INFER-TEST: prefix map ===");
-            dataWithContext.getNsPrefixMap().forEach((k, v) ->
-                System.out.println("  " + k + " -> " + v));
+        StringWriter sw = new StringWriter();
+        RDFDataMgr.write(sw, inferred, RDFFormat.TURTLE);
 
-            System.out.println("=== INFER-TEST: INFERRED TRIPLES START ===");
-            Model inferred = RuleUtil.executeRules(dataWithContext, UNIFIED_GRAPH, null, null);
-            RDFDataMgr.write(System.out, inferred, RDFFormat.TURTLE);
-            System.out.println("=== INFER-TEST: INFERRED TRIPLES END ===");
-
-            StringWriter sw = new StringWriter();
-            RDFDataMgr.write(sw, inferred, RDFFormat.TURTLE);
-
-            ctx.json(Map.of(
-                "inferred_count", inferred.size(),
-                "inferred_ttl",   sw.toString(),
-                "unified_graph_size", UNIFIED_GRAPH.size(),
-                "unified_graph_prefixes", UNIFIED_GRAPH.getNsPrefixMap(),
-                "dataWithContext_prefixes", dataWithContext.getNsPrefixMap()
-            ));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            ctx.status(500).json(Map.of(
-                "error", e.getClass().getName(),
-                "message", String.valueOf(e.getMessage())
-            ));
-        }
+        ctx.json(Map.of(
+            "inferred_count", inferred.size(),
+            "inferred_ttl",   sw.toString()
+        ));
+    } catch (Exception e) {
+        e.printStackTrace();
+        ctx.status(500).json(Map.of(
+            "error",   e.getClass().getName(),
+            "message", String.valueOf(e.getMessage())
+        ));
     }
+}
 
     // -------------------------------------------------------------------------
     // VALIDATE
@@ -108,29 +86,25 @@ public class App {
         try {
             Model dataModel = JenaUtil.createMemoryModel();
             dataModel.read(new ByteArrayInputStream(ctx.bodyAsBytes()), null, "TURTLE");
-            dataModel.setNsPrefixes(UNIFIED_GRAPH.getNsPrefixMap());
-
-            Model dataWithContext = JenaUtil.createMemoryModel();
-            dataWithContext.add(UNIFIED_GRAPH);
-            dataWithContext.add(dataModel);
-            dataWithContext.setNsPrefixes(UNIFIED_GRAPH.getNsPrefixMap());
-
+    
+            // No merge — shapes and data stay separate, preserving bnode identity
+            Model inferred = RuleUtil.executeRules(dataModel, UNIFIED_GRAPH, null, null);
+    
             System.out.println("==== INFERRED TRIPLES START ====");
-            Model inferred = RuleUtil.executeRules(dataWithContext, UNIFIED_GRAPH, null, null);
             RDFDataMgr.write(System.out, inferred, RDFFormat.TURTLE);
             System.out.println("==== INFERRED TRIPLES END ====");
             System.out.println("Inferred count: " + inferred.size());
-
+    
             dataModel.add(inferred);
-
+    
             Resource report = ValidationUtil.validateModel(dataModel, UNIFIED_GRAPH, true);
-
+    
             StringWriter swReport = new StringWriter();
             RDFDataMgr.write(swReport, report.getModel(), RDFFormat.TURTLE);
-
+    
             StringWriter swData = new StringWriter();
             RDFDataMgr.write(swData, dataModel, RDFFormat.TURTLE);
-
+    
             ctx.json(Map.of(
                 "conforms",      report.getProperty(SH.conforms).getBoolean(),
                 "report_text",   swReport.toString(),
