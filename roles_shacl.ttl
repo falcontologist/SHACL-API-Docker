@@ -71,6 +71,50 @@ ex:AffiliationShape a sh:NodeShape ;
             sh:path ex:rite ] ;
     sh:targetClass ex:Affiliation .
 
+:AssociationShape a sh:NodeShape ;
+    rdfs:label "Form for Association"@en ;
+    sh:targetClass :Association ;
+    sh:property 
+        [ sh:path :associator ; sh:name "associator"@en ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :requirement ; sh:name "requirement"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :basis ; sh:name "basis"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :attribute ; sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :analogue ; sh:name "analogue"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :topic ; sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :evaluator ; sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] .
+
+:AttendShape a sh:NodeShape ;
+    rdfs:label "Form for Attend"@en ;
+    sh:targetClass :Attend ;
+    sh:property 
+        [ sh:path :attender ; sh:name "attender"@en ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :focus ; sh:name "focus"@en ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] .
+
+:IncrementalShape a sh:NodeShape ;
+    rdfs:label "Form for Incremental"@en ;
+    sh:targetClass :Incremental ;
+    sh:property 
+        [ sh:path :mover ; sh:name "mover"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :origin ; sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :trajectory ; sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :carrier ; sh:name "carrier"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :manner ; sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :theme ; sh:name "theme"@en ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :affectee ; sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :destination ; sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :result ; sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] .
+
+:QuantificationShape a sh:NodeShape ;
+    rdfs:label "Form for Quantification"@en ;
+    sh:targetClass :Quantification ;
+    sh:property 
+        [ sh:path :evaluator ; sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :attribute ; sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :item ; sh:name "item"@en ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :container ; sh:name "container"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :affectee ; sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] ,
+        [ sh:path :value ; sh:name "value"@en ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRIOrLiteral ] .
+
 ex:AttitudeShape a sh:NodeShape ;
     rdfs:label "Form for Attitude"@en ;
     sh:property [ sh:class ex:Entry ;
