@@ -27821,3 +27821,33 @@
 :other_cos-45_4 a :VerbNetClass ;
     rdfs:label "other_cos-45.4"@en .
 
+# --- INFERENCE RULE TEST ---
+
+:acquires a rdf:Property ;
+    rdfs:label "acquires"@en .
+
+:DynamicPossession_InferenceRule
+    a sh:NodeShape ;
+    sh:targetClass :Dynamic_Possession ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:order 1 ;
+        sh:construct """
+            PREFIX : <http://example.org/ontology/>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            
+            CONSTRUCT {
+                ?transactor :acquires ?item .
+            }
+            WHERE {
+                # 1. Identify the Situation labeled 'acquire'
+                $this a :Dynamic_Possession .
+                $this rdfs:label "acquire" .
+                
+                # 2. Grab the transactor and item (BNode or IRI)
+                $this :transactor ?transactor .
+                $this :item ?item .
+            }
+        """ ;
+    ] .
+
