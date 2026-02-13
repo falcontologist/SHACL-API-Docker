@@ -134,6 +134,37 @@ def validate_graph(request: ValidateRequest):
         "report_text": report_text
     }
 
+@app.get("/api/stats")
+def get_stats():
+    """
+    Returns counts of Shapes, Roles, Lemmas (Verbs), and Senses (Mappings).
+    """
+    # 1. Count Shapes
+    shapes = len(list(UNIFIED_GRAPH.subjects(RDF.type, SH.NodeShape)))
+    
+    # 2. Count Unique Roles (Paths used in SHACL)
+    unique_roles = set()
+    for shape in UNIFIED_GRAPH.subjects(RDF.type, SH.NodeShape):
+        for prop in UNIFIED_GRAPH.objects(shape, SH.property):
+            path = UNIFIED_GRAPH.value(prop, SH.path)
+            if path:
+                unique_roles.add(path)
+
+    # 3. Count Lemmas (Unique Subjects that are Verbs or evoke something)
+    lemmas = set(UNIFIED_GRAPH.subjects(RDF.type, ONT.Verb))
+    for s, p, o in UNIFIED_GRAPH.triples((None, ONT.evokes, None)):
+        lemmas.add(s)
+
+    # 4. Count Senses (Total number of evokes triples)
+    senses = len(list(UNIFIED_GRAPH.triples((None, ONT.evokes, None))))
+
+    return {
+        "shapes": shapes,
+        "roles": len(unique_roles),
+        "lemmas": len(lemmas),
+        "senses": senses
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
