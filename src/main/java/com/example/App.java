@@ -18,8 +18,6 @@ import java.io.StringWriter;
 import java.util.*;
 
 public class App {
-    // UNIFIED_GRAPH must be a JenaUtil memory model so TopBraid's internal
-    // SHACL/DASH system namespace registrations are available at load time.
     private static final Model UNIFIED_GRAPH = loadUnifiedGraph();
     private static final String ONT_NS = "http://example.org/ontology/";
 
@@ -39,40 +37,92 @@ public class App {
         app.get("/api/forms", App::getForms);
         app.get("/api/lookup", App::lookupVerb);
         app.post("/api/validate", App::validate);
+        app.get("/api/infer-test", App::inferTest);  // ← TEST ENDPOINT
     }
 
-    private static void validate(Context ctx) {
+    // -------------------------------------------------------------------------
+    // INFER-TEST: Hardcoded data, bypasses frontend entirely.
+    // Hit GET /api/infer-test in a browser to see raw inference output.
+    // inferred_count > 0 means the rule fired.
+    // inferred_count = 0 means the rule is not firing (TTL/engine problem).
+    // -------------------------------------------------------------------------
+    private static void inferTest(Context ctx) {
         try {
-            // 1. Load user data into a JenaUtil memory model.
-            //    JenaUtil.createMemoryModel() — not ModelFactory.createDefaultModel() —
-            //    registers the SHACL/DASH system namespaces that TopBraid needs internally.
-            Model dataModel = JenaUtil.createMemoryModel();
-            dataModel.read(new ByteArrayInputStream(ctx.bodyAsBytes()), null, "TURTLE");
-            dataModel.setNsPrefixes(UNIFIED_GRAPH.getNsPrefixMap());
+            // Hardcoded minimal data — exactly equivalent to what the frontend sends
+            String testTurtle =
+                "@prefix :    <http://example.org/ontology/> .\n" +
+                "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
+                "@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .\n" +
+                "\n" +
+                "_:s1 a :Dynamic_Possession ;\n" +
+                "    rdfs:label \"acquire\" ;\n" +
+                "    :root \"acquire\" ;\n" +
+                "    :acquirer _:e1 ;\n" +
+                "    :acquisition _:e2 .\n" +
+                "\n" +
+                "_:e1 a :Entity ; rdfs:label \"Alphabet\" .\n" +
+                "_:e2 a :Entity ; rdfs:label \"Wiz\" .\n";
 
-            // 2. Merge: give RuleUtil a combined view of ontology + user data so the
-            //    SPARQL WHERE clauses in sh:SPARQLRule blocks can resolve ontology-level
-            //    terms ($this type checks, property declarations, etc.) alongside user triples.
+            Model dataModel = JenaUtil.createMemoryModel();
+            dataModel.read(new ByteArrayInputStream(testTurtle.getBytes()), null, "TURTLE");
+
             Model dataWithContext = JenaUtil.createMemoryModel();
             dataWithContext.add(UNIFIED_GRAPH);
             dataWithContext.add(dataModel);
             dataWithContext.setNsPrefixes(UNIFIED_GRAPH.getNsPrefixMap());
 
-            // 3. Execute SHACL Advanced Features rules.
-            //    Rules are read from UNIFIED_GRAPH; they execute against dataWithContext.
-            //    The shapes model (UNIFIED_GRAPH) already carries the @prefix declarations
-            //    that sh:prefixes resolution depends on — this is why the model type matters.
-            Model inferred = RuleUtil.executeRules(dataWithContext, UNIFIED_GRAPH, null, null);
+            // Log prefix map so we can confirm it is populated
+            System.out.println("=== INFER-TEST: prefix map ===");
+            dataWithContext.getNsPrefixMap().forEach((k, v) ->
+                System.out.println("  " + k + " -> " + v));
 
-            // --- DEBUG: print inferred triples to console ---
+            System.out.println("=== INFER-TEST: INFERRED TRIPLES START ===");
+            Model inferred = RuleUtil.executeRules(dataWithContext, UNIFIED_GRAPH, null, null);
+            RDFDataMgr.write(System.out, inferred, RDFFormat.TURTLE);
+            System.out.println("=== INFER-TEST: INFERRED TRIPLES END ===");
+
+            StringWriter sw = new StringWriter();
+            RDFDataMgr.write(sw, inferred, RDFFormat.TURTLE);
+
+            ctx.json(Map.of(
+                "inferred_count", inferred.size(),
+                "inferred_ttl",   sw.toString(),
+                "unified_graph_size", UNIFIED_GRAPH.size(),
+                "unified_graph_prefixes", UNIFIED_GRAPH.getNsPrefixMap(),
+                "dataWithContext_prefixes", dataWithContext.getNsPrefixMap()
+            ));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            ctx.status(500).json(Map.of(
+                "error", e.getClass().getName(),
+                "message", String.valueOf(e.getMessage())
+            ));
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // VALIDATE
+    // -------------------------------------------------------------------------
+    private static void validate(Context ctx) {
+        try {
+            Model dataModel = JenaUtil.createMemoryModel();
+            dataModel.read(new ByteArrayInputStream(ctx.bodyAsBytes()), null, "TURTLE");
+            dataModel.setNsPrefixes(UNIFIED_GRAPH.getNsPrefixMap());
+
+            Model dataWithContext = JenaUtil.createMemoryModel();
+            dataWithContext.add(UNIFIED_GRAPH);
+            dataWithContext.add(dataModel);
+            dataWithContext.setNsPrefixes(UNIFIED_GRAPH.getNsPrefixMap());
+
             System.out.println("==== INFERRED TRIPLES START ====");
+            Model inferred = RuleUtil.executeRules(dataWithContext, UNIFIED_GRAPH, null, null);
             RDFDataMgr.write(System.out, inferred, RDFFormat.TURTLE);
             System.out.println("==== INFERRED TRIPLES END ====");
+            System.out.println("Inferred count: " + inferred.size());
 
-            // 4. Add only the net-new inferred triples into the user model.
             dataModel.add(inferred);
 
-            // 5. Validate the enriched user data against the shapes.
             Resource report = ValidationUtil.validateModel(dataModel, UNIFIED_GRAPH, true);
 
             StringWriter swReport = new StringWriter();
@@ -82,8 +132,8 @@ public class App {
             RDFDataMgr.write(swData, dataModel, RDFFormat.TURTLE);
 
             ctx.json(Map.of(
-                "conforms", report.getProperty(SH.conforms).getBoolean(),
-                "report_text", swReport.toString(),
+                "conforms",      report.getProperty(SH.conforms).getBoolean(),
+                "report_text",   swReport.toString(),
                 "expanded_data", swData.toString()
             ));
         } catch (Exception e) {
@@ -92,6 +142,9 @@ public class App {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // FORMS
+    // -------------------------------------------------------------------------
     private static void getForms(Context ctx) {
         Map<String, Object> response = new HashMap<>();
         Map<String, Map<String, Object>> forms = new HashMap<>();
@@ -121,14 +174,15 @@ public class App {
                 Resource datatype = prop.getPropertyResourceValue(SH.datatype);
                 if (datatype != null && (datatype.equals(XSD.integer) || datatype.equals(XSD.xint))) type = "number";
 
-                String label = prop.hasProperty(SH.name) ? prop.getProperty(SH.name).getString() : path.substring(path.lastIndexOf('/') + 1);
+                String label = prop.hasProperty(SH.name)
+                    ? prop.getProperty(SH.name).getString()
+                    : path.substring(path.lastIndexOf('/') + 1);
                 boolean required = prop.hasProperty(SH.minCount) && prop.getProperty(SH.minCount).getInt() > 0;
 
                 fields.add(Map.of("path", path, "label", label, "type", type, "required", required));
             });
         });
 
-        // Form Inheritance Logic
         Property semanticDomainProp = UNIFIED_GRAPH.createProperty(ONT_NS + "semantic_domain");
         UNIFIED_GRAPH.listSubjectsWithProperty(semanticDomainProp).forEachRemaining(situation -> {
             Resource domain = situation.getPropertyResourceValue(semanticDomainProp);
@@ -145,7 +199,6 @@ public class App {
 
                 Set<String> existing = new HashSet<>();
                 for (Map<String, Object> f : sitFields) existing.add((String) f.get("path"));
-
                 for (Map<String, Object> f : domainFields) {
                     if (!existing.contains((String) f.get("path"))) sitFields.add(f);
                 }
@@ -156,6 +209,9 @@ public class App {
         ctx.json(response);
     }
 
+    // -------------------------------------------------------------------------
+    // LOOKUP
+    // -------------------------------------------------------------------------
     private static void lookupVerb(Context ctx) {
         String query = ctx.queryParam("verb");
         if (query == null) { ctx.json(Map.of("found", false)); return; }
@@ -187,6 +243,9 @@ public class App {
         ctx.json(Map.of("found", !mappings.isEmpty(), "mappings", mappings));
     }
 
+    // -------------------------------------------------------------------------
+    // STATS
+    // -------------------------------------------------------------------------
     private static void getStats(Context ctx) {
         long shapes = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).toList().size();
         Set<String> roles = new HashSet<>();
@@ -196,8 +255,10 @@ public class App {
                     roles.add(p.getResource().getPropertyResourceValue(SH.path).getURI());
             })
         );
-        long lemmas = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, UNIFIED_GRAPH.createResource(ONT_NS + "Verb")).toList().size();
-        long senses = UNIFIED_GRAPH.listStatements(null, UNIFIED_GRAPH.createProperty(ONT_NS + "evokes"), (RDFNode) null).toList().size();
+        long lemmas = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type,
+            UNIFIED_GRAPH.createResource(ONT_NS + "Verb")).toList().size();
+        long senses = UNIFIED_GRAPH.listStatements(null,
+            UNIFIED_GRAPH.createProperty(ONT_NS + "evokes"), (RDFNode) null).toList().size();
         ctx.json(Map.of("shapes", shapes, "roles", roles.size(), "lemmas", lemmas, "senses", senses));
     }
 }
