@@ -19,7 +19,8 @@ import java.util.*;
 
 public class App {
     private static final Model UNIFIED_GRAPH = loadUnifiedGraph();
-    private static final String ONT_NS = "http://example.org/ontology/";
+    private static final String ONT_NS  = "http://example.org/ontology/";
+    private static final String TEMP_NS = "http://example.org/temp/";
 
     private static Model loadUnifiedGraph() {
         Model m = JenaUtil.createMemoryModel();
@@ -33,73 +34,11 @@ public class App {
         }).start(8000);
 
         app.get("/", ctx -> ctx.result("TopBraid SHACL API Online"));
-        app.get("/api/stats", App::getStats);
-        app.get("/api/forms", App::getForms);
-        app.get("/api/lookup", App::lookupVerb);
-        app.post("/api/validate", App::validate);
+        app.get("/api/stats",      App::getStats);
+        app.get("/api/forms",      App::getForms);
+        app.get("/api/lookup",     App::lookupVerb);
+        app.post("/api/validate",  App::validate);
         app.get("/api/infer-test", App::inferTest);
-    }
-
-    // -------------------------------------------------------------------------
-    // INFER-TEST: Uses Wikidata IRIs for Alphabet and Wiz.
-    // IRIs survive CONSTRUCT without identity loss, confirming whether the
-    // bnode disconnect is the only remaining issue.
-    // GET /api/infer-test
-    // -------------------------------------------------------------------------
-    private static void inferTest(Context ctx) {
-        try {
-            // Alphabet: https://www.wikidata.org/wiki/Q20800404
-            // Wiz:      https://www.wikidata.org/wiki/Q108871753
-            String testTurtle =
-                "@prefix :    <http://example.org/ontology/> .\n" +
-                "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
-                "@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .\n" +
-                "@prefix wd:  <https://www.wikidata.org/wiki/> .\n" +
-                "\n" +
-                "_:s1 a :Dynamic_Possession ;\n" +
-                "    rdfs:label \"acquire\" ;\n" +
-                "    :root      \"acquire\" ;\n" +
-                "    :acquirer  wd:Q20800404 ;\n" +
-                "    :acquisition wd:Q108871753 .\n" +
-                "\n" +
-                "wd:Q20800404  a :Entity ; rdfs:label \"Alphabet\" .\n" +
-                "wd:Q108871753 a :Entity ; rdfs:label \"Wiz\" .\n";
-
-            Model dataModel = JenaUtil.createMemoryModel();
-            dataModel.read(new ByteArrayInputStream(testTurtle.getBytes()), null, "TURTLE");
-
-            System.out.println("=== INFER-TEST (IRI): data triples ===");
-            RDFDataMgr.write(System.out, dataModel, RDFFormat.TURTLE);
-
-            System.out.println("=== INFER-TEST (IRI): INFERRED TRIPLES START ===");
-            Model inferred = RuleUtil.executeRules(dataModel, UNIFIED_GRAPH, null, null);
-            RDFDataMgr.write(System.out, inferred, RDFFormat.TURTLE);
-            System.out.println("=== INFER-TEST (IRI): INFERRED TRIPLES END ===");
-            System.out.println("Inferred count: " + inferred.size());
-
-            // Merge inferred triples back — IRIs unambiguously identify the
-            // same resources, so the :acquires arc lands on the right subjects.
-            dataModel.add(inferred);
-
-            StringWriter swInferred = new StringWriter();
-            RDFDataMgr.write(swInferred, inferred, RDFFormat.TURTLE);
-
-            StringWriter swExpanded = new StringWriter();
-            RDFDataMgr.write(swExpanded, dataModel, RDFFormat.TURTLE);
-
-            ctx.json(Map.of(
-                "inferred_count",  inferred.size(),
-                "inferred_ttl",    swInferred.toString(),
-                "expanded_data",   swExpanded.toString()
-            ));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            ctx.status(500).json(Map.of(
-                "error",   e.getClass().getName(),
-                "message", String.valueOf(e.getMessage())
-            ));
-        }
     }
 
     // -------------------------------------------------------------------------
@@ -134,6 +73,53 @@ public class App {
         } catch (Exception e) {
             e.printStackTrace();
             ctx.status(500).result("Error: " + e.getMessage());
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // INFER-TEST — diagnostic endpoint, Wikidata IRIs for Alphabet and Wiz.
+    // GET /api/infer-test
+    // -------------------------------------------------------------------------
+    private static void inferTest(Context ctx) {
+        try {
+            String testTurtle =
+                "@prefix :    <http://example.org/ontology/> .\n" +
+                "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
+                "@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .\n" +
+                "@prefix wd:  <https://www.wikidata.org/wiki/> .\n" +
+                "\n" +
+                "_:s1 a :Dynamic_Possession ;\n" +
+                "    rdfs:label   \"acquire\" ;\n" +
+                "    :root        \"acquire\" ;\n" +
+                "    :acquirer    wd:Q20800404 ;\n" +    // Alphabet
+                "    :acquisition wd:Q108871753 .\n" +   // Wiz
+                "\n" +
+                "wd:Q20800404  a :Entity ; rdfs:label \"Alphabet\" .\n" +
+                "wd:Q108871753 a :Entity ; rdfs:label \"Wiz\" .\n";
+
+            Model dataModel = JenaUtil.createMemoryModel();
+            dataModel.read(new ByteArrayInputStream(testTurtle.getBytes()), null, "TURTLE");
+
+            Model inferred = RuleUtil.executeRules(dataModel, UNIFIED_GRAPH, null, null);
+            dataModel.add(inferred);
+
+            StringWriter swInferred = new StringWriter();
+            RDFDataMgr.write(swInferred, inferred, RDFFormat.TURTLE);
+
+            StringWriter swExpanded = new StringWriter();
+            RDFDataMgr.write(swExpanded, dataModel, RDFFormat.TURTLE);
+
+            ctx.json(Map.of(
+                "inferred_count", inferred.size(),
+                "inferred_ttl",   swInferred.toString(),
+                "expanded_data",  swExpanded.toString()
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            ctx.status(500).json(Map.of(
+                "error",   e.getClass().getName(),
+                "message", String.valueOf(e.getMessage())
+            ));
         }
     }
 
@@ -180,16 +166,16 @@ public class App {
 
         Property semanticDomainProp = UNIFIED_GRAPH.createProperty(ONT_NS + "semantic_domain");
         UNIFIED_GRAPH.listSubjectsWithProperty(semanticDomainProp).forEachRemaining(situation -> {
-            Resource domain = situation.getPropertyResourceValue(semanticDomainProp);
+            Resource domain      = situation.getPropertyResourceValue(semanticDomainProp);
             String situationName = situation.getLocalName();
-            String domainName = domain.getLocalName();
+            String domainName    = domain.getLocalName();
 
             if (forms.containsKey(domainName)) {
                 forms.putIfAbsent(situationName, new HashMap<>(Map.of(
                     "target_class", situation.getURI(),
                     "fields", new ArrayList<Map<String, Object>>()
                 )));
-                List<Map<String, Object>> sitFields = (List<Map<String, Object>>) forms.get(situationName).get("fields");
+                List<Map<String, Object>> sitFields    = (List<Map<String, Object>>) forms.get(situationName).get("fields");
                 List<Map<String, Object>> domainFields = (List<Map<String, Object>>) forms.get(domainName).get("fields");
 
                 Set<String> existing = new HashSet<>();
@@ -213,8 +199,8 @@ public class App {
         String verb = query.trim().toLowerCase();
 
         List<Map<String, String>> mappings = new ArrayList<>();
-        Property labelProp = RDFS.label;
-        Property evokesProp = UNIFIED_GRAPH.createProperty(ONT_NS + "evokes");
+        Property labelProp          = RDFS.label;
+        Property evokesProp         = UNIFIED_GRAPH.createProperty(ONT_NS + "evokes");
         Property semanticDomainProp = UNIFIED_GRAPH.createProperty(ONT_NS + "semantic_domain");
 
         ResIterator verbs = UNIFIED_GRAPH.listSubjectsWithProperty(evokesProp);
@@ -224,12 +210,12 @@ public class App {
                 StmtIterator evokes = v.listProperties(evokesProp);
                 while (evokes.hasNext()) {
                     Resource situation = evokes.next().getResource();
-                    Resource domain = situation;
+                    Resource domain    = situation;
                     if (situation.hasProperty(semanticDomainProp)) {
                         domain = situation.getPropertyResourceValue(semanticDomainProp);
                     }
                     mappings.add(Map.of(
-                        "situation", situation.getLocalName(),
+                        "situation",       situation.getLocalName(),
                         "fallback_domain", domain.getLocalName()
                     ));
                 }
