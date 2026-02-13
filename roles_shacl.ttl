@@ -27821,6 +27821,39 @@
 :other_cos-45_4 a :VerbNetClass ;
     rdfs:label "other_cos-45.4"@en .
 
+# --- DYNAMIC POSSESSION FIELD DEFINITIONS ---
+
+:acquirer a rdf:Property ;
+    rdfs:label "acquirer"@en ;
+    rdfs:subPropertyOf :transactor .
+
+:acquisition a rdf:Property ;
+    rdfs:label "acquisition"@en ;
+    rdfs:subPropertyOf :item .
+
+# --- DYNAMIC POSSESSION FORM SHAPE ---
+
+:DynamicPossessionShape a sh:NodeShape ;
+    rdfs:label "Form for Dynamic Possession"@en ;
+    sh:targetClass :Dynamic_Possession ;
+    sh:property [
+        sh:path :acquirer ;
+        sh:name "acquirer"@en ;
+        sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :acquisition ;
+        sh:name "acquisition"@en ;
+        sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :asset ;
+        sh:name "asset"@en ;
+        sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+    ] .
+
 # --- INFERENCE RULE TEST ---
 
 :acquires a rdf:Property ;
