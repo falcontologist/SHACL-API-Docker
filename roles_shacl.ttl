@@ -27854,7 +27854,7 @@
         sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
     ] .
 
-# --- INFERENCE RULE TEST ---
+# --- INFERENCE RULE FOR ACQUIRE ---
 
 :acquires a rdf:Property ;
     rdfs:label "acquires"@en .
@@ -27870,16 +27870,19 @@
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             
             CONSTRUCT {
-                ?transactor :acquires ?item .
+                ?agent :acquires ?target .
             }
             WHERE {
-                # 1. Identify the Situation labeled 'acquire'
+                # 1. Identify the Situation
                 $this a :Dynamic_Possession .
-                $this rdfs:label "acquire" .
+                $this rdfs:label ?lbl .
+                FILTER (LCASE(STR(?lbl)) = "acquire")
                 
-                # 2. Grab the transactor and item (BNode or IRI)
-                $this :transactor ?transactor .
-                $this :item ?item .
+                # 2. Find Agent (Look for 'acquirer' OR 'transactor')
+                $this :acquirer|:transactor ?agent .
+                
+                # 3. Find Target (Look for 'acquisition' OR 'item')
+                $this :acquisition|:item|:asset ?target .
             }
         """ ;
     ] .
