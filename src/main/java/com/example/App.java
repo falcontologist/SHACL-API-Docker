@@ -8,22 +8,28 @@ import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
+import org.topbraid.jenax.util.JenaUtil;
 import org.topbraid.shacl.rules.RuleUtil;
 import org.topbraid.shacl.validation.ValidationUtil;
 import org.topbraid.shacl.vocabulary.SH;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class App {
-    // Unified Graph (Ontology + Shapes)
-    private static final Model UNIFIED_GRAPH = RDFDataMgr.loadModel("roles_shacl.ttl");
+    // UNIFIED_GRAPH must be a JenaUtil memory model so TopBraid's internal
+    // SHACL/DASH system namespace registrations are available at load time.
+    private static final Model UNIFIED_GRAPH = loadUnifiedGraph();
     private static final String ONT_NS = "http://example.org/ontology/";
 
-    public static void main(String[] args) {
+    private static Model loadUnifiedGraph() {
+        Model m = JenaUtil.createMemoryModel();
+        m.read("roles_shacl.ttl");
+        return m;
+    }
 
+    public static void main(String[] args) {
         Javalin app = Javalin.create(config -> {
             config.bundledPlugins.enableCors(cors -> cors.addRule(it -> it.anyHost()));
         }).start(8000);
@@ -37,20 +43,23 @@ public class App {
 
     private static void validate(Context ctx) {
         try {
-            // 1. Load user data
-            Model dataModel = ModelFactory.createDefaultModel();
+            // 1. Load user data into a JenaUtil memory model.
+            //    JenaUtil.createMemoryModel() — not ModelFactory.createDefaultModel() —
+            //    registers the SHACL/DASH system namespaces that TopBraid needs internally.
+            Model dataModel = JenaUtil.createMemoryModel();
             dataModel.read(new ByteArrayInputStream(ctx.bodyAsBytes()), null, "TURTLE");
 
-            // 2. Build a merged model: ontology context + user data.
-            //    RuleUtil needs the full graph so the SPARQL WHERE clauses in
-            //    sh:SPARQLRule blocks can resolve ontology-level terms (class
-            //    definitions, property declarations, etc.) alongside the user triples.
-            Model dataWithContext = ModelFactory.createDefaultModel();
+            // 2. Merge: give RuleUtil a combined view of ontology + user data so the
+            //    SPARQL WHERE clauses in sh:SPARQLRule blocks can resolve ontology-level
+            //    terms ($this type checks, property declarations, etc.) alongside user triples.
+            Model dataWithContext = JenaUtil.createMemoryModel();
             dataWithContext.add(UNIFIED_GRAPH);
             dataWithContext.add(dataModel);
 
-            // 3. Execute SHACL Advanced Features rules (TopBraid engine).
-            //    Rules are read from UNIFIED_GRAPH; they fire against dataWithContext.
+            // 3. Execute SHACL Advanced Features rules.
+            //    Rules are read from UNIFIED_GRAPH; they execute against dataWithContext.
+            //    The shapes model (UNIFIED_GRAPH) already carries the @prefix declarations
+            //    that sh:prefixes resolution depends on — this is why the model type matters.
             Model inferred = RuleUtil.executeRules(dataWithContext, UNIFIED_GRAPH, null, null);
 
             // --- DEBUG: print inferred triples to console ---
@@ -58,8 +67,7 @@ public class App {
             RDFDataMgr.write(System.out, inferred, RDFFormat.TURTLE);
             System.out.println("==== INFERRED TRIPLES END ====");
 
-            // 4. Add only the net-new inferred triples back into the user model
-            //    (not the full ontology context).
+            // 4. Add only the net-new inferred triples into the user model.
             dataModel.add(inferred);
 
             // 5. Validate the enriched user data against the shapes.
