@@ -588,19 +588,19 @@
     rdfs:label "Form for Action"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "target"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :target ],
         [ sh:class :Entity ;
             sh:name "actor"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :actor ],
         [ sh:class :Entity ;
             sh:name "action"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :action ],
         [ sh:class :Entity ;
             sh:name "implement"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :implement ] ;
     sh:targetClass :Action .
 
@@ -608,16 +608,16 @@
     rdfs:label "Form for Affect"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "reaction"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :reaction ],
         [ sh:class :Entity ;
             sh:name "affecter"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :affecter ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "affectee"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :affectee ] ;
     sh:targetClass :Affect .
 
@@ -625,28 +625,28 @@
     rdfs:label "Form for Affiliation"@en ;
     sh:property [ sh:class :Entry ;
             sh:name "role"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :role ],
         [ sh:class :Entry ;
             sh:name "task"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :task ],
         [ sh:class :Entity ;
             sh:name "institution"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :institution ],
         [ sh:class :Entity ;
             sh:name "rite"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :rite ],
         [ sh:class :Entity ;
             sh:name "affiliator"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :affiliator ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "participant"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :participant ] ;
     sh:targetClass :Affiliation .
 
@@ -654,25 +654,25 @@
     rdfs:label "Form for Association"@en ;
     sh:property [ sh:minCount 1 ;
             sh:name "associator"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :associator ],
         [ sh:name "requirement"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :requirement ],
         [ sh:name "basis"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :basis ],
         [ sh:name "attribute"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :attribute ],
         [ sh:name "analogue"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :analogue ],
         [ sh:name "topic"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :topic ],
         [ sh:name "evaluator"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :evaluator ] ;
     sh:targetClass :Association .
 
@@ -680,11 +680,11 @@
     rdfs:label "Form for Attend"@en ;
     sh:property [ sh:minCount 1 ;
             sh:name "attender"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :attender ],
         [ sh:minCount 1 ;
             sh:name "focus"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :focus ] ;
     sh:targetClass :Attend .
 
@@ -692,29 +692,29 @@
     rdfs:label "Form for Attitude"@en ;
     sh:property [ sh:class :Entry ;
             sh:name "polarity"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :polarity ],
         [ sh:class :Entry ;
             sh:name "attitude"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :attitude ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "proposition"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :proposition ],
         [ sh:class :Entry ;
             sh:name "certainty"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :certainty ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "adherent"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :adherent ],
         [ sh:class :Entry ;
             sh:name "modality"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :modality ] ;
     sh:targetClass :Attitude .
 
@@ -723,12 +723,12 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "ruler"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :ruler ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "jurisdiction"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :jurisdiction ] ;
     sh:targetClass :Authority .
 
@@ -737,15 +737,15 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "effect"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :effect ],
         [ sh:class :Entity ;
             sh:name "cause"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :cause ],
         [ sh:class :Entity ;
             sh:name "causee"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :causee ] ;
     sh:targetClass :Causation .
 
@@ -753,25 +753,25 @@
     rdfs:label "Form for Cognition"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "educator"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :educator ],
         [ sh:class :Entity ;
             sh:name "method"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :method ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "student"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :student ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "concept"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :concept ],
         [ sh:class :Entry ;
             sh:name "field"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :field ] ;
     sh:targetClass :Cognition .
 
@@ -780,36 +780,36 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "communicator"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :communicator ],
         [ sh:class :Entry ;
             sh:name "characterization"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :characterization ],
         [ sh:class :Entry ;
             sh:name "topic"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :topic ],
         [ sh:class :Entity ;
             sh:name "addressee"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :addressee ],
         [ sh:class :Entry ;
             sh:name "signal"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :signal ],
         [ sh:class :Entry ;
             sh:name "language"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :language ],
         [ sh:class :Entity ;
             sh:name "medium"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :medium ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "message"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :message ] ;
     sh:targetClass :Communication .
 
@@ -818,11 +818,11 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "entity"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :entity ],
         [ sh:class :Entry ;
             sh:name "state"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :state ] ;
     sh:targetClass :Continuation .
 
@@ -831,21 +831,21 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "regulation"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :regulation ],
         [ sh:class :Entity ;
             sh:name "rule"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :rule ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "subordinate"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :subordinate ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "controller"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :controller ] ;
     sh:targetClass :Control .
 
@@ -853,24 +853,24 @@
     rdfs:label "Form for Creation"@en ;
     sh:property [ sh:class :Entry ;
             sh:name "material"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :material ],
         [ sh:class :Entity ;
             sh:name "product"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :product ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "maker"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :maker ],
         [ sh:class :Entity ;
             sh:name "instrument"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :instrument ],
         [ sh:class :Entity ;
             sh:name "work"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :work ] ;
     sh:targetClass :Creation .
 
@@ -879,12 +879,12 @@
     sh:property [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "wish"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :wish ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "wisher"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :wisher ] ;
     sh:targetClass :Desire .
 
@@ -892,46 +892,46 @@
     rdfs:label "Form for Evaluation"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "standard"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :standard ],
         [ sh:class :Entity ;
             sh:name "item"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :item ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "evaluator"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :evaluator ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "sentiment"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :sentiment ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "attribute"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :attribute ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "value"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :value ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "conclusion"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :conclusion ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "multiplier"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :multiplier ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "phenomenon"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :phenomenon ] ;
     sh:targetClass :Evaluation .
 
@@ -939,19 +939,19 @@
     rdfs:label "Form for Execution"@en ;
     sh:property [ sh:class :Entry ;
             sh:name "pe"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :phase ],
         [ sh:class :Entry ;
             sh:name "modulation"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :modulation ],
         [ sh:class :Entity ;
             sh:name "executor"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :executor ],
         [ sh:class :Entry ;
             sh:name "task"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :task ] ;
     sh:targetClass :Execution .
 
@@ -959,12 +959,12 @@
     rdfs:label "Form for Existence"@en ;
     sh:property [ sh:class :Entry ;
             sh:name "mode"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :mode ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "being"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :being ] ;
     sh:targetClass :Existence .
 
@@ -973,12 +973,12 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "experiencer"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :experiencer ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "stimulus"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :stimulus ] ;
     sh:targetClass :Experience .
 
@@ -987,15 +987,15 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "agonist"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :agonist ],
         [ sh:class :Entity ;
             sh:name "antagonist"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :antagonist ],
         [ sh:class :Entity ;
             sh:name "means"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :means ] ;
     sh:targetClass :Force .
 
@@ -1003,44 +1003,44 @@
     rdfs:label "Form for Governance"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "rule"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :rule ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "subordinate"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :subordinate ] ;
     sh:targetClass :Governance .
 
 :IncrementalShape a sh:NodeShape ;
     rdfs:label "Form for Incremental"@en ;
     sh:property [ sh:name "mover"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :mover ],
         [ sh:name "origin"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :origin ],
         [ sh:name "trajectory"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :trajectory ],
         [ sh:name "carrier"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :carrier ],
         [ sh:name "manner"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :manner ],
         [ sh:minCount 1 ;
             sh:name "theme"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :theme ],
         [ sh:name "affectee"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :affectee ],
         [ sh:name "destination"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :destination ],
         [ sh:name "result"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :result ] ;
     sh:targetClass :Incremental .
 
@@ -1048,12 +1048,12 @@
     rdfs:label "Form for Information"@en ;
     sh:property [ sh:class :Entry ;
             sh:name "source"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :source ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "content"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :content ] ;
     sh:targetClass :Information .
 
@@ -1062,11 +1062,11 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "interactor"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :interactor ],
         [ sh:class :Entity ;
             sh:name "interaction"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :interaction ] ;
     sh:targetClass :Interaction .
 
@@ -1074,12 +1074,12 @@
     rdfs:label "Form for Kinship"@en ;
     sh:property [ sh:class :Entry ;
             sh:name "relation"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :relation ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "relative"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :relative ] ;
     sh:targetClass :Kinship .
 
@@ -1088,12 +1088,12 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "knower"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :knower ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "knowledge"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :knowledge ] ;
     sh:targetClass :Knowledge .
 
@@ -1102,12 +1102,12 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "trajector"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :trajector ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "landmark"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :landmark ] ;
     sh:targetClass :Location .
 
@@ -1116,12 +1116,12 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "witness"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :witness ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "impression"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :impression ] ;
     sh:targetClass :Memory .
 
@@ -1129,20 +1129,20 @@
     rdfs:label "Form for Motion"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "mover"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :mover ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "theme"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :theme ],
         [ sh:class :Entry ;
             sh:name "orientation"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :orientation ],
         [ sh:class :Entity ;
             sh:name "conveyance"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :conveyance ] ;
     sh:targetClass :Motion .
 
@@ -1151,19 +1151,19 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "situation"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :situation ],
         [ sh:class :Entry ;
             sh:name "order"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :order ],
         [ sh:class :Entry ;
             sh:name "manner"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :manner ],
         [ sh:class :Entry ;
             sh:name "time"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :time ] ;
     sh:targetClass :Occurrence .
 
@@ -1171,17 +1171,17 @@
     rdfs:label "Form for Perception"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "sense"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :sense ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "percept"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :percept ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "perceiver"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :perceiver ] ;
     sh:targetClass :Perception .
 
@@ -1189,53 +1189,53 @@
     rdfs:label "Form for Possession"@en ;
     sh:property [ sh:minCount 1 ;
             sh:name "possessor"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :possessor ],
         [ sh:minCount 1 ;
             sh:name "possession"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :possession ],
         [ sh:name "transactor"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :transactor ],
         [ sh:name "asset"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :asset ],
         [ sh:name "item"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :item ],
         [ sh:name "recipient"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :recipient ],
         [ sh:name "origin"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :origin ],
         [ sh:name "affectee"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :affectee ] ;
     sh:targetClass :Possession .
 
 :QuantificationShape a sh:NodeShape ;
     rdfs:label "Form for Quantification"@en ;
     sh:property [ sh:name "evaluator"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :evaluator ],
         [ sh:name "attribute"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :attribute ],
         [ sh:minCount 1 ;
             sh:name "item"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :item ],
         [ sh:name "container"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :container ],
         [ sh:name "affectee"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :affectee ],
         [ sh:minCount 1 ;
             sh:name "value"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :value ] ;
     sh:targetClass :Quantification .
 
@@ -1243,19 +1243,19 @@
     rdfs:label "Form for Transaction"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "recipient"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :recipient ],
         [ sh:class :Entity ;
             sh:name "transactor"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :transactor ],
         [ sh:class :Entity ;
             sh:name "item"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :item ],
         [ sh:class :Entity ;
             sh:name "asset"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :asset ] ;
     sh:targetClass :Transaction .
 
@@ -1264,19 +1264,19 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "undergoer"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :undergoer ],
         [ sh:class :Entity ;
             sh:name "result"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :result ],
         [ sh:class :Entity ;
             sh:name "transformer"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :transformer ],
         [ sh:class :Entity ;
             sh:name "catalyst"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :catalyst ] ;
     sh:targetClass :Transformation .
 
@@ -1285,26 +1285,26 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "aim"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :aim ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "aversion"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :aversion ],
         [ sh:class :Entity ;
             sh:name "stratagem"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :stratagem ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "intender"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :intender ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "object"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :object ] ;
     sh:targetClass :Volition .
 
@@ -27843,19 +27843,19 @@
     sh:property [
         sh:path :acquirer ;
         sh:name "acquirer"@en ;
-        sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+        sh:nodeKind sh:BlankNodeOrIRI ; 
         sh:minCount 1 ;
     ] ;
     sh:property [
         sh:path :acquisition ;
         sh:name "acquisition"@en ;
-        sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+        sh:nodeKind sh:BlankNodeOrIRI ; 
         sh:minCount 1 ;
     ] ;
     sh:property [
         sh:path :asset ;
         sh:name "asset"@en ;
-        sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+        sh:nodeKind sh:BlankNodeOrIRI ; 
     ] .
 
 # --- INFERENCE TEST ---
