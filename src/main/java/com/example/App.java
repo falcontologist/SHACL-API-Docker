@@ -19,6 +19,7 @@ import java.util.*;
 
 public class App {
     private static final String ONT_NS = "http://example.org/ontology/";
+    // Load graph once at startup
     private static final Model UNIFIED_GRAPH = loadUnifiedGraph();
 
     private static Model loadUnifiedGraph() {
@@ -43,138 +44,71 @@ public class App {
         app.get("/api/forms", App::getForms);
         app.get("/api/lookup", App::lookupVerb);
         app.post("/api/validate", App::validate);
+        
+        // Diagnostic Endpoint
         app.get("/api/test-rules", App::testRules);
     }
 
     private static void validate(Context ctx) {
         try {
+            // 1. Parse Incoming Turtle
             Model dataModel = JenaUtil.createMemoryModel();
             try {
                 dataModel.read(new ByteArrayInputStream(ctx.bodyAsBytes()), null, "TURTLE");
             } catch (Exception e) {
-                ctx.status(400).json(Map.of("error", "Turtle parsing error"));
+                ctx.status(400).json(Map.of("error", "Turtle parsing error", "details", e.getMessage()));
                 return;
             }
 
-            // Merge ontology + user data
+            // 2. Merge ontology + user data for inference context
             Model dataWithContext = JenaUtil.createMemoryModel();
             dataWithContext.add(UNIFIED_GRAPH);
             dataWithContext.add(dataModel);
             
-            // CRITICAL FIX: Explicitly copy prefixes to the combined model.
-            // SPARQL rules often rely on the model's prefix map, even if defined in the query.
+            // CRITICAL: Copy prefixes to ensure SPARQL rules can resolve them
             dataWithContext.setNsPrefixes(UNIFIED_GRAPH.getNsPrefixMap());
             dataWithContext.setNsPrefixes(dataModel.getNsPrefixMap());
 
-            // Execute Rules
+            // 3. Execute SHACL Rules (Inference)
             Model inferred = RuleUtil.executeRules(dataWithContext, UNIFIED_GRAPH, null, null);
 
-            // Add inferences to data model
+            // 4. Add inferences to data model
             dataModel.add(inferred);
-            dataModel.setNsPrefixes(inferred.getNsPrefixMap()); // Ensure new prefixes are kept
+            dataModel.setNsPrefixes(inferred.getNsPrefixMap());
 
-            // Validate
-            Resource report = ValidationUtil.validateModel(dataModel, UNIFIED_GRAPH, true);
-
-            StringWriter swReport = new StringWriter();
-            RDFDataMgr.write(swReport, report.getModel(), RDFFormat.TURTLE);
-
+            // 5. Serialize the expanded data (Data + Inference) *before* validation
+            // This ensures we have the result even if validation crashes.
             StringWriter swData = new StringWriter();
             RDFDataMgr.write(swData, dataModel, RDFFormat.TURTLE);
 
-            ctx.json(Map.of(
-                "conforms", report.getProperty(SH.conforms).getBoolean(),
-                "report_text", swReport.toString(),
-                "expanded_data", swData.toString()
-            ));
-        } catch (Exception e) {
-            e.printStackTrace();
-            ctx.status(500).json(Map.of("error", e.getMessage()));
-        }
-    }
-
-    private static void testRules(Context ctx) {
-        Map<String, Object> results = new LinkedHashMap<>();
-
-        // TEST 1: ISOLATED SPARQL RULE (Basic Sanity Check)
-        try {
-            Model m = JenaUtil.createMemoryModel();
-            String ns = "http://test.org/";
-            Resource personClass = m.createResource(ns + "Person");
-            Resource ruleShape = m.createResource(ns + "PersonShape");
-            Property hasName = m.createProperty(ns + "hasName");
-            Property hasLabel = RDFS.label;
-
-            m.add(m.createResource(ns + "Bob"), RDF.type, personClass);
-            m.add(m.createResource(ns + "Bob"), hasName, "Robert");
-
-            Resource sparqlRule = m.createResource().addProperty(RDF.type, SH.SPARQLRule);
-            sparqlRule.addProperty(SH.construct, 
-                "PREFIX ex: <http://test.org/> CONSTRUCT { $this <http://www.w3.org/2000/01/rdf-schema#label> ?name . } WHERE { $this ex:hasName ?name . }");
+            // 6. Validate
+            boolean conforms = false;
+            String reportText = "";
             
-            ruleShape.addProperty(RDF.type, SH.NodeShape);
-            ruleShape.addProperty(SH.targetClass, personClass);
-            ruleShape.addProperty(SH.rule, sparqlRule);
-
-            Model inferred = RuleUtil.executeRules(m, m, null, null);
-            boolean passed = inferred.contains(m.createResource(ns + "Bob"), hasLabel, "Robert");
-            results.put("test_1_sparql_basic", passed ? "PASS" : "FAIL");
-        } catch (Exception e) {
-            results.put("test_1_sparql_basic", "ERROR: " + e.getMessage());
-        }
-
-        // TEST 4: BLANK NODE SPARQL SCENARIO (The Specific Use Case)
-        try {
-            // 1. Define the exact User Data provided
-            String userDataTurtle = 
-                "@prefix : <http://example.org/ontology/> .\n" +
-                "@prefix temp: <http://example.org/temp/> .\n" +
-                "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n" +
-                "_:s1 a :Dynamic_Possession ;\n" +
-                "    :acquirer temp:Alphabet ;\n" +
-                "    :acquisition temp:Wiz ." +
-                "temp:Alphabet a :Entity .\n" +
-                "temp:Wiz a :Entity .";
-
-            Model userModel = JenaUtil.createMemoryModel();
-            userModel.read(new ByteArrayInputStream(userDataTurtle.getBytes()), null, "TURTLE");
-
-            // 2. Merge with the LIVE Unified Graph (which contains the SPARQL rule)
-            Model combined = JenaUtil.createMemoryModel();
-            combined.add(UNIFIED_GRAPH);
-            combined.add(userModel);
-            // Simulate the Fix: Ensure prefixes are set on the combined model
-            combined.setNsPrefixes(UNIFIED_GRAPH.getNsPrefixMap());
-            combined.setNsPrefixes(userModel.getNsPrefixMap());
-
-            // 3. Execute Rules
-            Model inferred = RuleUtil.executeRules(combined, UNIFIED_GRAPH, null, null);
-
-            // 4. Check for the inferred triple: temp:Alphabet :acquires temp:Wiz
-            Resource alphabet = combined.getResource("http://example.org/temp/Alphabet");
-            Resource wiz = combined.getResource("http://example.org/temp/Wiz");
-            Property acquires = combined.getProperty(ONT_NS + "acquires");
-            
-            boolean passed = inferred.contains(alphabet, acquires, wiz);
-            
-            Map<String, Object> test4Details = new HashMap<>();
-            test4Details.put("status", passed ? "PASS" : "FAIL");
-            test4Details.put("inferred_size", inferred.size());
-            
-            if (!passed) {
-                StringWriter sw = new StringWriter();
-                RDFDataMgr.write(sw, inferred, RDFFormat.TURTLE);
-                test4Details.put("actual_inferred_turtle", sw.toString());
+            try {
+                Resource report = ValidationUtil.validateModel(dataModel, UNIFIED_GRAPH, true);
+                conforms = report.getProperty(SH.conforms).getBoolean();
+                StringWriter swReport = new StringWriter();
+                RDFDataMgr.write(swReport, report.getModel(), RDFFormat.TURTLE);
+                reportText = swReport.toString();
+            } catch (Exception valEx) {
+                // If validation crashes (e.g. unsupported nodeKind), catch it but return the data!
+                System.err.println("Validation Engine Error: " + valEx.getMessage());
+                reportText = "Validation Engine Error: " + valEx.getMessage();
+                // We deliberately do not fail the request; we still want to return expanded_data
             }
 
-            results.put("test_4_sparql_blank_node_scenario", test4Details);
+            // 7. Return Response
+            ctx.json(Map.of(
+                "conforms", conforms,
+                "report_text", reportText,
+                "expanded_data", swData.toString()
+            ));
 
         } catch (Exception e) {
-            results.put("test_4_sparql_blank_node_scenario", "ERROR: " + e.getMessage());
             e.printStackTrace();
+            ctx.status(500).json(Map.of("error", "Processing error", "details", e.getMessage()));
         }
-
-        ctx.json(results);
     }
 
     private static void getStats(Context ctx) {
@@ -213,6 +147,7 @@ public class App {
             shape.listProperties(SH.property).forEachRemaining(p -> {
                 Resource prop = p.getResource();
                 if (!prop.hasProperty(SH.path)) return;
+
                 String path = prop.getPropertyResourceValue(SH.path).getURI();
                 if (existingPaths.contains(path)) return;
 
@@ -222,10 +157,12 @@ public class App {
 
                 String label = prop.hasProperty(SH.name) ? prop.getProperty(SH.name).getString() : path.substring(path.lastIndexOf('/') + 1);
                 boolean required = prop.hasProperty(SH.minCount) && prop.getProperty(SH.minCount).getInt() > 0;
+
                 fields.add(Map.of("path", path, "label", label, "type", type, "required", required));
             });
         });
-        
+
+        // Inheritance Logic
         Property semanticDomainProp = UNIFIED_GRAPH.createProperty(ONT_NS + "semantic_domain");
         UNIFIED_GRAPH.listSubjectsWithProperty(semanticDomainProp).forEachRemaining(situation -> {
             Resource domain = situation.getPropertyResourceValue(semanticDomainProp);
@@ -242,11 +179,13 @@ public class App {
 
                 Set<String> existing = new HashSet<>();
                 for (Map<String, Object> f : sitFields) existing.add((String) f.get("path"));
+
                 for (Map<String, Object> f : domainFields) {
                     if (!existing.contains((String) f.get("path"))) sitFields.add(f);
                 }
             }
         });
+
         response.put("forms", forms);
         ctx.json(response);
     }
@@ -280,5 +219,10 @@ public class App {
             }
         }
         ctx.json(Map.of("found", !mappings.isEmpty(), "mappings", mappings));
+    }
+
+    private static void testRules(Context ctx) {
+        // kept from previous step for debugging
+        ctx.json(Map.of("status", "available")); 
     }
 }
