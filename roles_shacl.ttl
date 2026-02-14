@@ -3,17 +3,26 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix temp: <http://example.org/temp/> .
 
 :Absorb a rdfs:Class ;
     rdfs:label "Absorb"@en ;
     :semantic_domain :Transformation ;
     rdfs:subClassOf :Situation .
 
+:Acquisition a rdfs:Class ;
+    rdfs:label "Acquisition"@en ;
+    :semantic_domain :Possession ;
+    rdfs:subClassOf :Situation .
+
 :Action a rdfs:Class ;
     rdfs:label "Action"@en ;
     :aspect :Proto_Change ;
     :realm :Social ;
+    rdfs:subClassOf :Situation .
+
+:Advising a rdfs:Class ;
+    rdfs:label "Advising"@en ;
+    :semantic_domain :Communication ;
     rdfs:subClassOf :Situation .
 
 :Affect a :SemanticDomain,
@@ -29,6 +38,11 @@
     rdfs:label "Affiliation"@en ;
     :aspect :Proto_Change ;
     :realm :Social ;
+    rdfs:subClassOf :Situation .
+
+:Announcement a rdfs:Class ;
+    rdfs:label "Announcement"@en ;
+    :semantic_domain :Communication ;
     rdfs:subClassOf :Situation .
 
 :Aspect a rdfs:Class ;
@@ -209,11 +223,6 @@
     :aspect :Proto_State ;
     :realm :Mental ;
     :semantic_domain :Desire ;
-    rdfs:subClassOf :Situation .
-
-:Dynamic_Possession a rdfs:Class ;
-    rdfs:label "Dynamic Possession"@en ;
-    :semantic_domain :Possession ;
     rdfs:subClassOf :Situation .
 
 :Emission a rdfs:Class ;
@@ -588,91 +597,161 @@
     rdfs:label "Form for Action"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "target"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :target ],
         [ sh:class :Entity ;
             sh:name "actor"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :actor ],
         [ sh:class :Entity ;
             sh:name "action"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :action ],
         [ sh:class :Entity ;
             sh:name "implement"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :implement ] ;
     sh:targetClass :Action .
+
+:AdvisingShape a sh:NodeShape ;
+    rdfs:label "Form for Advising"@en ;
+    sh:property [ sh:name "advice"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :advice ],
+        [ sh:minCount 1 ;
+            sh:name "adviser"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :adviser ],
+        [ sh:name "topic"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :topic ],
+        [ sh:name "industry"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :industry ],
+        [ sh:minCount 1 ;
+            sh:name "advisee"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :advisee ] ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+PREFIX : <http://example.org/ontology/>
+CONSTRUCT {
+    ?s :advises ?o .
+}
+WHERE {
+    $this :adviser ?s .
+    $this :advisee ?o .
+}
+""" ] ;
+    sh:targetClass :Advising .
 
 :AffectShape a sh:NodeShape ;
     rdfs:label "Form for Affect"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "reaction"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :reaction ],
         [ sh:class :Entity ;
             sh:name "affecter"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :affecter ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "affectee"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :affectee ] ;
     sh:targetClass :Affect .
 
 :AffiliationShape a sh:NodeShape ;
     rdfs:label "Form for Affiliation"@en ;
-    sh:property [ sh:class :Entry ;
-            sh:name "role"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
-            sh:path :role ],
-        [ sh:class :Entry ;
-            sh:name "task"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
-            sh:path :task ],
-        [ sh:class :Entity ;
+    sh:property [ sh:class :Entity ;
             sh:name "institution"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :institution ],
         [ sh:class :Entity ;
             sh:name "rite"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :rite ],
         [ sh:class :Entity ;
             sh:name "affiliator"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :affiliator ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "participant"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
-            sh:path :participant ] ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :participant ],
+        [ sh:class :Entry ;
+            sh:name "role"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :role ],
+        [ sh:class :Entry ;
+            sh:name "task"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :task ] ;
     sh:targetClass :Affiliation .
+
+:AnnouncementShape a sh:NodeShape ;
+    rdfs:label "Form for Announcement"@en ;
+    sh:property [ sh:name "manner"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :manner ],
+        [ sh:name "addressee"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :addressee ],
+        [ sh:minCount 1 ;
+            sh:name "announcement"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :announcement ],
+        [ sh:minCount 1 ;
+            sh:name "announcer"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :announcer ],
+        [ sh:name "topic"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :topic ],
+        [ sh:name "characterization"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :characterization ],
+        [ sh:name "signal"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :signal ] ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+PREFIX : <http://example.org/ontology/>
+CONSTRUCT {
+    ?s :announces ?o .
+}
+WHERE {
+    $this :announcer ?s .
+    $this :announcement ?o .
+}
+""" ] ;
+    sh:targetClass :Announcement .
 
 :AssociationShape a sh:NodeShape ;
     rdfs:label "Form for Association"@en ;
     sh:property [ sh:minCount 1 ;
             sh:name "associator"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :associator ],
         [ sh:name "requirement"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :requirement ],
         [ sh:name "basis"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :basis ],
         [ sh:name "attribute"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :attribute ],
         [ sh:name "analogue"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :analogue ],
         [ sh:name "topic"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :topic ],
         [ sh:name "evaluator"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :evaluator ] ;
     sh:targetClass :Association .
 
@@ -680,11 +759,11 @@
     rdfs:label "Form for Attend"@en ;
     sh:property [ sh:minCount 1 ;
             sh:name "attender"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :attender ],
         [ sh:minCount 1 ;
             sh:name "focus"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :focus ] ;
     sh:targetClass :Attend .
 
@@ -692,29 +771,29 @@
     rdfs:label "Form for Attitude"@en ;
     sh:property [ sh:class :Entry ;
             sh:name "polarity"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :polarity ],
         [ sh:class :Entry ;
             sh:name "attitude"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :attitude ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "proposition"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :proposition ],
         [ sh:class :Entry ;
             sh:name "certainty"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :certainty ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "adherent"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :adherent ],
         [ sh:class :Entry ;
             sh:name "modality"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :modality ] ;
     sh:targetClass :Attitude .
 
@@ -723,12 +802,12 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "ruler"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :ruler ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "jurisdiction"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :jurisdiction ] ;
     sh:targetClass :Authority .
 
@@ -737,15 +816,15 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "effect"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :effect ],
         [ sh:class :Entity ;
             sh:name "cause"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :cause ],
         [ sh:class :Entity ;
             sh:name "causee"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :causee ] ;
     sh:targetClass :Causation .
 
@@ -753,25 +832,25 @@
     rdfs:label "Form for Cognition"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "educator"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :educator ],
         [ sh:class :Entity ;
             sh:name "method"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :method ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "student"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :student ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "concept"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :concept ],
         [ sh:class :Entry ;
             sh:name "field"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :field ] ;
     sh:targetClass :Cognition .
 
@@ -780,36 +859,36 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "communicator"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :communicator ],
         [ sh:class :Entry ;
             sh:name "characterization"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :characterization ],
         [ sh:class :Entry ;
             sh:name "topic"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :topic ],
         [ sh:class :Entity ;
             sh:name "addressee"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :addressee ],
         [ sh:class :Entry ;
             sh:name "signal"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :signal ],
         [ sh:class :Entry ;
             sh:name "language"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :language ],
         [ sh:class :Entity ;
             sh:name "medium"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :medium ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "message"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :message ] ;
     sh:targetClass :Communication .
 
@@ -818,11 +897,11 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "entity"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :entity ],
         [ sh:class :Entry ;
             sh:name "state"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :state ] ;
     sh:targetClass :Continuation .
 
@@ -831,21 +910,21 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "regulation"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :regulation ],
         [ sh:class :Entity ;
             sh:name "rule"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :rule ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "subordinate"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :subordinate ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "controller"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :controller ] ;
     sh:targetClass :Control .
 
@@ -853,24 +932,24 @@
     rdfs:label "Form for Creation"@en ;
     sh:property [ sh:class :Entry ;
             sh:name "material"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :material ],
         [ sh:class :Entity ;
             sh:name "product"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :product ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "maker"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :maker ],
         [ sh:class :Entity ;
             sh:name "instrument"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :instrument ],
         [ sh:class :Entity ;
             sh:name "work"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :work ] ;
     sh:targetClass :Creation .
 
@@ -879,59 +958,88 @@
     sh:property [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "wish"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :wish ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "wisher"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :wisher ] ;
     sh:targetClass :Desire .
+
+:AcquisitionShape a sh:NodeShape ;
+    rdfs:label "Form for Dynamic Possession"@en ;
+    sh:property [ sh:minCount 1 ;
+            sh:name "acquirer"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :acquirer ],
+        [ sh:minCount 1 ;
+            sh:name "acquisition"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :acquisition ],
+        [ sh:name "asset"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :asset ] ;
+    sh:targetClass :Acquisition .
+
+:Acquisition_InferenceRule a sh:NodeShape ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+            PREFIX : <http://example.org/ontology/>
+            CONSTRUCT { ?agent :acquires ?target . }
+            WHERE {
+                $this :acquirer ?agent .
+                $this :acquisition ?target .
+            }
+        """ ;
+            sh:order 1 ;
+            sh:prefixes :OntologyPrefixes ] ;
+    sh:targetClass :Acquisition .
 
 :EvaluationShape a sh:NodeShape ;
     rdfs:label "Form for Evaluation"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "standard"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :standard ],
         [ sh:class :Entity ;
             sh:name "item"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :item ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "evaluator"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :evaluator ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "sentiment"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :sentiment ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "attribute"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :attribute ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "value"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :value ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "conclusion"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :conclusion ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "multiplier"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :multiplier ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "phenomenon"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :phenomenon ] ;
     sh:targetClass :Evaluation .
 
@@ -939,19 +1047,19 @@
     rdfs:label "Form for Execution"@en ;
     sh:property [ sh:class :Entry ;
             sh:name "pe"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :phase ],
         [ sh:class :Entry ;
             sh:name "modulation"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :modulation ],
         [ sh:class :Entity ;
             sh:name "executor"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :executor ],
         [ sh:class :Entry ;
             sh:name "task"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :task ] ;
     sh:targetClass :Execution .
 
@@ -959,12 +1067,12 @@
     rdfs:label "Form for Existence"@en ;
     sh:property [ sh:class :Entry ;
             sh:name "mode"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :mode ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "being"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :being ] ;
     sh:targetClass :Existence .
 
@@ -973,12 +1081,12 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "experiencer"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :experiencer ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "stimulus"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :stimulus ] ;
     sh:targetClass :Experience .
 
@@ -987,15 +1095,15 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "agonist"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :agonist ],
         [ sh:class :Entity ;
             sh:name "antagonist"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :antagonist ],
         [ sh:class :Entity ;
             sh:name "means"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :means ] ;
     sh:targetClass :Force .
 
@@ -1003,44 +1111,44 @@
     rdfs:label "Form for Governance"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "rule"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :rule ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "subordinate"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :subordinate ] ;
     sh:targetClass :Governance .
 
 :IncrementalShape a sh:NodeShape ;
     rdfs:label "Form for Incremental"@en ;
     sh:property [ sh:name "mover"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :mover ],
         [ sh:name "origin"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :origin ],
         [ sh:name "trajectory"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :trajectory ],
         [ sh:name "carrier"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :carrier ],
         [ sh:name "manner"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :manner ],
         [ sh:minCount 1 ;
             sh:name "theme"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :theme ],
         [ sh:name "affectee"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :affectee ],
         [ sh:name "destination"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :destination ],
         [ sh:name "result"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :result ] ;
     sh:targetClass :Incremental .
 
@@ -1048,12 +1156,12 @@
     rdfs:label "Form for Information"@en ;
     sh:property [ sh:class :Entry ;
             sh:name "source"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :source ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "content"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :content ] ;
     sh:targetClass :Information .
 
@@ -1062,11 +1170,11 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "interactor"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :interactor ],
         [ sh:class :Entity ;
             sh:name "interaction"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :interaction ] ;
     sh:targetClass :Interaction .
 
@@ -1074,12 +1182,12 @@
     rdfs:label "Form for Kinship"@en ;
     sh:property [ sh:class :Entry ;
             sh:name "relation"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :relation ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "relative"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :relative ] ;
     sh:targetClass :Kinship .
 
@@ -1088,27 +1196,27 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "knower"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :knower ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "knowledge"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :knowledge ] ;
     sh:targetClass :Knowledge .
 
 :LocationShape a sh:NodeShape ;
     rdfs:label "Form for Location"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:minCount 1 ;
-            sh:name "trajector"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
-            sh:path :trajector ],
-        [ sh:class :Entry ;
+    sh:property [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "landmark"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
-            sh:path :landmark ] ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :landmark ],
+        [ sh:class :Entity ;
+            sh:minCount 1 ;
+            sh:name "trajector"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :trajector ] ;
     sh:targetClass :Location .
 
 :MemoryShape a sh:NodeShape ;
@@ -1116,12 +1224,12 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "witness"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :witness ],
         [ sh:class :Entry ;
             sh:minCount 1 ;
             sh:name "impression"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :impression ] ;
     sh:targetClass :Memory .
 
@@ -1129,20 +1237,20 @@
     rdfs:label "Form for Motion"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "mover"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :mover ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "theme"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :theme ],
         [ sh:class :Entry ;
             sh:name "orientation"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :orientation ],
         [ sh:class :Entity ;
             sh:name "conveyance"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :conveyance ] ;
     sh:targetClass :Motion .
 
@@ -1151,19 +1259,19 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "situation"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :situation ],
         [ sh:class :Entry ;
             sh:name "order"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :order ],
         [ sh:class :Entry ;
             sh:name "manner"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :manner ],
         [ sh:class :Entry ;
             sh:name "time"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :time ] ;
     sh:targetClass :Occurrence .
 
@@ -1171,17 +1279,17 @@
     rdfs:label "Form for Perception"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "sense"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :sense ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "percept"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :percept ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "perceiver"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :perceiver ] ;
     sh:targetClass :Perception .
 
@@ -1189,53 +1297,53 @@
     rdfs:label "Form for Possession"@en ;
     sh:property [ sh:minCount 1 ;
             sh:name "possessor"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :possessor ],
         [ sh:minCount 1 ;
             sh:name "possession"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :possession ],
         [ sh:name "transactor"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :transactor ],
         [ sh:name "asset"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :asset ],
         [ sh:name "item"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :item ],
         [ sh:name "recipient"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :recipient ],
         [ sh:name "origin"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :origin ],
         [ sh:name "affectee"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :affectee ] ;
     sh:targetClass :Possession .
 
 :QuantificationShape a sh:NodeShape ;
     rdfs:label "Form for Quantification"@en ;
     sh:property [ sh:name "evaluator"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :evaluator ],
         [ sh:name "attribute"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :attribute ],
         [ sh:minCount 1 ;
             sh:name "item"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :item ],
         [ sh:name "container"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :container ],
         [ sh:name "affectee"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :affectee ],
         [ sh:minCount 1 ;
             sh:name "value"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :value ] ;
     sh:targetClass :Quantification .
 
@@ -1243,19 +1351,19 @@
     rdfs:label "Form for Transaction"@en ;
     sh:property [ sh:class :Entity ;
             sh:name "recipient"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :recipient ],
         [ sh:class :Entity ;
             sh:name "transactor"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :transactor ],
         [ sh:class :Entity ;
             sh:name "item"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :item ],
         [ sh:class :Entity ;
             sh:name "asset"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :asset ] ;
     sh:targetClass :Transaction .
 
@@ -1264,19 +1372,19 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "undergoer"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :undergoer ],
         [ sh:class :Entity ;
             sh:name "result"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :result ],
         [ sh:class :Entity ;
             sh:name "transformer"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :transformer ],
         [ sh:class :Entity ;
             sh:name "catalyst"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :catalyst ] ;
     sh:targetClass :Transformation .
 
@@ -1285,26 +1393,26 @@
     sh:property [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "aim"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :aim ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "aversion"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :aversion ],
         [ sh:class :Entity ;
             sh:name "stratagem"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :stratagem ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "intender"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :intender ],
         [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "object"@en ;
-            sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :object ] ;
     sh:targetClass :Volition .
 
@@ -1345,7 +1453,7 @@
 
 :abnegate a :Verb ;
     rdfs:label "abnegate"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :abolish a :Verb ;
@@ -1403,7 +1511,7 @@
 
 :accept a :Verb ;
     rdfs:label "accept"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Statement ;
     :vn_class :characterize-29_2,
         :obtain-13_5_2 .
@@ -1426,13 +1534,13 @@
 
 :accrue a :Verb ;
     rdfs:label "accrue"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :obtain-13_5_2 .
 
 :accumulate a :Verb ;
     rdfs:label "accumulate"@en ;
-    :evokes :Basic_Incremental,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Basic_Incremental ;
     :vn_class :herd-47_5_2,
         :obtain-13_5_2 .
 
@@ -1469,8 +1577,11 @@
 
 :acquire a :Verb ;
     rdfs:label "acquire"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :obtain-13_5_2 .
+
+:acquires a rdf:Property ;
+    rdfs:label "acquires"@en .
 
 :acquit a :Verb ;
     rdfs:label "acquit"@en ;
@@ -1523,7 +1634,7 @@
 
 :administer a :Verb ;
     rdfs:label "administer"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :admire a :Verb ;
@@ -1586,18 +1697,6 @@
         :Statement ;
     :vn_class :advise-37_9,
         :say-37_7 .
-
-:advisee a rdf:Property ;
-    rdfs:label "advisee"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :addressee .
-
-:adviser a rdf:Property ;
-    rdfs:label "adviser"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :communicator .
 
 :affect a :Verb ;
     rdfs:label "affect"@en ;
@@ -2022,7 +2121,7 @@
 
 :appropriate a :Verb ;
     rdfs:label "appropriate"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :obtain-13_5_2 .
 
 :approve a :Verb ;
@@ -2107,7 +2206,7 @@
 
 :arrogate a :Verb ;
     rdfs:label "arrogate"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :obtain-13_5_2 .
 
 :articulate a :Verb ;
@@ -2260,8 +2359,8 @@
 
 :attain a :Verb ;
     rdfs:label "attain"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell ;
     :vn_class :get-13_5_1 .
 
 :attend a :Verb ;
@@ -2283,7 +2382,7 @@
 
 :attract a :Verb ;
     rdfs:label "attract"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Inducive ;
     :vn_class :earn-54_6,
         :lure-59_3 .
@@ -2891,7 +2990,7 @@
 
 :betroth a :Verb ;
     rdfs:label "betroth"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :better a :Verb ;
@@ -3370,8 +3469,8 @@
 
 :book a :Verb ;
     rdfs:label "book"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell ;
     :vn_class :get-13_5_1 .
 
 :boom a :Verb ;
@@ -3417,7 +3516,7 @@
 
 :borrow a :Verb ;
     rdfs:label "borrow"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :obtain-13_5_2 .
 
 :boss a :Verb ;
@@ -3645,9 +3744,9 @@
 
 :bring a :Verb ;
     rdfs:label "bring"@en ;
-    :evokes :Carry,
-        :Cause_and_Effect,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Carry,
+        :Cause_and_Effect ;
     :vn_class :bring-11_3,
         :earn-54_6,
         :engender-27_1 .
@@ -3674,7 +3773,7 @@
 
 :bring_in a :Verb ;
     rdfs:label "bring_in"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :earn-54_6 .
 
 :bristle a :Verb ;
@@ -3975,8 +4074,8 @@
 
 :buy a :Verb ;
     rdfs:label "buy"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession,
+    :evokes :Acquisition,
+        :Buy_and_Sell,
         :Transfer_of_Possession ;
     :vn_class :get-13_5_1,
         :invest-13_5_4 .
@@ -4035,7 +4134,7 @@
 
 :cadge a :Verb ;
     rdfs:label "cadge"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Transfer_of_Possession ;
     :vn_class :obtain-13_5_2,
         :steal-10_5 .
@@ -4069,9 +4168,9 @@
 
 :call a :Verb ;
     rdfs:label "call"@en ;
-    :evokes :Buy_and_Sell,
+    :evokes :Acquisition,
+        :Buy_and_Sell,
         :Communicate,
-        :Dynamic_Possession,
         :Emission,
         :Statement ;
     :vn_class :animal_sounds-38,
@@ -4291,8 +4390,8 @@
 
 :cash a :Verb ;
     rdfs:label "cash"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell ;
     :vn_class :get-13_5_1 .
 
 :cast a :Verb ;
@@ -4327,8 +4426,8 @@
 
 :catch a :Verb ;
     rdfs:label "catch"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell ;
     :vn_class :get-13_5_1 .
 
 :categorize a :Verb ;
@@ -4562,8 +4661,8 @@
 
 :charter a :Verb ;
     rdfs:label "charter"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell ;
     :vn_class :get-13_5_1 .
 
 :chase a :Verb ;
@@ -4739,8 +4838,8 @@
 
 :choose a :Verb ;
     rdfs:label "choose"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell ;
     :vn_class :get-13_5_1 .
 
 :chop a :Verb ;
@@ -4828,7 +4927,7 @@
 
 :circularize a :Verb ;
     rdfs:label "circularize"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :circulate a :Verb ;
@@ -5268,9 +5367,9 @@
 
 :collect a :Verb ;
     rdfs:label "collect"@en ;
-    :evokes :Basic_Change_of_State,
-        :Basic_Incremental,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Basic_Change_of_State,
+        :Basic_Incremental ;
     :vn_class :herd-47_5_2,
         :knead-26_5,
         :obtain-13_5_2,
@@ -5351,7 +5450,7 @@
 
 :commandeer a :Verb ;
     rdfs:label "commandeer"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Inducive,
         :Transfer_of_Possession ;
     :vn_class :compel-59_1,
@@ -5737,7 +5836,7 @@
 
 :consume a :Verb ;
     rdfs:label "consume"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Ingestion ;
     :vn_class :consume-66,
         :devour-39_4 .
@@ -5785,7 +5884,7 @@
 
 :contribute a :Verb ;
     rdfs:label "contribute"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :contrive a :Verb ;
@@ -7697,7 +7796,7 @@
 
 :disburse a :Verb ;
     rdfs:label "disburse"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :discard a :Verb ;
@@ -7987,7 +8086,7 @@
 
 :disseminate a :Verb ;
     rdfs:label "disseminate"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :dissimilate a :Verb ;
@@ -8057,7 +8156,7 @@
 
 :distribute a :Verb ;
     rdfs:label "distribute"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :distrust a :Verb ;
@@ -8174,7 +8273,7 @@
 
 :donate a :Verb ;
     rdfs:label "donate"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :dong a :Verb ;
@@ -8554,8 +8653,8 @@
 
 :earn a :Verb ;
     rdfs:label "earn"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell ;
     :vn_class :earn-54_6,
         :get-13_5_1 .
 
@@ -9302,7 +9401,7 @@
 
 :exact a :Verb ;
     rdfs:label "exact"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :obtain-13_5_2 .
 
 :exalt a :Verb ;
@@ -9552,7 +9651,7 @@
 
 :extend a :Verb ;
     rdfs:label "extend"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Existence,
         :Future_Having ;
     :vn_class :contribute-13_2,
@@ -9895,8 +9994,8 @@
 
 :fetch a :Verb ;
     rdfs:label "fetch"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell ;
     :vn_class :earn-54_6,
         :get-13_5_1 .
 
@@ -9976,8 +10075,8 @@
 
 :find a :Verb ;
     rdfs:label "find"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession,
+    :evokes :Acquisition,
+        :Buy_and_Sell,
         :Know,
         :Sense,
         :Statement ;
@@ -10428,7 +10527,7 @@
 
 :forfeit a :Verb ;
     rdfs:label "forfeit"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :forge a :Verb ;
@@ -10447,7 +10546,7 @@
 
 :forgo a :Verb ;
     rdfs:label "forgo"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Location ;
     :vn_class :contiguous_location-47_8,
         :contribute-13_2 .
@@ -10715,8 +10814,8 @@
 
 :gain a :Verb ;
     rdfs:label "gain"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell ;
     :vn_class :get-13_5_1 .
 
 :gall a :Verb ;
@@ -10816,10 +10915,10 @@
 
 :gather a :Verb ;
     rdfs:label "gather"@en ;
-    :evokes :Base_and_Deduce,
+    :evokes :Acquisition,
+        :Base_and_Deduce,
         :Basic_Incremental,
-        :Buy_and_Sell,
-        :Dynamic_Possession ;
+        :Buy_and_Sell ;
     :vn_class :deduce-97_2,
         :get-13_5_1,
         :herd-47_5_2 .
@@ -10889,12 +10988,12 @@
 
 :get a :Verb ;
     rdfs:label "get"@en ;
-    :evokes :Basic_Motion,
+    :evokes :Acquisition,
+        :Basic_Motion,
         :Buy_and_Sell,
         :Causative_Change_of_State,
         :Causative_Creation,
         :Communicate,
-        :Dynamic_Possession,
         :Judge ;
     :vn_class :birth-28_2,
         :comprehend-87_2,
@@ -10931,7 +11030,7 @@
 
 :gift a :Verb ;
     rdfs:label "gift"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :giggle a :Verb ;
@@ -10963,7 +11062,7 @@
 
 :give-away a :Verb ;
     rdfs:label "give-away"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :give-back a :Verb ;
@@ -10974,12 +11073,12 @@
 
 :give-out a :Verb ;
     rdfs:label "give-out"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :give-up a :Verb ;
     rdfs:label "give-up"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :give_forth a :Verb ;
@@ -11295,7 +11394,7 @@
 
 :grab a :Verb ;
     rdfs:label "grab"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Transfer_of_Possession ;
     :vn_class :obtain-13_5_2,
         :steal-10_5 .
@@ -11702,7 +11801,7 @@
 
 :hand_out a :Verb ;
     rdfs:label "hand_out"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :handcuff a :Verb ;
@@ -12001,7 +12100,7 @@
 
 :hijack a :Verb ;
     rdfs:label "hijack"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Social_Force ;
     :vn_class :force-59-1,
         :obtain-13_5_2 .
@@ -12028,9 +12127,9 @@
 
 :hire a :Verb ;
     rdfs:label "hire"@en ;
-    :evokes :Buy_and_Sell,
-        :Cause_Membership,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell,
+        :Cause_Membership ;
     :vn_class :get-13_5_1,
         :hire-13_5_3 .
 
@@ -12650,12 +12749,6 @@
     :evokes :Basic_Change_of_State ;
     :vn_class :other_cos-45_4 .
 
-:industry a rdf:Property ;
-    rdfs:label "industry"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :institution .
-
 :infect a :Verb ;
     rdfs:label "infect"@en ;
     :evokes :Basic_Incremental ;
@@ -12712,7 +12805,7 @@
 
 :inherit a :Verb ;
     rdfs:label "inherit"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :obtain-13_5_2 .
 
 :initial a :Verb ;
@@ -13709,8 +13802,8 @@
 
 :lease a :Verb ;
     rdfs:label "lease"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession,
+    :evokes :Acquisition,
+        :Buy_and_Sell,
         :Transfer_of_Possession ;
     :vn_class :get-13_5_1,
         :give-13_1 .
@@ -14221,10 +14314,10 @@
 
 :make a :Verb ;
     rdfs:label "make"@en ;
-    :evokes :Basic_Motion,
+    :evokes :Acquisition,
+        :Basic_Motion,
         :Causative_Change_of_State,
-        :Causative_Creation,
-        :Dynamic_Possession ;
+        :Causative_Creation ;
     :vn_class :build-26_1,
         :obtain-13_5_2,
         :reach-51_8,
@@ -14669,7 +14762,7 @@
 
 :misspend a :Verb ;
     rdfs:label "misspend"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :consume-66 .
 
 :mist a :Verb ;
@@ -15379,7 +15472,7 @@
 
 :obtain a :Verb ;
     rdfs:label "obtain"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :obtain-13_5_2 .
 
 :obviate a :Verb ;
@@ -15989,8 +16082,8 @@
 
 :pass_out a :Verb ;
     rdfs:label "pass_out"@en ;
-    :evokes :Basic_Change_of_State,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Basic_Change_of_State ;
     :vn_class :change_bodily_state-40_8_4,
         :contribute-13_2 .
 
@@ -16297,9 +16390,9 @@
 
 :phone a :Verb ;
     rdfs:label "phone"@en ;
-    :evokes :Buy_and_Sell,
-        :Communicate,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell,
+        :Communicate ;
     :vn_class :get-13_5_1,
         :initiate_communication-37_4_2,
         :instr_communication-37_4_1 .
@@ -16321,8 +16414,8 @@
 
 :pick a :Verb ;
     rdfs:label "pick"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession,
+    :evokes :Acquisition,
+        :Buy_and_Sell,
         :Ingestion ;
     :vn_class :chew-39_2,
         :get-13_5_1 .
@@ -16615,10 +16708,10 @@
 
 :pluck a :Verb ;
     rdfs:label "pluck"@en ;
-    :evokes :Buy_and_Sell,
+    :evokes :Acquisition,
+        :Buy_and_Sell,
         :Causative_Change_of_State,
-        :Causative_Incremental,
-        :Dynamic_Possession ;
+        :Causative_Incremental ;
     :vn_class :braid-41_2_2,
         :get-13_5_1,
         :wipe_manner-10_4_1 .
@@ -17128,8 +17221,8 @@
 
 :procure a :Verb ;
     rdfs:label "procure"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell ;
     :vn_class :get-13_5_1 .
 
 :prod a :Verb ;
@@ -17153,7 +17246,7 @@
 
 :proffer a :Verb ;
     rdfs:label "proffer"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Future_Having,
         :Statement ;
     :vn_class :contribute-13_2,
@@ -17365,13 +17458,13 @@
 
 :pull a :Verb ;
     rdfs:label "pull"@en ;
-    :evokes :Basic_Force,
+    :evokes :Acquisition,
+        :Basic_Force,
         :Basic_Incremental,
         :Basic_Motion,
         :Buy_and_Sell,
         :Carry,
         :Causative_Incremental,
-        :Dynamic_Possession,
         :Hurt ;
     :vn_class :carry-11_4,
         :get-13_5_1,
@@ -17448,7 +17541,7 @@
 
 :purchase a :Verb ;
     rdfs:label "purchase"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :obtain-13_5_2 .
 
 :purge a :Verb ;
@@ -17743,10 +17836,10 @@
 
 :raise a :Verb ;
     rdfs:label "raise"@en ;
-    :evokes :Causative_Change_of_State,
+    :evokes :Acquisition,
+        :Causative_Change_of_State,
         :Causative_Incremental,
         :Cause_and_Effect,
-        :Dynamic_Possession,
         :Existence,
         :Form,
         :Pick_Up_and_Drop_Off ;
@@ -17887,10 +17980,10 @@
 
 :reach a :Verb ;
     rdfs:label "reach"@en ;
-    :evokes :Basic_Motion,
+    :evokes :Acquisition,
+        :Basic_Motion,
         :Buy_and_Sell,
-        :Communicate,
-        :Dynamic_Possession ;
+        :Communicate ;
     :vn_class :get-13_5_1,
         :initiate_communication-37_4_2,
         :reach-51_8 .
@@ -18058,7 +18151,7 @@
 
 :receive a :Verb ;
     rdfs:label "receive"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :obtain-13_5_2 .
 
 :recharge a :Verb ;
@@ -18180,14 +18273,14 @@
 
 :recoup a :Verb ;
     rdfs:label "recoup"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Transfer_of_Possession ;
     :vn_class :obtain-13_5_2,
         :steal-10_5 .
 
 :recover a :Verb ;
     rdfs:label "recover"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :obtain-13_5_2 .
 
 :recruit a :Verb ;
@@ -18285,7 +18378,7 @@
 
 :refer a :Verb ;
     rdfs:label "refer"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Require_and_Satisfy ;
     :vn_class :contribute-13_2,
         :relate-86_2 .
@@ -18344,7 +18437,7 @@
 
 :regain a :Verb ;
     rdfs:label "regain"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :obtain-13_5_2 .
 
 :regale a :Verb ;
@@ -18396,7 +18489,7 @@
 
 :reimburse a :Verb ;
     rdfs:label "reimburse"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :reinforce a :Verb ;
@@ -18493,7 +18586,7 @@
 
 :relinquish a :Verb ;
     rdfs:label "relinquish"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :relish a :Verb ;
@@ -18539,7 +18632,7 @@
 
 :remit a :Verb ;
     rdfs:label "remit"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :remonstrate a :Verb ;
@@ -18598,8 +18691,8 @@
 
 :rent a :Verb ;
     rdfs:label "rent"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession,
+    :evokes :Acquisition,
+        :Buy_and_Sell,
         :Transfer_of_Possession ;
     :vn_class :get-13_5_1,
         :give-13_1 .
@@ -18790,8 +18883,8 @@
 
 :reserve a :Verb ;
     rdfs:label "reserve"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell ;
     :vn_class :get-13_5_1 .
 
 :reside a :Verb ;
@@ -18803,7 +18896,7 @@
 
 :resign a :Verb ;
     rdfs:label "resign"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :resonate a :Verb ;
@@ -18849,7 +18942,7 @@
 
 :restore a :Verb ;
     rdfs:label "restore"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :restrain a :Verb ;
@@ -18866,7 +18959,7 @@
 
 :resubmit a :Verb ;
     rdfs:label "resubmit"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :resupply a :Verb ;
@@ -18908,7 +19001,7 @@
 
 :retrieve a :Verb ;
     rdfs:label "retrieve"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :obtain-13_5_2 .
 
 :return a :Verb ;
@@ -18929,7 +19022,7 @@
 
 :reuse a :Verb ;
     rdfs:label "reuse"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Manipulate ;
     :vn_class :consume-66,
         :use-105_1 .
@@ -19434,7 +19527,7 @@
 
 :sacrifice a :Verb ;
     rdfs:label "sacrifice"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :sadden a :Verb ;
@@ -19596,8 +19689,8 @@
 
 :save a :Verb ;
     rdfs:label "save"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession,
+    :evokes :Acquisition,
+        :Buy_and_Sell,
         :Pay_and_Charge,
         :Transfer_of_Possession ;
     :vn_class :bill-54_5,
@@ -19756,8 +19849,8 @@
 
 :score a :Verb ;
     rdfs:label "score"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell ;
     :vn_class :get-13_5_1 .
 
 :scorn a :Verb ;
@@ -19981,9 +20074,9 @@
 
 :secure a :Verb ;
     rdfs:label "secure"@en ;
-    :evokes :Buy_and_Sell,
-        :Defend,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell,
+        :Defend ;
     :vn_class :ensure-99,
         :get-13_5_1 .
 
@@ -20044,14 +20137,14 @@
 
 :seize a :Verb ;
     rdfs:label "seize"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Transfer_of_Possession ;
     :vn_class :obtain-13_5_2,
         :steal-10_5 .
 
 :select a :Verb ;
     rdfs:label "select"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Statement ;
     :vn_class :characterize-29_2,
         :obtain-13_5_2 .
@@ -20304,7 +20397,7 @@
 
 :shell_out a :Verb ;
     rdfs:label "shell_out"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :shellac a :Verb ;
@@ -21235,7 +21328,7 @@
 
 :snatch a :Verb ;
     rdfs:label "snatch"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Transfer_of_Possession ;
     :vn_class :obtain-13_5_2,
         :steal-10_5 .
@@ -21638,7 +21731,7 @@
 
 :spend a :Verb ;
     rdfs:label "spend"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Pay_and_Charge ;
     :vn_class :consume-66,
         :pay-68 .
@@ -21909,7 +22002,7 @@
 
 :squander a :Verb ;
     rdfs:label "squander"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Pay_and_Charge ;
     :vn_class :consume-66,
         :pay-68 .
@@ -22661,7 +22754,7 @@
 
 :submit a :Verb ;
     rdfs:label "submit"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :suborn a :Verb ;
@@ -22671,7 +22764,7 @@
 
 :subselect a :Verb ;
     rdfs:label "subselect"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Statement ;
     :vn_class :characterize-29_2,
         :obtain-13_5_2 .
@@ -22900,7 +22993,7 @@
 
 :surrender a :Verb ;
     rdfs:label "surrender"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :surround a :Verb ;
@@ -23211,12 +23304,12 @@
 :take a :Verb ;
     rdfs:label "take"@en ;
     :evokes :Absorb,
+        :Acquisition,
         :Buy_and_Sell,
         :Capacity,
         :Carry,
         :Causative_Change_of_State,
         :Causative_Incremental,
-        :Dynamic_Possession,
         :Image_Creation,
         :Ingestion,
         :Measurement,
@@ -23267,7 +23360,7 @@
 
 :take_over a :Verb ;
     rdfs:label "take_over"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :obtain-13_5_2 .
 
 :take_place a :Verb ;
@@ -24095,7 +24188,7 @@
 
 :transfer a :Verb ;
     rdfs:label "transfer"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Send ;
     :vn_class :contribute-13_2,
         :send-11_1 .
@@ -24440,7 +24533,7 @@
 
 :turn-in a :Verb ;
     rdfs:label "turn-in"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :turn-off a :Verb ;
@@ -24462,7 +24555,7 @@
 
 :turn-over a :Verb ;
     rdfs:label "turn-over"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :vn_class :contribute-13_2 .
 
 :turn-up a :Verb ;
@@ -24931,7 +25024,7 @@
 
 :use a :Verb ;
     rdfs:label "use"@en ;
-    :evokes :Dynamic_Possession,
+    :evokes :Acquisition,
         :Ingestion,
         :Manipulate ;
     :vn_class :consume-66,
@@ -25363,8 +25456,8 @@
 
 :waste a :Verb ;
     rdfs:label "waste"@en ;
-    :evokes :Causative_Change_of_State,
-        :Dynamic_Possession,
+    :evokes :Acquisition,
+        :Causative_Change_of_State,
         :Pay_and_Charge ;
     :vn_class :consume-66,
         :destroy-44,
@@ -25716,8 +25809,8 @@
 
 :win a :Verb ;
     rdfs:label "win"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession ;
+    :evokes :Acquisition,
+        :Buy_and_Sell ;
     :vn_class :get-13_5_1 .
 
 :win_over a :Verb ;
@@ -26119,12 +26212,48 @@
     :evokes :Basic_Motion ;
     :vn_class :run-51_3_2 .
 
+:OntologyPrefixes sh:declare [ sh:namespace "http://example.org/ontology/"^^xsd:anyURI ;
+            sh:prefix "" ],
+        [ sh:namespace "http://www.w3.org/1999/02/22-rdf-syntax-ns#"^^xsd:anyURI ;
+            sh:prefix "rdf" ],
+        [ sh:namespace "http://www.w3.org/2000/01/rdf-schema#"^^xsd:anyURI ;
+            sh:prefix "rdfs" ],
+        [ sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ;
+            sh:prefix "xsd" ] .
+
+:acquirer a rdf:Property ;
+    rdfs:label "acquirer"@en ;
+    rdfs:subPropertyOf :transactor .
+
+:acquisition a rdf:Property ;
+    rdfs:label "acquisition"@en ;
+    rdfs:subPropertyOf :item .
+
 :action a rdf:Property ;
     rdfs:label "action"@en ;
     :usage :Optional ;
     rdfs:domain :Action ;
     rdfs:range :Entity ;
     rdfs:subPropertyOf :goal .
+
+:advice a rdf:Property ;
+    rdfs:label "advice"@en ;
+    :usage :Optional ;
+    rdfs:range :Entity ;
+    rdfs:subPropertyOf :message .
+
+:advisee a rdf:Property ;
+    rdfs:label "advisee"@en ;
+    :usage :Optional ;
+    rdfs:range :Entity ;
+    rdfs:subPropertyOf :addressee,
+        :recipient .
+
+:adviser a rdf:Property ;
+    rdfs:label "adviser"@en ;
+    :usage :Optional ;
+    rdfs:range :Entity ;
+    rdfs:subPropertyOf :communicator .
 
 :affecter a rdf:Property ;
     rdfs:label "affecter"@en ;
@@ -26157,6 +26286,18 @@
     :usage :Optional ;
     rdfs:range :Entity ;
     rdfs:subPropertyOf :phenomenon .
+
+:announcement a rdf:Property ;
+    rdfs:label "announcement"@en ;
+    :usage :Optional ;
+    rdfs:range :Entity ;
+    rdfs:subPropertyOf :message .
+
+:announcer a rdf:Property ;
+    rdfs:label "announcer"@en ;
+    :usage :Optional ;
+    rdfs:range :Entity ;
+    rdfs:subPropertyOf :communicator .
 
 :antagonist a rdf:Property ;
     rdfs:label "antagonist"@en ;
@@ -26216,13 +26357,6 @@
     rdfs:label "certainty"@en ;
     :usage :Optional ;
     rdfs:domain :Attitude ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:characterization a rdf:Property ;
-    rdfs:label "characterization"@en ;
-    :usage :Optional ;
-    rdfs:domain :Communication ;
     rdfs:range :Entry ;
     rdfs:subPropertyOf :modifier .
 
@@ -26317,6 +26451,12 @@
     rdfs:domain :Memory ;
     rdfs:range :Entry ;
     rdfs:subPropertyOf :modifier .
+
+:industry a rdf:Property ;
+    rdfs:label "industry"@en ;
+    :usage :Optional ;
+    rdfs:range :Entity ;
+    rdfs:subPropertyOf :institution .
 
 :instrument a rdf:Property ;
     rdfs:label "instrument"@en ;
@@ -26561,16 +26701,6 @@
     rdfs:range :Entry ;
     rdfs:subPropertyOf :modifier .
 
-:signal a :Verb,
-        rdf:Property ;
-    rdfs:label "signal"@en ;
-    :evokes :Communicate ;
-    :usage :Optional ;
-    :vn_class :instr_communication-37_4_1 ;
-    rdfs:domain :Communication ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
 :situation a rdf:Property ;
     rdfs:label "situation"@en ;
     :usage :Typical ;
@@ -26676,28 +26806,21 @@
 :allow-64 a :VerbNetClass ;
     rdfs:label "allow-64"@en .
 
-:asset a rdf:Property ;
-    rdfs:label "asset"@en ;
-    :usage :Optional ;
-    rdfs:domain :Transaction ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :resource .
-
 :bring-11_3 a :VerbNetClass ;
     rdfs:label "bring-11.3"@en .
+
+:characterization a rdf:Property ;
+    rdfs:label "characterization"@en ;
+    :usage :Optional ;
+    rdfs:domain :Communication ;
+    rdfs:range :Entry ;
+    rdfs:subPropertyOf :modifier .
 
 :contain-15_4 a :VerbNetClass ;
     rdfs:label "contain-15.4"@en .
 
 :free-80 a :VerbNetClass ;
     rdfs:label "free-80"@en .
-
-:manner a rdf:Property ;
-    rdfs:label "manner"@en ;
-    :usage :Optional ;
-    rdfs:domain :Occurrence ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
 
 :mine-10_9 a :VerbNetClass ;
     rdfs:label "mine-10.9"@en .
@@ -26707,13 +26830,6 @@
     :usage :Optional ;
     rdfs:range :Entry ;
     rdfs:subPropertyOf :orientation .
-
-:recipient a rdf:Property ;
-    rdfs:label "recipient"@en ;
-    :usage :Optional ;
-    rdfs:domain :Transaction ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :goal .
 
 :result a :Verb,
         rdf:Property ;
@@ -26742,6 +26858,16 @@
     rdfs:range :Entity ;
     rdfs:subPropertyOf :resource .
 
+:signal a :Verb,
+        rdf:Property ;
+    rdfs:label "signal"@en ;
+    :evokes :Communicate ;
+    :usage :Optional ;
+    :vn_class :instr_communication-37_4_1 ;
+    rdfs:domain :Communication ;
+    rdfs:range :Entry ;
+    rdfs:subPropertyOf :modifier .
+
 :subordinate a rdf:Property ;
     rdfs:label "subordinate"@en ;
     :usage :Typical ;
@@ -26763,13 +26889,6 @@
     rdfs:subPropertyOf :essence,
         :role .
 
-:topic a rdf:Property ;
-    rdfs:label "topic"@en ;
-    :usage :Optional ;
-    rdfs:domain :Communication ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
 :value a :Verb,
         rdf:Property ;
     rdfs:label "value"@en ;
@@ -26785,13 +26904,6 @@
 :absorb-39_8 a :VerbNetClass ;
     rdfs:label "absorb-39.8"@en .
 
-:addressee a rdf:Property ;
-    rdfs:label "addressee"@en ;
-    :usage :Optional ;
-    rdfs:domain :Communication ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :goal .
-
 :adherent a rdf:Property ;
     rdfs:label "adherent"@en ;
     :usage :Typical ;
@@ -26801,6 +26913,13 @@
 
 :appeal-31_4 a :VerbNetClass ;
     rdfs:label "appeal-31.4"@en .
+
+:asset a rdf:Property ;
+    rdfs:label "asset"@en ;
+    :usage :Optional ;
+    rdfs:domain :Transaction ;
+    rdfs:range :Entity ;
+    rdfs:subPropertyOf :resource .
 
 :attribute a rdf:Property ;
     rdfs:label "attribute"@en ;
@@ -26863,18 +26982,18 @@
     rdfs:range :Entity ;
     rdfs:subPropertyOf :initiator .
 
-:message a rdf:Property ;
-    rdfs:label "message"@en ;
-    :usage :Typical ;
-    rdfs:domain :Communication ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
+:manner a rdf:Property ;
+    rdfs:label "manner"@en ;
+    :usage :Optional ;
+    rdfs:domain :Occurrence ;
+    rdfs:range :Entry ;
+    rdfs:subPropertyOf :modifier .
 
 :order a :Verb,
         rdf:Property ;
     rdfs:label "order"@en ;
-    :evokes :Buy_and_Sell,
-        :Dynamic_Possession,
+    :evokes :Acquisition,
+        :Buy_and_Sell,
         :Order,
         :Request ;
     :usage :Optional ;
@@ -26888,6 +27007,13 @@
 :pronounce-29_3_1 a :VerbNetClass ;
     rdfs:label "pronounce-29.3.1"@en .
 
+:recipient a rdf:Property ;
+    rdfs:label "recipient"@en ;
+    :usage :Optional ;
+    rdfs:domain :Transaction ;
+    rdfs:range :Entity ;
+    rdfs:subPropertyOf :goal .
+
 :reciprocate-112 a :VerbNetClass ;
     rdfs:label "reciprocate-112"@en .
 
@@ -26900,7 +27026,7 @@
 :source a :Verb,
         rdf:Property ;
     rdfs:label "source"@en ;
-    :evokes :Dynamic_Possession ;
+    :evokes :Acquisition ;
     :usage :Optional ;
     :vn_class :obtain-13_5_2 ;
     rdfs:domain :Information ;
@@ -26922,6 +27048,13 @@
 
 :Quantification a :SemanticDomain ;
     rdfs:label "Quantification"@en .
+
+:addressee a rdf:Property ;
+    rdfs:label "addressee"@en ;
+    :usage :Optional ;
+    rdfs:domain :Communication ;
+    rdfs:range :Entity ;
+    rdfs:subPropertyOf :goal .
 
 :affiliator a rdf:Property ;
     rdfs:label "affiliator"@en ;
@@ -26955,16 +27088,6 @@
 :interrogate-37_1_3 a :VerbNetClass ;
     rdfs:label "interrogate-37.1.3"@en .
 
-:item a rdf:Property ;
-    rdfs:label "item"@en ;
-    :usage :Optional,
-        :Typical ;
-    rdfs:domain :Evaluation,
-        :Transaction ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence,
-        :phenomenon .
-
 :own-100_1 a :VerbNetClass ;
     rdfs:label "own-100.1"@en .
 
@@ -26997,6 +27120,13 @@
     rdfs:range :Entity ;
     rdfs:subPropertyOf :essence .
 
+:topic a rdf:Property ;
+    rdfs:label "topic"@en ;
+    :usage :Optional ;
+    rdfs:domain :Communication ;
+    rdfs:range :Entry ;
+    rdfs:subPropertyOf :modifier .
+
 :ﬂoss-41_2_1 a :VerbNetClass ;
     rdfs:label "ﬂoss-41.2.1"@en .
 
@@ -27022,13 +27152,6 @@
 :clear-10_3 a :VerbNetClass ;
     rdfs:label "clear-10.3"@en .
 
-:communicator a rdf:Property ;
-    rdfs:label "communicator"@en ;
-    :usage :Typical ;
-    rdfs:domain :Communication ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
-
 :correlate-86_1 a :VerbNetClass ;
     rdfs:label "correlate-86.1"@en .
 
@@ -27043,6 +27166,23 @@
 
 :inquire-37_1_2 a :VerbNetClass ;
     rdfs:label "inquire-37.1.2"@en .
+
+:item a rdf:Property ;
+    rdfs:label "item"@en ;
+    :usage :Optional,
+        :Typical ;
+    rdfs:domain :Evaluation,
+        :Transaction ;
+    rdfs:range :Entity ;
+    rdfs:subPropertyOf :essence,
+        :phenomenon .
+
+:message a rdf:Property ;
+    rdfs:label "message"@en ;
+    :usage :Typical ;
+    rdfs:domain :Communication ;
+    rdfs:range :Entity ;
+    rdfs:subPropertyOf :essence .
 
 :order-60-1 a :VerbNetClass ;
     rdfs:label "order-60-1"@en .
@@ -27095,6 +27235,13 @@
 
 :bulge-47_5_3 a :VerbNetClass ;
     rdfs:label "bulge-47.5.3"@en .
+
+:communicator a rdf:Property ;
+    rdfs:label "communicator"@en ;
+    :usage :Typical ;
+    rdfs:domain :Communication ;
+    rdfs:range :Entity ;
+    rdfs:subPropertyOf :initiator .
 
 :confess-37_10 a :VerbNetClass ;
     rdfs:label "confess-37.10"@en .
@@ -27165,13 +27312,6 @@
     rdfs:range :Entry ;
     rdfs:subPropertyOf :modifier .
 
-:transactor a rdf:Property ;
-    rdfs:label "transactor"@en ;
-    :usage :Optional ;
-    rdfs:domain :Transaction ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
-
 :chase-51_6 a :VerbNetClass ;
     rdfs:label "chase-51.6"@en .
 
@@ -27196,6 +27336,13 @@
 
 :snooze-40_4 a :VerbNetClass ;
     rdfs:label "snooze-40.4"@en .
+
+:transactor a rdf:Property ;
+    rdfs:label "transactor"@en ;
+    :usage :Optional ;
+    rdfs:domain :Transaction ;
+    rdfs:range :Entity ;
+    rdfs:subPropertyOf :initiator .
 
 :Physical a :Realm ;
     rdfs:label "Physical"@en .
@@ -27822,67 +27969,3 @@
 :other_cos-45_4 a :VerbNetClass ;
     rdfs:label "other_cos-45.4"@en .
 
-# --- DYNAMIC POSSESSION FIELD DEFINITIONS ---
-
-:acquirer a rdf:Property ;
-    rdfs:label "acquirer"@en ;
-    rdfs:subPropertyOf :transactor .
-
-:acquisition a rdf:Property ;
-    rdfs:label "acquisition"@en ;
-    rdfs:subPropertyOf :item .
-
-:acquires a rdf:Property ;
-    rdfs:label "acquires"@en .
-
-# --- DYNAMIC POSSESSION FORM SHAPE ---
-
-:DynamicPossessionShape a sh:NodeShape ;
-    rdfs:label "Form for Dynamic Possession"@en ;
-    sh:targetClass :Dynamic_Possession ;
-    sh:property [
-        sh:path :acquirer ;
-        sh:name "acquirer"@en ;
-        sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
-        sh:minCount 1 ;
-    ] ;
-    sh:property [
-        sh:path :acquisition ;
-        sh:name "acquisition"@en ;
-        sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
-        sh:minCount 1 ;
-    ] ;
-    sh:property [
-        sh:path :asset ;
-        sh:name "asset"@en ;
-        sh:nodeKind sh:BlankNodeOrIRIOrLiteral ;
-    ] .
-
-# --- INFERENCE TEST ---
-
-:OntologyPrefixes
-    sh:declare [ sh:prefix "" ;
-                 sh:namespace "http://example.org/ontology/"^^xsd:anyURI ] ;
-    sh:declare [ sh:prefix "rdf" ;
-                 sh:namespace "http://www.w3.org/1999/02/22-rdf-syntax-ns#"^^xsd:anyURI ] ;
-    sh:declare [ sh:prefix "rdfs" ;
-                 sh:namespace "http://www.w3.org/2000/01/rdf-schema#"^^xsd:anyURI ] ;
-    sh:declare [ sh:prefix "xsd" ;
-                 sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ] .
-
-:DynamicPossession_InferenceRule
-    a sh:NodeShape ;
-    sh:targetClass :Dynamic_Possession ;
-    sh:rule [
-        a sh:SPARQLRule ;
-        sh:order 1 ;
-        sh:prefixes :OntologyPrefixes ;
-        sh:construct """
-            PREFIX : <http://example.org/ontology/>
-            CONSTRUCT { ?agent :acquires ?target . }
-            WHERE {
-                $this :acquirer ?agent .
-                $this :acquisition ?target .
-            }
-        """ ;
-    ] .
