@@ -27832,6 +27832,9 @@
     rdfs:label "acquisition"@en ;
     rdfs:subPropertyOf :item .
 
+:acquires a rdf:Property ;
+    rdfs:label "acquires"@en .
+
 # --- DYNAMIC POSSESSION FORM SHAPE ---
 
 :DynamicPossessionShape a sh:NodeShape ;
@@ -27867,9 +27870,6 @@
     sh:declare [ sh:prefix "xsd" ;
                  sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ] .
 
-:acquisition a rdf:Property ;
-    rdfs:label "acquisition"@en .
-
 :DynamicPossession_InferenceRule
     a sh:NodeShape ;
     sh:targetClass :Dynamic_Possession ;
@@ -27878,6 +27878,7 @@
         sh:order 1 ;
         sh:prefixes :OntologyPrefixes ;
         sh:construct """
+            PREFIX : <http://example.org/ontology/>
             CONSTRUCT { ?agent :acquires ?target . }
             WHERE {
                 $this :acquirer ?agent .
@@ -27885,4 +27886,3 @@
             }
         """ ;
     ] .
-
