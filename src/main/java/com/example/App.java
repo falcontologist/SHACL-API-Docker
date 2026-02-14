@@ -18,8 +18,9 @@ import java.io.StringWriter;
 import java.util.*;
 
 public class App {
-    private static final Model UNIFIED_GRAPH = loadUnifiedGraph();
     private static final String ONT_NS = "http://example.org/ontology/";
+    // Load graph once at startup
+    private static final Model UNIFIED_GRAPH = loadUnifiedGraph();
 
     private static Model loadUnifiedGraph() {
         Model m = JenaUtil.createMemoryModel();
@@ -44,16 +45,15 @@ public class App {
         app.get("/api/lookup", App::lookupVerb);
         app.post("/api/validate", App::validate);
         
-        // NEW: Diagnostic Endpoint
+        // Diagnostic Endpoint
         app.get("/api/test-rules", App::testRules);
     }
 
-    // --- NEW DIAGNOSTIC METHOD ---
+    // --- DIAGNOSTIC METHOD ---
     private static void testRules(Context ctx) {
         Map<String, Object> results = new LinkedHashMap<>();
 
         // TEST 1: ISOLATED SPARQL RULE
-        // We create a tiny standalone graph with a hardcoded SPARQL rule to see if the engine works.
         try {
             Model m = JenaUtil.createMemoryModel();
             String ns = "http://test.org/";
@@ -62,11 +62,9 @@ public class App {
             Property hasName = m.createProperty(ns + "hasName");
             Property hasLabel = RDFS.label;
 
-            // Define Data
             m.add(m.createResource(ns + "Bob"), RDF.type, personClass);
             m.add(m.createResource(ns + "Bob"), hasName, "Robert");
 
-            // Define SPARQL Rule
             Resource sparqlRule = m.createResource().addProperty(RDF.type, SH.SPARQLRule);
             sparqlRule.addProperty(SH.construct, 
                 "PREFIX ex: <http://test.org/> " +
@@ -91,7 +89,6 @@ public class App {
         }
 
         // TEST 2: ISOLATED TRIPLE RULE
-        // We create a tiny standalone graph with a TripleRule.
         try {
             Model m = JenaUtil.createMemoryModel();
             String ns = "http://test.org/";
@@ -101,7 +98,6 @@ public class App {
             Property bought = m.createProperty(ns + "bought");
             Property owns = m.createProperty(ns + "owns");
 
-            // Define Data: Bob buys Car
             Resource bob = m.createResource(ns + "Bob");
             Resource car = m.createResource(ns + "Car");
             Resource tx = m.createResource(ns + "tx1");
@@ -109,7 +105,6 @@ public class App {
             m.add(tx, buyer, bob);
             m.add(tx, bought, car);
 
-            // Define Triple Rule: subject(buyer) -> predicate(owns) -> object(bought)
             Resource tripleRule = m.createResource().addProperty(RDF.type, SH.TripleRule);
             tripleRule.addProperty(SH.subject, m.createResource().addProperty(SH.path, buyer));
             tripleRule.addProperty(SH.predicate, owns);
@@ -132,7 +127,6 @@ public class App {
         }
 
         // TEST 3: LIVE ONTOLOGY CHECK
-        // Does the loaded file actually contain the rule?
         try {
             String ruleURI = ONT_NS + "DynamicPossession_InferenceRule";
             Resource actualRule = UNIFIED_GRAPH.getResource(ruleURI);
@@ -142,7 +136,6 @@ public class App {
             liveTest.put("rule_exists_in_graph", exists);
 
             if (exists) {
-                // Try to run it against sample data
                 Model sampleData = JenaUtil.createMemoryModel();
                 Resource sit = sampleData.createResource("_:testSit");
                 Resource acquirer = sampleData.createResource(ONT_NS + "TestCompany");
@@ -152,12 +145,10 @@ public class App {
                 sampleData.add(sit, UNIFIED_GRAPH.getProperty(ONT_NS + "acquirer"), acquirer);
                 sampleData.add(sit, UNIFIED_GRAPH.getProperty(ONT_NS + "acquisition"), acquisition);
 
-                // Run inference using the UNIFIED_GRAPH as the shapes graph
                 Model combined = JenaUtil.createMemoryModel().add(UNIFIED_GRAPH).add(sampleData);
                 Model inferred = RuleUtil.executeRules(combined, UNIFIED_GRAPH, null, null);
 
                 Property acquiresProp = UNIFIED_GRAPH.getProperty(ONT_NS + "acquires");
-                // Check if TestCompany acquires TestProduct
                 boolean inferenceWorked = inferred.contains(acquirer, acquiresProp, acquisition);
 
                 liveTest.put("inference_simulation", inferenceWorked ? "SUCCESS" : "FAILURE");
@@ -175,34 +166,38 @@ public class App {
 
         ctx.json(results);
     }
-    
-    // ... [Keep existing validate, getForms, lookupVerb, getStats methods exactly as they were] ...
-    
+
+    // --- CORE API METHODS ---
+
     private static void validate(Context ctx) {
         try {
-            // ... (Your existing validate code) ...
-            // Just copying the start for context, keep the full method from previous file
             String incomingData = ctx.body();
-            // ...
             Model dataModel = JenaUtil.createMemoryModel();
+            
             try {
                 dataModel.read(new ByteArrayInputStream(ctx.bodyAsBytes()), null, "TURTLE");
             } catch (Exception e) {
-                ctx.status(400).result("Error parsing Turtle");
+                ctx.status(400).json(Map.of("error", "Turtle parsing error", "details", e.getMessage()));
                 return;
             }
 
+            // Merge ontology + user data for inference context
             Model dataWithContext = JenaUtil.createMemoryModel();
             dataWithContext.add(UNIFIED_GRAPH);
             dataWithContext.add(dataModel);
 
+            // Execute Rules
             Model inferred = RuleUtil.executeRules(dataWithContext, UNIFIED_GRAPH, null, null);
 
+            // Add inferences to data model
             dataModel.add(inferred);
+
+            // Validate
             Resource report = ValidationUtil.validateModel(dataModel, UNIFIED_GRAPH, true);
 
             StringWriter swReport = new StringWriter();
             RDFDataMgr.write(swReport, report.getModel(), RDFFormat.TURTLE);
+
             StringWriter swData = new StringWriter();
             RDFDataMgr.write(swData, dataModel, RDFFormat.TURTLE);
 
@@ -213,29 +208,117 @@ public class App {
             ));
         } catch (Exception e) {
             e.printStackTrace();
-            ctx.status(500).result(e.getMessage());
+            ctx.status(500).json(Map.of("error", "Validation error", "details", e.getMessage()));
         }
     }
 
     private static void getForms(Context ctx) {
-        // ... (Keep existing getForms code) ...
-        // Need to ensure UNIFIED_GRAPH is accessible here. 
-        // If you need the full code block for this let me know, 
-        // otherwise paste your previous getForms logic here.
         Map<String, Object> response = new HashMap<>();
-        // ... implementation from your file ...
+        Map<String, Map<String, Object>> forms = new HashMap<>();
+
+        UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).forEachRemaining(shape -> {
+            if (!shape.hasProperty(SH.targetClass)) return;
+            Resource targetClass = shape.getPropertyResourceValue(SH.targetClass);
+            String name = targetClass.getLocalName();
+
+            forms.putIfAbsent(name, new HashMap<>(Map.of(
+                "target_class", targetClass.getURI(),
+                "fields", new ArrayList<Map<String, Object>>()
+            )));
+
+            List<Map<String, Object>> fields = (List<Map<String, Object>>) forms.get(name).get("fields");
+            Set<String> existingPaths = new HashSet<>();
+            for (Map<String, Object> f : fields) existingPaths.add((String) f.get("path"));
+
+            shape.listProperties(SH.property).forEachRemaining(p -> {
+                Resource prop = p.getResource();
+                if (!prop.hasProperty(SH.path)) return;
+
+                String path = prop.getPropertyResourceValue(SH.path).getURI();
+                if (existingPaths.contains(path)) return;
+
+                String type = "text";
+                Resource datatype = prop.getPropertyResourceValue(SH.datatype);
+                if (datatype != null && (datatype.equals(XSD.integer) || datatype.equals(XSD.xint))) type = "number";
+
+                String label = prop.hasProperty(SH.name) ? prop.getProperty(SH.name).getString() : path.substring(path.lastIndexOf('/') + 1);
+                boolean required = prop.hasProperty(SH.minCount) && prop.getProperty(SH.minCount).getInt() > 0;
+
+                fields.add(Map.of("path", path, "label", label, "type", type, "required", required));
+            });
+        });
+
+        // Inheritance Logic
+        Property semanticDomainProp = UNIFIED_GRAPH.createProperty(ONT_NS + "semantic_domain");
+        UNIFIED_GRAPH.listSubjectsWithProperty(semanticDomainProp).forEachRemaining(situation -> {
+            Resource domain = situation.getPropertyResourceValue(semanticDomainProp);
+            String situationName = situation.getLocalName();
+            String domainName = domain.getLocalName();
+
+            if (forms.containsKey(domainName)) {
+                forms.putIfAbsent(situationName, new HashMap<>(Map.of(
+                    "target_class", situation.getURI(),
+                    "fields", new ArrayList<Map<String, Object>>()
+                )));
+                List<Map<String, Object>> sitFields = (List<Map<String, Object>>) forms.get(situationName).get("fields");
+                List<Map<String, Object>> domainFields = (List<Map<String, Object>>) forms.get(domainName).get("fields");
+
+                Set<String> existing = new HashSet<>();
+                for (Map<String, Object> f : sitFields) existing.add((String) f.get("path"));
+
+                for (Map<String, Object> f : domainFields) {
+                    if (!existing.contains((String) f.get("path"))) sitFields.add(f);
+                }
+            }
+        });
+
+        response.put("forms", forms);
         ctx.json(response);
     }
 
     private static void lookupVerb(Context ctx) {
-         // ... (Keep existing lookupVerb code) ...
-         // ... implementation from your file ...
-         ctx.json(Map.of("found", false)); // placeholder if you copy-paste, use your real code
+        String query = ctx.queryParam("verb");
+        if (query == null) { ctx.json(Map.of("found", false)); return; }
+        String verb = query.trim().toLowerCase();
+
+        List<Map<String, String>> mappings = new ArrayList<>();
+        Property labelProp = RDFS.label;
+        Property evokesProp = UNIFIED_GRAPH.createProperty(ONT_NS + "evokes");
+        Property semanticDomainProp = UNIFIED_GRAPH.createProperty(ONT_NS + "semantic_domain");
+
+        ResIterator verbs = UNIFIED_GRAPH.listSubjectsWithProperty(evokesProp);
+        while (verbs.hasNext()) {
+            Resource v = verbs.next();
+            if (v.hasProperty(labelProp) && v.getProperty(labelProp).getString().toLowerCase().equals(verb)) {
+                StmtIterator evokes = v.listProperties(evokesProp);
+                while (evokes.hasNext()) {
+                    Resource situation = evokes.next().getResource();
+                    Resource domain = situation;
+                    if (situation.hasProperty(semanticDomainProp)) {
+                        domain = situation.getPropertyResourceValue(semanticDomainProp);
+                    }
+                    mappings.add(Map.of(
+                        "situation", situation.getLocalName(),
+                        "fallback_domain", domain.getLocalName()
+                    ));
+                }
+            }
+        }
+        ctx.json(Map.of("found", !mappings.isEmpty(), "mappings", mappings));
     }
 
     private static void getStats(Context ctx) {
-        // ... (Keep existing getStats code) ...
-        // ... implementation from your file ...
-        ctx.json(Map.of("status", "ok")); // placeholder
+        long shapes = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).toList().size();
+        Set<String> roles = new HashSet<>();
+        UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).forEachRemaining(s ->
+            s.listProperties(SH.property).forEachRemaining(p -> {
+                if (p.getResource().hasProperty(SH.path))
+                    roles.add(p.getResource().getPropertyResourceValue(SH.path).getURI());
+            })
+        );
+        long lemmas = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, UNIFIED_GRAPH.createResource(ONT_NS + "Verb")).toList().size();
+        long senses = UNIFIED_GRAPH.listStatements(null, UNIFIED_GRAPH.createProperty(ONT_NS + "evokes"), (RDFNode) null).toList().size();
+        
+        ctx.json(Map.of("shapes", shapes, "roles", roles.size(), "lemmas", lemmas, "senses", senses, "status", "ok"));
     }
 }
