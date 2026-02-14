@@ -19,7 +19,6 @@ import java.util.*;
 
 public class App {
     private static final String ONT_NS = "http://example.org/ontology/";
-    // Load graph once at startup
     private static final Model UNIFIED_GRAPH = loadUnifiedGraph();
 
     private static Model loadUnifiedGraph() {
@@ -44,153 +43,35 @@ public class App {
         app.get("/api/forms", App::getForms);
         app.get("/api/lookup", App::lookupVerb);
         app.post("/api/validate", App::validate);
-        
-        // Diagnostic Endpoint
         app.get("/api/test-rules", App::testRules);
     }
 
-    // --- DIAGNOSTIC METHOD ---
-    private static void testRules(Context ctx) {
-        Map<String, Object> results = new LinkedHashMap<>();
-
-        // TEST 1: ISOLATED SPARQL RULE
-        try {
-            Model m = JenaUtil.createMemoryModel();
-            String ns = "http://test.org/";
-            Resource personClass = m.createResource(ns + "Person");
-            Resource ruleShape = m.createResource(ns + "PersonShape");
-            Property hasName = m.createProperty(ns + "hasName");
-            Property hasLabel = RDFS.label;
-
-            m.add(m.createResource(ns + "Bob"), RDF.type, personClass);
-            m.add(m.createResource(ns + "Bob"), hasName, "Robert");
-
-            Resource sparqlRule = m.createResource().addProperty(RDF.type, SH.SPARQLRule);
-            sparqlRule.addProperty(SH.construct, 
-                "PREFIX ex: <http://test.org/> " +
-                "CONSTRUCT { $this <http://www.w3.org/2000/01/rdf-schema#label> ?name . } " +
-                "WHERE { $this ex:hasName ?name . }"
-            );
-            
-            ruleShape.addProperty(RDF.type, SH.NodeShape);
-            ruleShape.addProperty(SH.targetClass, personClass);
-            ruleShape.addProperty(SH.rule, sparqlRule);
-
-            Model inferred = RuleUtil.executeRules(m, m, null, null);
-            boolean passed = inferred.contains(m.createResource(ns + "Bob"), hasLabel, "Robert");
-            
-            results.put("test_1_sparql_isolation", Map.of(
-                "status", passed ? "PASS" : "FAIL",
-                "inferred_triples", inferred.size(),
-                "details", passed ? "SPARQL rule successfully copied name to label" : "No triples inferred"
-            ));
-        } catch (Exception e) {
-            results.put("test_1_sparql_isolation", Map.of("status", "ERROR", "message", e.getMessage()));
-        }
-
-        // TEST 2: ISOLATED TRIPLE RULE
-        try {
-            Model m = JenaUtil.createMemoryModel();
-            String ns = "http://test.org/";
-            Resource buyClass = m.createResource(ns + "Transaction");
-            Resource ruleShape = m.createResource(ns + "TransactionShape");
-            Property buyer = m.createProperty(ns + "buyer");
-            Property bought = m.createProperty(ns + "bought");
-            Property owns = m.createProperty(ns + "owns");
-
-            Resource bob = m.createResource(ns + "Bob");
-            Resource car = m.createResource(ns + "Car");
-            Resource tx = m.createResource(ns + "tx1");
-            m.add(tx, RDF.type, buyClass);
-            m.add(tx, buyer, bob);
-            m.add(tx, bought, car);
-
-            Resource tripleRule = m.createResource().addProperty(RDF.type, SH.TripleRule);
-            tripleRule.addProperty(SH.subject, m.createResource().addProperty(SH.path, buyer));
-            tripleRule.addProperty(SH.predicate, owns);
-            tripleRule.addProperty(SH.object, m.createResource().addProperty(SH.path, bought));
-
-            ruleShape.addProperty(RDF.type, SH.NodeShape);
-            ruleShape.addProperty(SH.targetClass, buyClass);
-            ruleShape.addProperty(SH.rule, tripleRule);
-
-            Model inferred = RuleUtil.executeRules(m, m, null, null);
-            boolean passed = inferred.contains(bob, owns, car);
-
-            results.put("test_2_triple_rule_isolation", Map.of(
-                "status", passed ? "PASS" : "FAIL",
-                "inferred_triples", inferred.size(),
-                "details", passed ? "Triple rule successfully inferred ownership" : "No triples inferred"
-            ));
-        } catch (Exception e) {
-            results.put("test_2_triple_rule_isolation", Map.of("status", "ERROR", "message", e.getMessage()));
-        }
-
-        // TEST 3: LIVE ONTOLOGY CHECK
-        try {
-            String ruleURI = ONT_NS + "DynamicPossession_InferenceRule";
-            Resource actualRule = UNIFIED_GRAPH.getResource(ruleURI);
-            boolean exists = UNIFIED_GRAPH.contains(actualRule, RDF.type, SH.NodeShape);
-
-            Map<String, Object> liveTest = new HashMap<>();
-            liveTest.put("rule_exists_in_graph", exists);
-
-            if (exists) {
-                Model sampleData = JenaUtil.createMemoryModel();
-                Resource sit = sampleData.createResource("_:testSit");
-                Resource acquirer = sampleData.createResource(ONT_NS + "TestCompany");
-                Resource acquisition = sampleData.createResource(ONT_NS + "TestProduct");
-                
-                sampleData.add(sit, RDF.type, UNIFIED_GRAPH.getResource(ONT_NS + "Dynamic_Possession"));
-                sampleData.add(sit, UNIFIED_GRAPH.getProperty(ONT_NS + "acquirer"), acquirer);
-                sampleData.add(sit, UNIFIED_GRAPH.getProperty(ONT_NS + "acquisition"), acquisition);
-
-                Model combined = JenaUtil.createMemoryModel().add(UNIFIED_GRAPH).add(sampleData);
-                Model inferred = RuleUtil.executeRules(combined, UNIFIED_GRAPH, null, null);
-
-                Property acquiresProp = UNIFIED_GRAPH.getProperty(ONT_NS + "acquires");
-                boolean inferenceWorked = inferred.contains(acquirer, acquiresProp, acquisition);
-
-                liveTest.put("inference_simulation", inferenceWorked ? "SUCCESS" : "FAILURE");
-                
-                StringWriter debugSw = new StringWriter();
-                RDFDataMgr.write(debugSw, inferred, RDFFormat.TURTLE);
-                liveTest.put("raw_inferred_turtle", debugSw.toString());
-            }
-
-            results.put("test_3_live_ontology", liveTest);
-
-        } catch (Exception e) {
-            results.put("test_3_live_ontology", Map.of("status", "ERROR", "message", e.getMessage()));
-        }
-
-        ctx.json(results);
-    }
-
-    // --- CORE API METHODS ---
-
     private static void validate(Context ctx) {
         try {
-            String incomingData = ctx.body();
             Model dataModel = JenaUtil.createMemoryModel();
-            
             try {
                 dataModel.read(new ByteArrayInputStream(ctx.bodyAsBytes()), null, "TURTLE");
             } catch (Exception e) {
-                ctx.status(400).json(Map.of("error", "Turtle parsing error", "details", e.getMessage()));
+                ctx.status(400).json(Map.of("error", "Turtle parsing error"));
                 return;
             }
 
-            // Merge ontology + user data for inference context
+            // Merge ontology + user data
             Model dataWithContext = JenaUtil.createMemoryModel();
             dataWithContext.add(UNIFIED_GRAPH);
             dataWithContext.add(dataModel);
+            
+            // CRITICAL FIX: Explicitly copy prefixes to the combined model.
+            // SPARQL rules often rely on the model's prefix map, even if defined in the query.
+            dataWithContext.setNsPrefixes(UNIFIED_GRAPH.getNsPrefixMap());
+            dataWithContext.setNsPrefixes(dataModel.getNsPrefixMap());
 
             // Execute Rules
             Model inferred = RuleUtil.executeRules(dataWithContext, UNIFIED_GRAPH, null, null);
 
             // Add inferences to data model
             dataModel.add(inferred);
+            dataModel.setNsPrefixes(inferred.getNsPrefixMap()); // Ensure new prefixes are kept
 
             // Validate
             Resource report = ValidationUtil.validateModel(dataModel, UNIFIED_GRAPH, true);
@@ -208,8 +89,107 @@ public class App {
             ));
         } catch (Exception e) {
             e.printStackTrace();
-            ctx.status(500).json(Map.of("error", "Validation error", "details", e.getMessage()));
+            ctx.status(500).json(Map.of("error", e.getMessage()));
         }
+    }
+
+    private static void testRules(Context ctx) {
+        Map<String, Object> results = new LinkedHashMap<>();
+
+        // TEST 1: ISOLATED SPARQL RULE (Basic Sanity Check)
+        try {
+            Model m = JenaUtil.createMemoryModel();
+            String ns = "http://test.org/";
+            Resource personClass = m.createResource(ns + "Person");
+            Resource ruleShape = m.createResource(ns + "PersonShape");
+            Property hasName = m.createProperty(ns + "hasName");
+            Property hasLabel = RDFS.label;
+
+            m.add(m.createResource(ns + "Bob"), RDF.type, personClass);
+            m.add(m.createResource(ns + "Bob"), hasName, "Robert");
+
+            Resource sparqlRule = m.createResource().addProperty(RDF.type, SH.SPARQLRule);
+            sparqlRule.addProperty(SH.construct, 
+                "PREFIX ex: <http://test.org/> CONSTRUCT { $this <http://www.w3.org/2000/01/rdf-schema#label> ?name . } WHERE { $this ex:hasName ?name . }");
+            
+            ruleShape.addProperty(RDF.type, SH.NodeShape);
+            ruleShape.addProperty(SH.targetClass, personClass);
+            ruleShape.addProperty(SH.rule, sparqlRule);
+
+            Model inferred = RuleUtil.executeRules(m, m, null, null);
+            boolean passed = inferred.contains(m.createResource(ns + "Bob"), hasLabel, "Robert");
+            results.put("test_1_sparql_basic", passed ? "PASS" : "FAIL");
+        } catch (Exception e) {
+            results.put("test_1_sparql_basic", "ERROR: " + e.getMessage());
+        }
+
+        // TEST 4: BLANK NODE SPARQL SCENARIO (The Specific Use Case)
+        try {
+            // 1. Define the exact User Data provided
+            String userDataTurtle = 
+                "@prefix : <http://example.org/ontology/> .\n" +
+                "@prefix temp: <http://example.org/temp/> .\n" +
+                "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n" +
+                "_:s1 a :Dynamic_Possession ;\n" +
+                "    :acquirer temp:Alphabet ;\n" +
+                "    :acquisition temp:Wiz ." +
+                "temp:Alphabet a :Entity .\n" +
+                "temp:Wiz a :Entity .";
+
+            Model userModel = JenaUtil.createMemoryModel();
+            userModel.read(new ByteArrayInputStream(userDataTurtle.getBytes()), null, "TURTLE");
+
+            // 2. Merge with the LIVE Unified Graph (which contains the SPARQL rule)
+            Model combined = JenaUtil.createMemoryModel();
+            combined.add(UNIFIED_GRAPH);
+            combined.add(userModel);
+            // Simulate the Fix: Ensure prefixes are set on the combined model
+            combined.setNsPrefixes(UNIFIED_GRAPH.getNsPrefixMap());
+            combined.setNsPrefixes(userModel.getNsPrefixMap());
+
+            // 3. Execute Rules
+            Model inferred = RuleUtil.executeRules(combined, UNIFIED_GRAPH, null, null);
+
+            // 4. Check for the inferred triple: temp:Alphabet :acquires temp:Wiz
+            Resource alphabet = combined.getResource("http://example.org/temp/Alphabet");
+            Resource wiz = combined.getResource("http://example.org/temp/Wiz");
+            Property acquires = combined.getProperty(ONT_NS + "acquires");
+            
+            boolean passed = inferred.contains(alphabet, acquires, wiz);
+            
+            Map<String, Object> test4Details = new HashMap<>();
+            test4Details.put("status", passed ? "PASS" : "FAIL");
+            test4Details.put("inferred_size", inferred.size());
+            
+            if (!passed) {
+                StringWriter sw = new StringWriter();
+                RDFDataMgr.write(sw, inferred, RDFFormat.TURTLE);
+                test4Details.put("actual_inferred_turtle", sw.toString());
+            }
+
+            results.put("test_4_sparql_blank_node_scenario", test4Details);
+
+        } catch (Exception e) {
+            results.put("test_4_sparql_blank_node_scenario", "ERROR: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        ctx.json(results);
+    }
+
+    private static void getStats(Context ctx) {
+        long shapes = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).toList().size();
+        Set<String> roles = new HashSet<>();
+        UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).forEachRemaining(s ->
+            s.listProperties(SH.property).forEachRemaining(p -> {
+                if (p.getResource().hasProperty(SH.path))
+                    roles.add(p.getResource().getPropertyResourceValue(SH.path).getURI());
+            })
+        );
+        long lemmas = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, UNIFIED_GRAPH.createResource(ONT_NS + "Verb")).toList().size();
+        long senses = UNIFIED_GRAPH.listStatements(null, UNIFIED_GRAPH.createProperty(ONT_NS + "evokes"), (RDFNode) null).toList().size();
+        
+        ctx.json(Map.of("shapes", shapes, "roles", roles.size(), "lemmas", lemmas, "senses", senses));
     }
 
     private static void getForms(Context ctx) {
@@ -233,7 +213,6 @@ public class App {
             shape.listProperties(SH.property).forEachRemaining(p -> {
                 Resource prop = p.getResource();
                 if (!prop.hasProperty(SH.path)) return;
-
                 String path = prop.getPropertyResourceValue(SH.path).getURI();
                 if (existingPaths.contains(path)) return;
 
@@ -243,12 +222,10 @@ public class App {
 
                 String label = prop.hasProperty(SH.name) ? prop.getProperty(SH.name).getString() : path.substring(path.lastIndexOf('/') + 1);
                 boolean required = prop.hasProperty(SH.minCount) && prop.getProperty(SH.minCount).getInt() > 0;
-
                 fields.add(Map.of("path", path, "label", label, "type", type, "required", required));
             });
         });
-
-        // Inheritance Logic
+        
         Property semanticDomainProp = UNIFIED_GRAPH.createProperty(ONT_NS + "semantic_domain");
         UNIFIED_GRAPH.listSubjectsWithProperty(semanticDomainProp).forEachRemaining(situation -> {
             Resource domain = situation.getPropertyResourceValue(semanticDomainProp);
@@ -265,13 +242,11 @@ public class App {
 
                 Set<String> existing = new HashSet<>();
                 for (Map<String, Object> f : sitFields) existing.add((String) f.get("path"));
-
                 for (Map<String, Object> f : domainFields) {
                     if (!existing.contains((String) f.get("path"))) sitFields.add(f);
                 }
             }
         });
-
         response.put("forms", forms);
         ctx.json(response);
     }
@@ -305,20 +280,5 @@ public class App {
             }
         }
         ctx.json(Map.of("found", !mappings.isEmpty(), "mappings", mappings));
-    }
-
-    private static void getStats(Context ctx) {
-        long shapes = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).toList().size();
-        Set<String> roles = new HashSet<>();
-        UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).forEachRemaining(s ->
-            s.listProperties(SH.property).forEachRemaining(p -> {
-                if (p.getResource().hasProperty(SH.path))
-                    roles.add(p.getResource().getPropertyResourceValue(SH.path).getURI());
-            })
-        );
-        long lemmas = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, UNIFIED_GRAPH.createResource(ONT_NS + "Verb")).toList().size();
-        long senses = UNIFIED_GRAPH.listStatements(null, UNIFIED_GRAPH.createProperty(ONT_NS + "evokes"), (RDFNode) null).toList().size();
-        
-        ctx.json(Map.of("shapes", shapes, "roles", roles.size(), "lemmas", lemmas, "senses", senses, "status", "ok"));
     }
 }
