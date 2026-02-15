@@ -46,27 +46,27 @@ public class App {
         ONT_NS + "acquires_2bd8509722e0";
 
     // Test 1: first form-meaning encoding — Alphabet acquires Wiz
-    private static final String TEST_1 =
-        BASE_PREFIXES +
-        "temp:s1 a :Acquisition ;\n" +
-        "    :root        \"acquire\" ;\n" +
-        "    :sense       \"to obtain ownership or possession of\" ;\n" +
-        "    :acquirer    temp:Alphabet ;\n" +
-        "    :acquisition temp:Wiz .\n\n" +
-        "temp:Alphabet a :Entity ; rdfs:label \"Alphabet\" .\n" +
-        "temp:Wiz      a :Entity ; rdfs:label \"Wiz\" .\n";
+private static final String TEST_1 =
+    BASE_PREFIXES +
+    "temp:s1 a :Acquisition ;\n" +
+    "    :lemma       \"acquire\" ;\n" +
+    "    :synset      \"to obtain ownership or possession of\" ;\n" +
+    "    :acquirer    temp:Alphabet ;\n" +
+    "    :acquisition temp:Wiz .\n\n" +
+    "temp:Alphabet a :Entity ; rdfs:label \"Alphabet\" .\n" +
+    "temp:Wiz      a :Entity ; rdfs:label \"Wiz\" .\n";
 
-    // Test 2: second encoding — same verb + same gloss, different entities
-    // Must mint the IDENTICAL opaque IRI as Test 1.
-    private static final String TEST_2 =
-        BASE_PREFIXES +
-        "temp:s2 a :Acquisition ;\n" +
-        "    :root        \"acquire\" ;\n" +
-        "    :sense       \"to obtain ownership or possession of\" ;\n" +
-        "    :acquirer    temp:Google ;\n" +
-        "    :acquisition temp:YouTube .\n\n" +
-        "temp:Google   a :Entity ; rdfs:label \"Google\" .\n" +
-        "temp:YouTube  a :Entity ; rdfs:label \"YouTube\" .\n";
+// Test 2: second encoding — same verb + same gloss, different entities
+// Must mint the IDENTICAL opaque IRI as Test 1.
+private static final String TEST_2 =
+    BASE_PREFIXES +
+    "temp:s2 a :Acquisition ;\n" +
+    "    :lemma       \"acquire\" ;\n" +
+    "    :synset      \"to obtain ownership or possession of\" ;\n" +
+    "    :acquirer    temp:Google ;\n" +
+    "    :acquisition temp:YouTube .\n\n" +
+    "temp:Google   a :Entity ; rdfs:label \"Google\" .\n" +
+    "temp:YouTube  a :Entity ; rdfs:label \"YouTube\" .\n";
 
     // Loaded once at startup. Contains classes, properties, shapes, AND rules.
     private static final Model SHAPES_GRAPH = loadShapesGraph();
