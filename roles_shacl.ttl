@@ -996,10 +996,12 @@ WHERE {
             sh:prefixes :OntologyPrefixes ] ;
     sh:targetClass :Acquisition .
 
-:Acquisition_OpaqueIRIRule
-    a sh:SPARQLRule ;
-    sh:order 2 ;
-    sh:construct """
+:Acquisition_OpaqueIRIShape a sh:NodeShape ;
+    sh:targetClass :Acquisition ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:order 2 ;
+        sh:construct """
         PREFIX : <http://example.org/ontology/>
         
         CONSTRUCT {
@@ -1014,7 +1016,9 @@ WHERE {
             
             BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
             BIND(IRI(CONCAT(STR(:), "acquires_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
-        } """;
+        }
+        """
+    ] ;
     sh:targetClass :Acquisition .
 
 :EvaluationShape a sh:NodeShape ;
