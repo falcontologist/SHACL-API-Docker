@@ -14,121 +14,29 @@ import org.topbraid.shacl.validation.ValidationUtil;
 import org.topbraid.shacl.vocabulary.SH;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
-import java.io.IOException; 
-import java.nio.file.Files; 
-import java.nio.file.Paths; 
 
 public class App {
 
     private static final String ONT_NS  = "http://example.org/ontology/";
-    private static final String TEMP_NS = "http://example.org/temp/";
-
-    private static final String BASE_PREFIXES =
-        "@prefix :     <http://example.org/ontology/> .\n" +
-        "@prefix temp: <http://example.org/temp/> .\n"     +
-        "@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
-        "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n";
-
-    // ── Test inputs ───────────────────────────────────────────────────────────
-    // Both use the same verb "acquire" and identical sense gloss.
-    // They differ only in which entities fill the roles.
-    //
-    // Pre-computed expected opaque IRI:
-    //   SHA256("acquire|to obtain ownership or possession of")
-    //   = 2bd8509722e07bf3...  → first 12 chars: 2bd8509722e0
-    //   → :acquires_2bd8509722e0
-    //
-    // BOTH tests must produce this identical IRI — that is the determinism proof.
-
-    private static final String EXPECTED_OPAQUE_IRI =
-        ONT_NS + "acquires_2bd8509722e0";
-
-    // Test 1: first form-meaning encoding — Alphabet acquires Wiz
-private static final String TEST_1 =
-    BASE_PREFIXES +
-    "temp:s1 a :Acquisition ;\n" +
-    "    :lemma       \"acquire\" ;\n" +
-    "    :synset      \"to obtain ownership or possession of\" ;\n" +
-    "    :acquirer    temp:Alphabet ;\n" +
-    "    :acquisition temp:Wiz .\n\n" +
-    "temp:Alphabet a :Entity ; rdfs:label \"Alphabet\" .\n" +
-    "temp:Wiz      a :Entity ; rdfs:label \"Wiz\" .\n";
-
-// Test 2: second encoding — same verb + same gloss, different entities
-// Must mint the IDENTICAL opaque IRI as Test 1.
-private static final String TEST_2 =
-    BASE_PREFIXES +
-    "temp:s2 a :Acquisition ;\n" +
-    "    :lemma       \"acquire\" ;\n" +
-    "    :synset      \"to obtain ownership or possession of\" ;\n" +
-    "    :acquirer    temp:Google ;\n" +
-    "    :acquisition temp:YouTube .\n\n" +
-    "temp:Google   a :Entity ; rdfs:label \"Google\" .\n" +
-    "temp:YouTube  a :Entity ; rdfs:label \"YouTube\" .\n";
 
     // Loaded once at startup. Contains classes, properties, shapes, AND rules.
     private static final Model SHAPES_GRAPH = loadShapesGraph();
 
     private static Model loadShapesGraph() {
-    Model m = JenaUtil.createMemoryModel();
-    try {
-        m.read("roles_shacl.ttl");
-        System.out.println("[startup] Loaded roles_shacl.ttl: " + m.size() + " triples.");
-        
-        // DEBUG: Print ALL rules with their full details
-        System.out.println("\n=== ALL SHACL RULES IN SHAPES GRAPH ===");
-        
-        // Check for TripleRules
-        System.out.println("\n-- TripleRules --");
-        ResIterator tripleRules = m.listSubjectsWithProperty(RDF.type, SH.TripleRule);
-        while (tripleRules.hasNext()) {
-            Resource rule = tripleRules.next();
-            System.out.println("TripleRule URI: " + rule.getURI());
-            if (rule.hasProperty(SH.construct)) {
-                System.out.println("  CONSTRUCT: " + rule.getProperty(SH.construct).getString());
-            }
-            if (rule.hasProperty(SH.order)) {
-                System.out.println("  ORDER: " + rule.getProperty(SH.order).getInt());
-            }
+        Model m = JenaUtil.createMemoryModel();
+        try {
+            m.read("roles_shacl.ttl");
+            System.out.println("[startup] Loaded roles_shacl.ttl: " + m.size() + " triples.");
+        } catch (Exception e) {
+            System.err.println("[startup] FAILED to load roles_shacl.ttl: " + e.getMessage());
+            e.printStackTrace();
         }
-        
-        // Check for SPARQLRules
-        System.out.println("\n-- SPARQLRules --");
-        ResIterator sparqlRules = m.listSubjectsWithProperty(RDF.type, SH.SPARQLRule);
-        while (sparqlRules.hasNext()) {
-            Resource rule = sparqlRules.next();
-            System.out.println("SPARQLRule URI: " + rule.getURI());
-            if (rule.hasProperty(SH.construct)) {
-                System.out.println("  CONSTRUCT: " + rule.getProperty(SH.construct).getString());
-            }
-            if (rule.hasProperty(SH.order)) {
-                System.out.println("  ORDER: " + rule.getProperty(SH.order).getInt());
-            }
-        }
-        
-        // Also check for any property that might be the opaque one
-        System.out.println("\n-- Checking for acquires_* properties --");
-        ResIterator allSubjects = m.listSubjects();
-        while (allSubjects.hasNext()) {
-            Resource subject = allSubjects.next();
-            if (subject.isURIResource() && subject.getURI().contains("acquires_")) {
-                System.out.println("Found acquires_* property: " + subject.getURI());
-                // Show what kind of resource it is
-                if (subject.hasProperty(RDF.type)) {
-                    System.out.println("  Type: " + subject.getProperty(RDF.type).getObject());
-                }
-            }
-        }
-        
-        System.out.println("=== END RULE DEBUG ===\n");
-        
-    } catch (Exception e) {
-        System.err.println("[startup] FAILED to load roles_shacl.ttl: " + e.getMessage());
-        e.printStackTrace();
-    }
-    return m;
+        return m;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -142,74 +50,47 @@ private static final String TEST_2 =
         app.get("/api/forms",      App::getForms);
         app.get("/api/lookup",     App::lookupVerb);
 
-        // Inference: materialises inferred triples, no constraint checking
+        // Inference endpoints
         app.post("/api/infer",     App::infer);
         app.get("/api/infer/test", App::inferTest);
 
-        // Validation: constraint checking only, no inference
+        // Validation endpoint
         app.post("/api/validate",  App::validate);
     }
 
     // ── Core inference helper ─────────────────────────────────────────────────
     private static Model runInference(String turtleBody) {
         System.out.println("\n=== Running Inference ===");
-        System.out.println("Input Turtle: \n" + turtleBody);
         
         Model dataModel = JenaUtil.createMemoryModel();
         try {
             dataModel.read(new ByteArrayInputStream(turtleBody.getBytes()), null, "TURTLE");
-            System.out.println("Parsed data model size: " + dataModel.size() + " triples");
         } catch (Exception e) {
             System.err.println("Failed to parse input Turtle: " + e.getMessage());
             throw e;
         }
 
+        // Merge ontology + user data for inference context
         Model dataWithContext = JenaUtil.createMemoryModel();
         dataWithContext.add(SHAPES_GRAPH);
         dataWithContext.add(dataModel);
         dataWithContext.setNsPrefixes(SHAPES_GRAPH.getNsPrefixMap());
         dataWithContext.setNsPrefixes(dataModel.getNsPrefixMap());
 
-        System.out.println("Data with context size (shapes + input): " + dataWithContext.size() + " triples");
-
-        // Debug: Check for Acquisition instances before rule execution
-        System.out.println("\nAcquisition instances before rules:");
-        StmtIterator beforeAcq = dataWithContext.listStatements(
-            null, 
-            RDF.type, 
-            dataWithContext.createResource(ONT_NS + "Acquisition")
-        );
-        while (beforeAcq.hasNext()) {
-            Statement stmt = beforeAcq.next();
-            System.out.println("  Found: " + stmt.getSubject());
-        }
-
-        // Execute rules
-        System.out.println("\nExecuting SHACL rules...");
+        // Execute SHACL Rules
         Model inferred = RuleUtil.executeRules(dataWithContext, SHAPES_GRAPH, null, null);
-        
         System.out.println("Rules executed. Inferred triples count: " + inferred.size());
-        
-        // Debug: Print all inferred triples
-        if (inferred.size() > 0) {
-            System.out.println("\nInferred triples:");
-            inferred.write(System.out, "TURTLE");
-        } else {
-            System.out.println("WARNING: No triples were inferred!");
-        }
 
+        // Add inferences back to the data model for the response
         dataModel.add(inferred);
         dataModel.setNsPrefixes(dataWithContext.getNsPrefixMap());
-        
-        System.out.println("Final model size: " + dataModel.size() + " triples");
-        System.out.println("=== Inference Complete ===\n");
         
         return dataModel;
     }
 
     // ── Serialisation helper ──────────────────────────────────────────────────
-    // Strips TopBraid-internal prefixes that leak from the SHAPES_GRAPH merge.
     private static String serialise(Model m) {
+        // Strip internal TopBraid prefixes to keep output clean
         m.removeNsPrefix("dash");
         m.removeNsPrefix("graphql");
         m.removeNsPrefix("swa");
@@ -219,61 +100,7 @@ private static final String TEST_2 =
         return sw.toString();
     }
 
-    // ── Opaque IRI detection helper ───────────────────────────────────────────
-    // Finds the first :acquires_* property that is:
-    //   a) declared rdfs:subPropertyOf :acquires
-    //   b) actually used as a predicate in at least one triple
-    // Returns the URI string, or "(not found)".
-    private static String findMintedOpaqueIRI(Model m) {
-        System.out.println("\nSearching for opaque IRI...");
-        
-        // First, list all subproperties of :acquires
-        Property acquires = m.createProperty(ONT_NS + "acquires");
-        StmtIterator it = m.listStatements(null, RDFS.subPropertyOf, acquires);
-        
-        while (it.hasNext()) {
-            Resource prop = it.next().getSubject();
-            if (prop.isURIResource() && prop.getURI().startsWith(ONT_NS + "acquires_")) {
-                System.out.println("Found potential opaque property: " + prop.getURI());
-                
-                // Check if this property is actually used
-                boolean isUsed = m.contains(null, m.createProperty(prop.getURI()), (RDFNode) null);
-                System.out.println("  Is used in triples: " + isUsed);
-                
-                if (isUsed) {
-                    // Print the triples that use this property
-                    StmtIterator used = m.listStatements(null, m.createProperty(prop.getURI()), (RDFNode) null);
-                    while (used.hasNext()) {
-                        System.out.println("  Usage: " + used.next());
-                    }
-                    return prop.getURI();
-                }
-            }
-        }
-        
-        // If not found via subproperty, also check directly for properties with the pattern
-        System.out.println("Checking for properties matching pattern acquires_* directly...");
-        StmtIterator allProps = m.listStatements(null, null, (RDFNode) null);
-        Set<String> foundProps = new HashSet<>();
-        while (allProps.hasNext()) {
-            Statement stmt = allProps.next();
-            String predicate = stmt.getPredicate().getURI();
-            if (predicate != null && predicate.startsWith(ONT_NS + "acquires_")) {
-                foundProps.add(predicate);
-                System.out.println("Found direct usage: " + predicate + " in triple: " + stmt);
-            }
-        }
-        
-        if (!foundProps.isEmpty()) {
-            return foundProps.iterator().next();
-        }
-        
-        return "(not found)";
-    }
-
     // ── POST /api/infer ───────────────────────────────────────────────────────
-    // Accepts:  text/turtle — data graph (temp: IRIs throughout)
-    // Returns:  text/turtle — input + all inferred triples
     private static void infer(Context ctx) {
         try {
             String body = ctx.body();
@@ -288,45 +115,40 @@ private static final String TEST_2 =
             ctx.status(500).json(Map.of("error", "Inference error", "details", e.getMessage()));
         }
     }
+
+    // ── GET /api/infer/test ───────────────────────────────────────────────────
     private static void inferTest(Context ctx) {
-    try {
-        Map<String, Object> results = new LinkedHashMap<>();
+        try {
+            Map<String, Object> results = new LinkedHashMap<>();
 
-        String testData = loadTestFile("test2.ttl");
-        
-        System.out.println("\n\n========== RUNNING ALL TESTS FROM test2.ttl ==========");
-        Model expanded = runInference(testData);
-        
-        results.put("test_results", Map.of(
-            "loaded_file", "test2.ttl",
-            "triple_count", expanded.size(),
-            "expanded_ttl", serialise(expanded)
-        ));
-        
-        ctx.json(results);
-        
-    } catch (IOException e) {  
-        e.printStackTrace();
-        ctx.status(500).json(Map.of("error", "Failed to load test2.ttl: " + e.getMessage()));
-    } catch (Exception e) {
-        e.printStackTrace();
-        ctx.status(500).json(Map.of("error", "Test inference failed: " + e.getMessage()));
+            // Ensure test2.ttl is in the working directory (COPY in Dockerfile)
+            String testData = loadTestFile("test2.ttl");
+            
+            System.out.println("\n\n========== RUNNING ALL TESTS FROM test2.ttl ==========");
+            Model expanded = runInference(testData);
+            
+            results.put("test_results", Map.of(
+                "loaded_file", "test2.ttl",
+                "triple_count", expanded.size(),
+                "expanded_ttl", serialise(expanded)
+            ));
+            
+            ctx.json(results);
+            
+        } catch (IOException e) {  
+            e.printStackTrace();
+            ctx.status(500).json(Map.of("error", "Failed to load test2.ttl: " + e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            ctx.status(500).json(Map.of("error", "Test inference failed: " + e.getMessage()));
+        }
     }
-}
 
-private static String loadTestFile(String filename) throws IOException {
-    return Files.readString(Paths.get(filename));
-}
-    
-    
     private static String loadTestFile(String filename) throws IOException {
-        java.nio.file.Path path = java.nio.file.Paths.get(filename);
-        return java.nio.file.Files.readString(path);
+        return Files.readString(Paths.get(filename));
     }
 
     // ── POST /api/validate ────────────────────────────────────────────────────
-    // Constraint checking only — no inference.
-    // Pass expanded TTL from /api/infer if inferred triples affect validation.
     private static void validate(Context ctx) {
         try {
             Model dataModel = JenaUtil.createMemoryModel();
@@ -347,7 +169,6 @@ private static String loadTestFile(String filename) throws IOException {
                 RDFDataMgr.write(sw, report.getModel(), RDFFormat.TURTLE);
                 reportText = sw.toString();
             } catch (Exception valEx) {
-                System.err.println("[validate] Engine error: " + valEx.getMessage());
                 reportText = "Validation engine error: " + valEx.getMessage();
             }
 
@@ -382,7 +203,7 @@ private static String loadTestFile(String filename) throws IOException {
         ctx.json(Map.of(
             "shapes", shapes, "roles", roles.size(),
             "rules",  tripleRules + sparqlRules,
-            "lemmas", lemmas,   "senses", senses
+            "lemmas", lemmas,   "synsets", senses
         ));
     }
 
