@@ -1,38 +1,21 @@
 # test.ttl
-# Self-contained inference tests for the /api/infer endpoint.
+# Focused tests for SHA256 opaque-IRI inference rule
 #
-# Three test cases, each independently valid:
+# Test cases:
+#   Test 1 — Minimal SHA256 rule test (isolated)
+#   Test 2 — Multiple senses produce different hashes
+#   Test 3 — Same sense produces same hash (idempotency)
 #
-#   Test 1 — existing simple rule, temp: named entities (baseline, already passing)
-#   Test 2 — SHA256 opaque-IRI rule, temp: named entities
-#   Test 3 — SHA256 opaque-IRI rule, pure blank nodes as acquirer/acquisition
-#
-# The SHA256 rule is defined here in the shapes section and requires:
-#   :acquire  :present3sg "acquires" (declared below)
-#   :root / :sense on the situation node (populated by the user form)
-#
-# Run via: GET /api/infer/test  (uses TEST_INPUT_1 hardcoded in App.java)
-#          POST /api/infer      (send this file as body to test all three cases)
-#
-# Expected outputs:
-#   Test 1:  temp:Alphabet :acquires temp:Wiz .
-#   Test 2:  temp:Alphabet :acquires_<sha256hash> temp:Wiz .
-#            :acquires_<hash> a rdf:Property ;
-#                rdfs:label "acquires" ;
-#                rdfs:comment "to obtain ownership or possession of" ;
-#                rdfs:subPropertyOf :acquires .
-#   Test 3:  same shape as Test 2 but with bnode subjects
-#            _:buyer :acquires_<hash> _:asset .
+# Run via: POST /api/infer (send this file as body)
 
 @prefix :     <http://example.org/ontology/> .
-@prefix temp: <http://example.org/temp/> .
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix sh:   <http://www.w3.org/ns/shacl#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
 # ─────────────────────────────────────────────────────────────────────────────
-# SCHEMA ADDITIONS (not yet in roles_shacl.ttl — declared here for the test)
+# SCHEMA ADDITIONS
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Properties needed by the SHA256 rule
@@ -45,32 +28,18 @@
 :sense a rdf:Property ;
     rdfs:label "sense"@en .
 
-# Add present3sg to the acquire verb entry
-# (In production this will be pre-populated by the lemminflect script)
-:acquire :present3sg "acquires" .
+# Verb entry with present tense form
+:acquire a :Verb ;
+    rdfs:label "acquire" ;
+    :present3sg "acquires" .
 
 # ─────────────────────────────────────────────────────────────────────────────
-# INFERENCE RULES (additions to roles_shacl.ttl for testing)
+# INFERENCE RULE (SHA256 opaque-IRI only)
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Existing rule (already in roles_shacl.ttl, repeated here for completeness):
-# :Acquisition_InferenceRule — simple :acquires triple, sh:order 1
-
-# NEW: SHA256 opaque-IRI rule — fires after the simple rule (sh:order 2)
-# Produces:
-#   ?acquirer :acquires_<sha256> ?acquisition
-#   :acquires_<sha256> a rdf:Property ;
-#       rdfs:label      "acquires" ;
-#       rdfs:comment    "<sense gloss from user form>" ;
-#       rdfs:subPropertyOf :acquires .
-#
-# The IRI is deterministic: SHA256("lemma|gloss"), first 12 chars.
-# Same verb + same gloss always produces the same IRI — idempotent re-runs.
-# Different gloss (different sense) produces a different IRI — sense-distinct.
 :Acquisition_OpaqueIRIRule a sh:NodeShape ;
     sh:rule [ a sh:SPARQLRule ;
-        sh:order 2 ;
-        sh:prefixes :OntologyPrefixes ;
+        sh:order 1 ;
         sh:construct """
             PREFIX :    <http://example.org/ontology/>
             PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -87,9 +56,13 @@
                 $this :acquisition ?acquisition .
                 $this :root        ?rootLabel .
                 $this :sense       ?gloss .
-                ?verbNode a :Verb ;
-                          rdfs:label ?rootLabel ;
-                          :present3sg ?present3sg .
+                
+                # Look up the verb's present tense form
+                ?verb a :Verb ;
+                      rdfs:label ?rootLabel ;
+                      :present3sg ?present3sg .
+                
+                # Generate hash from root + sense
                 BIND(SHA256(CONCAT(STR(?rootLabel), "|", STR(?gloss))) AS ?hash)
                 BIND(IRI(CONCAT(
                     "http://example.org/ontology/",
@@ -100,59 +73,104 @@
         """ ] ;
     sh:targetClass :Acquisition .
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TEST 1 — Simple rule baseline, temp: named entities (already passing)
-# Exercises: Acquisition_InferenceRule (sh:order 1)
-# Expected:  temp:Alphabet :acquires temp:Wiz .
-# ─────────────────────────────────────────────────────────────────────────────
-
-[ a :Acquisition ;
-    :acquirer    temp:Alphabet ;
-    :acquisition temp:Wiz ] .
-
-temp:Alphabet a :Entity ; rdfs:label "Alphabet" .
-temp:Wiz      a :Entity ; rdfs:label "Wiz" .
+# Also need the simple :acquires property for reference
+:acquires a rdf:Property ;
+    rdfs:label "acquires" .
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 2 — SHA256 opaque-IRI rule, temp: named entities
-# Exercises: both rules (sh:order 1 and sh:order 2)
+# TEST 1 — Minimal SHA256 rule test
 # Expected:
-#   temp:Google :acquires temp:YouTube .               (from order 1)
-#   temp:Google :acquires_<sha256hash> temp:YouTube .  (from order 2)
-#   :acquires_<hash> a rdf:Property ;
-#       rdfs:label   "acquires" ;
-#       rdfs:comment "to obtain ownership or possession of" ;
+#   :TestBuyer1 :acquires_<hash1> :TestAsset1 .
+#   :acquires_<hash1> a rdf:Property ;
+#       rdfs:label "acquires" ;
+#       rdfs:comment "to obtain ownership" ;
 #       rdfs:subPropertyOf :acquires .
 # ─────────────────────────────────────────────────────────────────────────────
 
 [ a :Acquisition ;
     :root        "acquire" ;
-    :sense       "to obtain ownership or possession of" ;
-    :acquirer    temp:Google ;
-    :acquisition temp:YouTube ] .
+    :sense       "to obtain ownership" ;
+    :acquirer    :TestBuyer1 ;
+    :acquisition :TestAsset1 ] .
 
-temp:Google   a :Entity ; rdfs:label "Google" .
-temp:YouTube  a :Entity ; rdfs:label "YouTube" .
+:TestBuyer1 a :Entity ; rdfs:label "Test Buyer 1" .
+:TestAsset1 a :Entity ; rdfs:label "Test Asset 1" .
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 3 — SHA256 opaque-IRI rule, pure blank nodes as acquirer/acquisition
-# Exercises: bnode stability question
-#   Can a bnode subject carry the inferred triple?
-#   Is the bnode IRI stable across serialisation?
-#
+# TEST 2 — Multiple senses produce different hashes
+# Two acquisitions with same root but different senses
 # Expected:
-#   _:buyer :acquires _:asset .               (from order 1)
-#   _:buyer :acquires_<sha256hash> _:asset .  (from order 2)
-#
-# Watch for: Jena may re-label _:buyer as _:b0 or _:Bxxx in the output.
-# If labels change, this confirms bnodes need skolemization or temp: for stability.
+#   :TestBuyer2a :acquires_<hashA> :TestAsset2a .
+#   :TestBuyer2b :acquires_<hashB> :TestAsset2b .
+#   where hashA ≠ hashB
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Sense 1: ownership transfer
 [ a :Acquisition ;
     :root        "acquire" ;
-    :sense       "to obtain ownership or possession of" ;
-    :acquirer    _:buyer ;
-    :acquisition _:asset ] .
+    :sense       "to obtain ownership" ;
+    :acquirer    :TestBuyer2a ;
+    :acquisition :TestAsset2a ] .
 
-_:buyer a :Entity ; rdfs:label "Buyer (bnode)" .
-_:asset a :Entity ; rdfs:label "Asset (bnode)" .
+:TestBuyer2a a :Entity ; rdfs:label "Test Buyer 2a" .
+:TestAsset2a a :Entity ; rdfs:label "Test Asset 2a" .
+
+# Sense 2: learning/acquiring knowledge
+[ a :Acquisition ;
+    :root        "acquire" ;
+    :sense       "to learn or develop a skill" ;
+    :acquirer    :TestBuyer2b ;
+    :acquisition :TestAsset2b ] .
+
+:TestBuyer2b a :Entity ; rdfs:label "Test Buyer 2b" .
+:TestAsset2b a :Entity ; rdfs:label "Test Asset 2b" .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST 3 — Same sense produces same hash (idempotency)
+# Two separate acquisitions with identical root+sense
+# Expected:
+#   Both acquisitions produce the SAME predicate IRI
+#   :acquires_<hash> (identical for both)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# First instance
+[ a :Acquisition ;
+    :root        "acquire" ;
+    :sense       "to merge or consolidate" ;
+    :acquirer    :TestBuyer3a ;
+    :acquisition :TestAsset3a ] .
+
+:TestBuyer3a a :Entity ; rdfs:label "Test Buyer 3a" .
+:TestAsset3a a :Entity ; rdfs:label "Test Asset 3a" .
+
+# Second instance (same root+sense)
+[ a :Acquisition ;
+    :root        "acquire" ;
+    :sense       "to merge or consolidate" ;
+    :acquirer    :TestBuyer3b ;
+    :acquisition :TestAsset3b ] .
+
+:TestBuyer3b a :Entity ; rdfs:label "Test Buyer 3b" .
+:TestAsset3b a :Entity ; rdfs:label "Test Asset 3b" .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST 4 — Different root words
+# Test with a different verb to ensure hash varies by root
+# Expected:
+#   :TestBuyer4 :acquires_<hash4> :TestAsset4
+#   where hash4 ≠ hashes from Test 1-3
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Add another verb
+:purchase a :Verb ;
+    rdfs:label "purchase" ;
+    :present3sg "purchases" .
+
+[ a :Acquisition ;
+    :root        "purchase" ;
+    :sense       "to buy with money" ;
+    :acquirer    :TestBuyer4 ;
+    :acquisition :TestAsset4 ] .
+
+:TestBuyer4 a :Entity ; rdfs:label "Test Buyer 4" .
+:TestAsset4 a :Entity ; rdfs:label "Test Asset 4" .
