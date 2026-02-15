@@ -1014,7 +1014,7 @@ WHERE {
             
             BIND(SHA256(CONCAT(?root, "|", ?sense)) AS ?hash)
             BIND(IRI(CONCAT(STR(:), "acquires_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
-        } ;
+        } """;
     sh:targetClass :Acquisition .
 
 :EvaluationShape a sh:NodeShape ;
