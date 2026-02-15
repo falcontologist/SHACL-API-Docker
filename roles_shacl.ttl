@@ -1007,12 +1007,12 @@ WHERE {
         }
         WHERE {
             ?this a :Acquisition ;
-                  :root ?root ;
-                  :sense ?sense ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
                   :acquirer ?acquirer ;
                   :acquisition ?acquired .
             
-            BIND(SHA256(CONCAT(?root, "|", ?sense)) AS ?hash)
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
             BIND(IRI(CONCAT(STR(:), "acquires_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
         } """;
     sh:targetClass :Acquisition .
@@ -27995,3 +27995,10 @@ WHERE {
 :other_cos-45_4 a :VerbNetClass ;
     rdfs:label "other_cos-45.4"@en .
 
+:lemma a rdf:Property ;
+    rdfs:label "lemma"@en ;
+    rdfs:comment "The base lexical form."@en .
+
+:synset a rdf:Property ;
+    rdfs:label "synset"@en ;
+    rdfs:comment "The concept that can be expressed using multiple lexical forms."@en .
