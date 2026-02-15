@@ -16,15 +16,15 @@ import org.topbraid.shacl.vocabulary.SH;
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
 import java.util.*;
+import java.io.IOException; 
+import java.nio.file.Files; 
+import java.nio.file.Paths; 
 
 public class App {
 
     private static final String ONT_NS  = "http://example.org/ontology/";
     private static final String TEMP_NS = "http://example.org/temp/";
 
-    // All resources use temp: IRIs — no bnodes anywhere.
-    // Situation nodes: temp:s<n>
-    // Entity nodes:    temp:<EntityName>
     private static final String BASE_PREFIXES =
         "@prefix :     <http://example.org/ontology/> .\n" +
         "@prefix temp: <http://example.org/temp/> .\n"     +
@@ -289,27 +289,34 @@ private static final String TEST_2 =
         }
     }
     private static void inferTest(Context ctx) {
-        try {
-            Map<String, Object> results = new LinkedHashMap<>();
-    
-            String testData = loadTestFile("test2.ttl");
-            
-            System.out.println("\n\n========== RUNNING ALL TESTS FROM test2.ttl ==========");
-            Model expanded = runInference(testData);
-            
-            results.put("test_results", Map.of(
-                "loaded_file", "test2.ttl",
-                "triple_count", expanded.size(),
-                "expanded_ttl", serialise(expanded)
-            ));
-            
-            ctx.json(results);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            ctx.status(500).json(Map.of("error", e.getMessage()));
-        }
+    try {
+        Map<String, Object> results = new LinkedHashMap<>();
+
+        String testData = loadTestFile("test2.ttl");
+        
+        System.out.println("\n\n========== RUNNING ALL TESTS FROM test2.ttl ==========");
+        Model expanded = runInference(testData);
+        
+        results.put("test_results", Map.of(
+            "loaded_file", "test2.ttl",
+            "triple_count", expanded.size(),
+            "expanded_ttl", serialise(expanded)
+        ));
+        
+        ctx.json(results);
+        
+    } catch (IOException e) {  
+        e.printStackTrace();
+        ctx.status(500).json(Map.of("error", "Failed to load test2.ttl: " + e.getMessage()));
+    } catch (Exception e) {
+        e.printStackTrace();
+        ctx.status(500).json(Map.of("error", "Test inference failed: " + e.getMessage()));
     }
+}
+
+private static String loadTestFile(String filename) throws IOException {
+    return Files.readString(Paths.get(filename));
+}
     
     
     private static String loadTestFile(String filename) throws IOException {
