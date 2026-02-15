@@ -72,38 +72,63 @@ public class App {
     private static final Model SHAPES_GRAPH = loadShapesGraph();
 
     private static Model loadShapesGraph() {
-        Model m = JenaUtil.createMemoryModel();
-        try {
-            m.read("roles_shacl.ttl");
-            System.out.println("[startup] Loaded roles_shacl.ttl: " + m.size() + " triples.");
-            
-            // Debug: List all rules found in the shapes graph
-            System.out.println("\n=== SHACL Rules Found ===");
-            ResIterator tripleRules = m.listSubjectsWithProperty(RDF.type, SH.TripleRule);
-            while (tripleRules.hasNext()) {
-                Resource rule = tripleRules.next();
-                System.out.println("TripleRule: " + rule.getURI());
-                // Print the rule content if available
-                if (rule.hasProperty(SH.construct)) {
-                    System.out.println("  Construct: " + rule.getProperty(SH.construct).getString());
-                }
+    Model m = JenaUtil.createMemoryModel();
+    try {
+        m.read("roles_shacl.ttl");
+        System.out.println("[startup] Loaded roles_shacl.ttl: " + m.size() + " triples.");
+        
+        // DEBUG: Print ALL rules with their full details
+        System.out.println("\n=== ALL SHACL RULES IN SHAPES GRAPH ===");
+        
+        // Check for TripleRules
+        System.out.println("\n-- TripleRules --");
+        ResIterator tripleRules = m.listSubjectsWithProperty(RDF.type, SH.TripleRule);
+        while (tripleRules.hasNext()) {
+            Resource rule = tripleRules.next();
+            System.out.println("TripleRule URI: " + rule.getURI());
+            if (rule.hasProperty(SH.construct)) {
+                System.out.println("  CONSTRUCT: " + rule.getProperty(SH.construct).getString());
             }
-            
-            ResIterator sparqlRules = m.listSubjectsWithProperty(RDF.type, SH.SPARQLRule);
-            while (sparqlRules.hasNext()) {
-                Resource rule = sparqlRules.next();
-                System.out.println("SPARQLRule: " + rule.getURI());
-                if (rule.hasProperty(SH.construct)) {
-                    System.out.println("  Construct: " + rule.getProperty(SH.construct).getString());
-                }
+            if (rule.hasProperty(SH.order)) {
+                System.out.println("  ORDER: " + rule.getProperty(SH.order).getInt());
             }
-            System.out.println("========================\n");
-            
-        } catch (Exception e) {
-            System.err.println("[startup] FAILED to load roles_shacl.ttl: " + e.getMessage());
-            e.printStackTrace();
         }
-        return m;
+        
+        // Check for SPARQLRules
+        System.out.println("\n-- SPARQLRules --");
+        ResIterator sparqlRules = m.listSubjectsWithProperty(RDF.type, SH.SPARQLRule);
+        while (sparqlRules.hasNext()) {
+            Resource rule = sparqlRules.next();
+            System.out.println("SPARQLRule URI: " + rule.getURI());
+            if (rule.hasProperty(SH.construct)) {
+                System.out.println("  CONSTRUCT: " + rule.getProperty(SH.construct).getString());
+            }
+            if (rule.hasProperty(SH.order)) {
+                System.out.println("  ORDER: " + rule.getProperty(SH.order).getInt());
+            }
+        }
+        
+        // Also check for any property that might be the opaque one
+        System.out.println("\n-- Checking for acquires_* properties --");
+        ResIterator allSubjects = m.listSubjects();
+        while (allSubjects.hasNext()) {
+            Resource subject = allSubjects.next();
+            if (subject.isURIResource() && subject.getURI().contains("acquires_")) {
+                System.out.println("Found acquires_* property: " + subject.getURI());
+                // Show what kind of resource it is
+                if (subject.hasProperty(RDF.type)) {
+                    System.out.println("  Type: " + subject.getProperty(RDF.type).getObject());
+                }
+            }
+        }
+        
+        System.out.println("=== END RULE DEBUG ===\n");
+        
+    } catch (Exception e) {
+        System.err.println("[startup] FAILED to load roles_shacl.ttl: " + e.getMessage());
+        e.printStackTrace();
+    }
+    return m;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
