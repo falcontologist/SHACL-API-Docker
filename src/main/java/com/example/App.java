@@ -288,125 +288,33 @@ private static final String TEST_2 =
             ctx.status(500).json(Map.of("error", "Inference error", "details", e.getMessage()));
         }
     }
-
-    // ── GET /api/infer/test ───────────────────────────────────────────────────
-    // Runs two test cases with the same verb+gloss pairing on different entities.
-    //
-    // Test 1: temp:Alphabet acquires temp:Wiz     (first encoding)
-    // Test 2: temp:Google   acquires temp:YouTube (second encoding)
-    //
-    // Both use:  :root "acquire" + :sense "to obtain ownership or possession of"
-    // Both must mint: :acquires_2bd8509722e0  (SHA256 determinism proof)
-    //
-    // Per-test assertions:
-    //   simple_rule_fired    — :acquires triple present (sh:order 1)
-    //   opaque_rule_fired    — :acquires_<hash> triple present (sh:order 2)
-    //   minted_iri           — the actual minted property URI
-    //   iri_matches_expected — minted IRI == :acquires_2bd8509722e0
-    //
-    // Cross-test assertion:
-    //   same_iri_both_tests  — BOTH tests produced the exact same IRI
-    //   verdict              — PASS / FAIL / PENDING
     private static void inferTest(Context ctx) {
         try {
             Map<String, Object> results = new LinkedHashMap<>();
-
-            // ── Test 1: Alphabet acquires Wiz ────────────────────────────────
-            System.out.println("\n\n========== TEST 1: Alphabet acquires Wiz ==========");
-            Model expanded1 = runInference(TEST_1);
-
-            Property acquires1 = expanded1.createProperty(ONT_NS + "acquires");
-            Resource alphabet  = expanded1.createResource(TEMP_NS + "Alphabet");
-            Resource wiz       = expanded1.createResource(TEMP_NS + "Wiz");
-
-            boolean simple1 = expanded1.contains(alphabet, acquires1, wiz);
-            System.out.println("Test 1 - Simple rule fired: " + simple1);
+    
+            String testData = loadTestFile("test2.ttl");
             
-            String  iri1    = findMintedOpaqueIRI(expanded1);
-            System.out.println("Test 1 - Minted IRI: " + iri1);
+            System.out.println("\n\n========== RUNNING ALL TESTS FROM test2.ttl ==========");
+            Model expanded = runInference(testData);
             
-            boolean opaque1 = !iri1.equals("(not found)");
-            if (opaque1) {
-                opaque1 = expanded1.contains(alphabet, expanded1.createProperty(iri1), wiz);
-                System.out.println("Test 1 - Opaque property used with correct entities: " + opaque1);
-            }
-
-            results.put("test1_Alphabet_acquires_Wiz", Map.of(
-                "simple_rule_fired",    simple1,
-                "opaque_rule_fired",    opaque1,
-                "minted_iri",           iri1,
-                "iri_matches_expected", EXPECTED_OPAQUE_IRI.equals(iri1),
-                "expected_iri",         EXPECTED_OPAQUE_IRI,
-                "expanded_ttl",         serialise(expanded1)
+            results.put("test_results", Map.of(
+                "loaded_file", "test2.ttl",
+                "triple_count", expanded.size(),
+                "expanded_ttl", serialise(expanded)
             ));
-
-            // ── Test 2: Google acquires YouTube ──────────────────────────────
-            System.out.println("\n\n========== TEST 2: Google acquires YouTube ==========");
-            Model expanded2 = runInference(TEST_2);
-
-            Property acquires2 = expanded2.createProperty(ONT_NS + "acquires");
-            Resource google    = expanded2.createResource(TEMP_NS + "Google");
-            Resource youtube   = expanded2.createResource(TEMP_NS + "YouTube");
-
-            boolean simple2 = expanded2.contains(google, acquires2, youtube);
-            System.out.println("Test 2 - Simple rule fired: " + simple2);
             
-            String  iri2    = findMintedOpaqueIRI(expanded2);
-            System.out.println("Test 2 - Minted IRI: " + iri2);
-            
-            boolean opaque2 = !iri2.equals("(not found)");
-            if (opaque2) {
-                opaque2 = expanded2.contains(google, expanded2.createProperty(iri2), youtube);
-                System.out.println("Test 2 - Opaque property used with correct entities: " + opaque2);
-            }
-
-            results.put("test2_Google_acquires_YouTube", Map.of(
-                "simple_rule_fired",    simple2,
-                "opaque_rule_fired",    opaque2,
-                "minted_iri",           iri2,
-                "iri_matches_expected", EXPECTED_OPAQUE_IRI.equals(iri2),
-                "expected_iri",         EXPECTED_OPAQUE_IRI,
-                "expanded_ttl",         serialise(expanded2)
-            ));
-
-            // ── Cross-test: determinism proof ─────────────────────────────────
-            boolean sameIRI = iri1.equals(iri2) && !iri1.equals("(not found)");
-
-            String verdict;
-            if (sameIRI) {
-                verdict = "PASS — same form-meaning pair correctly maps to same property IRI";
-            } else if (opaque1 || opaque2) {
-                verdict = "FAIL — opaque rule fired but IRIs differ (hash non-determinism)";
-            } else {
-                verdict = "PENDING — add :Acquisition_OpaqueIRIRule to roles_shacl.ttl";
-            }
-
-            results.put("determinism_proof", Map.of(
-                "same_iri_both_tests", sameIRI,
-                "test1_iri",           iri1,
-                "test2_iri",           iri2,
-                "expected_iri",        EXPECTED_OPAQUE_IRI,
-                "verdict",             verdict
-            ));
-
-            // Print summary
-            System.out.println("\n\n========== TEST SUMMARY ==========");
-            System.out.println("Test 1 IRI: " + iri1);
-            System.out.println("Test 2 IRI: " + iri2);
-            System.out.println("Expected IRI: " + EXPECTED_OPAQUE_IRI);
-            System.out.println("Same IRI: " + sameIRI);
-            System.out.println("Verdict: " + verdict);
-            System.out.println("===================================\n");
-
             ctx.json(results);
-
+            
         } catch (Exception e) {
             e.printStackTrace();
-            ctx.status(500).json(Map.of(
-                "error",   "Test inference failed",
-                "details", e.getMessage()
-            ));
+            ctx.status(500).json(Map.of("error", e.getMessage()));
         }
+    }
+    
+    
+    private static String loadTestFile(String filename) throws IOException {
+        java.nio.file.Path path = java.nio.file.Paths.get(filename);
+        return java.nio.file.Files.readString(path);
     }
 
     // ── POST /api/validate ────────────────────────────────────────────────────
