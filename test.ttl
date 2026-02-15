@@ -1,0 +1,25 @@
+# test.ttl
+# Reference data for the /api/infer/test endpoint.
+# This Turtle is hardcoded as TEST_INPUT in App.java — this file documents it.
+#
+# Test pattern: Acquisition inference
+#   INPUT:  blank node with :acquirer and :acquisition roles
+#   EXPECT: temp:Alphabet :acquires temp:Wiz  (from Acquisition_InferenceRule)
+#
+# To run the test: GET https://shacl-api-docker.onrender.com/api/infer/test
+# To run raw inference: POST https://shacl-api-docker.onrender.com/api/infer
+#   with this file as the body (Content-Type: text/turtle)
+
+@prefix :     <http://example.org/ontology/> .
+@prefix temp: <http://example.org/temp/> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# The situation node — blank node, as the frontend produces
+[ a :Acquisition ;
+  :acquirer    temp:Alphabet ;
+  :acquisition temp:Wiz ] .
+
+# Named entities so they resolve cleanly in the output graph
+temp:Alphabet a :Entity ; rdfs:label "Alphabet" .
+temp:Wiz      a :Entity ; rdfs:label "Wiz" .
