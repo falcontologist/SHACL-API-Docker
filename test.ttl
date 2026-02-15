@@ -1,25 +1,158 @@
 # test.ttl
-# Reference data for the /api/infer/test endpoint.
-# This Turtle is hardcoded as TEST_INPUT in App.java — this file documents it.
+# Self-contained inference tests for the /api/infer endpoint.
 #
-# Test pattern: Acquisition inference
-#   INPUT:  blank node with :acquirer and :acquisition roles
-#   EXPECT: temp:Alphabet :acquires temp:Wiz  (from Acquisition_InferenceRule)
+# Three test cases, each independently valid:
 #
-# To run the test: GET https://shacl-api-docker.onrender.com/api/infer/test
-# To run raw inference: POST https://shacl-api-docker.onrender.com/api/infer
-#   with this file as the body (Content-Type: text/turtle)
+#   Test 1 — existing simple rule, temp: named entities (baseline, already passing)
+#   Test 2 — SHA256 opaque-IRI rule, temp: named entities
+#   Test 3 — SHA256 opaque-IRI rule, pure blank nodes as acquirer/acquisition
+#
+# The SHA256 rule is defined here in the shapes section and requires:
+#   :acquire  :present3sg "acquires" (declared below)
+#   :root / :sense on the situation node (populated by the user form)
+#
+# Run via: GET /api/infer/test  (uses TEST_INPUT_1 hardcoded in App.java)
+#          POST /api/infer      (send this file as body to test all three cases)
+#
+# Expected outputs:
+#   Test 1:  temp:Alphabet :acquires temp:Wiz .
+#   Test 2:  temp:Alphabet :acquires_<sha256hash> temp:Wiz .
+#            :acquires_<hash> a rdf:Property ;
+#                rdfs:label "acquires" ;
+#                rdfs:comment "to obtain ownership or possession of" ;
+#                rdfs:subPropertyOf :acquires .
+#   Test 3:  same shape as Test 2 but with bnode subjects
+#            _:buyer :acquires_<hash> _:asset .
 
 @prefix :     <http://example.org/ontology/> .
 @prefix temp: <http://example.org/temp/> .
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
-# The situation node — blank node, as the frontend produces
+# ─────────────────────────────────────────────────────────────────────────────
+# SCHEMA ADDITIONS (not yet in roles_shacl.ttl — declared here for the test)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Properties needed by the SHA256 rule
+:present3sg a rdf:Property ;
+    rdfs:label "present3sg"@en .
+
+:root a rdf:Property ;
+    rdfs:label "root"@en .
+
+:sense a rdf:Property ;
+    rdfs:label "sense"@en .
+
+# Add present3sg to the acquire verb entry
+# (In production this will be pre-populated by the lemminflect script)
+:acquire :present3sg "acquires" .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# INFERENCE RULES (additions to roles_shacl.ttl for testing)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Existing rule (already in roles_shacl.ttl, repeated here for completeness):
+# :Acquisition_InferenceRule — simple :acquires triple, sh:order 1
+
+# NEW: SHA256 opaque-IRI rule — fires after the simple rule (sh:order 2)
+# Produces:
+#   ?acquirer :acquires_<sha256> ?acquisition
+#   :acquires_<sha256> a rdf:Property ;
+#       rdfs:label      "acquires" ;
+#       rdfs:comment    "<sense gloss from user form>" ;
+#       rdfs:subPropertyOf :acquires .
+#
+# The IRI is deterministic: SHA256("lemma|gloss"), first 12 chars.
+# Same verb + same gloss always produces the same IRI — idempotent re-runs.
+# Different gloss (different sense) produces a different IRI — sense-distinct.
+:Acquisition_OpaqueIRIRule a sh:NodeShape ;
+    sh:rule [ a sh:SPARQLRule ;
+        sh:order 2 ;
+        sh:prefixes :OntologyPrefixes ;
+        sh:construct """
+            PREFIX :    <http://example.org/ontology/>
+            PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            CONSTRUCT {
+                ?acquirer ?verbProp ?acquisition .
+                ?verbProp a rdf:Property ;
+                    rdfs:label      ?present3sg ;
+                    rdfs:comment    ?gloss ;
+                    rdfs:subPropertyOf :acquires .
+            }
+            WHERE {
+                $this :acquirer    ?acquirer .
+                $this :acquisition ?acquisition .
+                $this :root        ?rootLabel .
+                $this :sense       ?gloss .
+                ?verbNode a :Verb ;
+                          rdfs:label ?rootLabel ;
+                          :present3sg ?present3sg .
+                BIND(SHA256(CONCAT(STR(?rootLabel), "|", STR(?gloss))) AS ?hash)
+                BIND(IRI(CONCAT(
+                    "http://example.org/ontology/",
+                    STR(?present3sg), "_",
+                    SUBSTR(?hash, 1, 12)
+                )) AS ?verbProp)
+            }
+        """ ] ;
+    sh:targetClass :Acquisition .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST 1 — Simple rule baseline, temp: named entities (already passing)
+# Exercises: Acquisition_InferenceRule (sh:order 1)
+# Expected:  temp:Alphabet :acquires temp:Wiz .
+# ─────────────────────────────────────────────────────────────────────────────
+
 [ a :Acquisition ;
-  :acquirer    temp:Alphabet ;
-  :acquisition temp:Wiz ] .
+    :acquirer    temp:Alphabet ;
+    :acquisition temp:Wiz ] .
 
-# Named entities so they resolve cleanly in the output graph
 temp:Alphabet a :Entity ; rdfs:label "Alphabet" .
 temp:Wiz      a :Entity ; rdfs:label "Wiz" .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST 2 — SHA256 opaque-IRI rule, temp: named entities
+# Exercises: both rules (sh:order 1 and sh:order 2)
+# Expected:
+#   temp:Google :acquires temp:YouTube .               (from order 1)
+#   temp:Google :acquires_<sha256hash> temp:YouTube .  (from order 2)
+#   :acquires_<hash> a rdf:Property ;
+#       rdfs:label   "acquires" ;
+#       rdfs:comment "to obtain ownership or possession of" ;
+#       rdfs:subPropertyOf :acquires .
+# ─────────────────────────────────────────────────────────────────────────────
+
+[ a :Acquisition ;
+    :root        "acquire" ;
+    :sense       "to obtain ownership or possession of" ;
+    :acquirer    temp:Google ;
+    :acquisition temp:YouTube ] .
+
+temp:Google   a :Entity ; rdfs:label "Google" .
+temp:YouTube  a :Entity ; rdfs:label "YouTube" .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST 3 — SHA256 opaque-IRI rule, pure blank nodes as acquirer/acquisition
+# Exercises: bnode stability question
+#   Can a bnode subject carry the inferred triple?
+#   Is the bnode IRI stable across serialisation?
+#
+# Expected:
+#   _:buyer :acquires _:asset .               (from order 1)
+#   _:buyer :acquires_<sha256hash> _:asset .  (from order 2)
+#
+# Watch for: Jena may re-label _:buyer as _:b0 or _:Bxxx in the output.
+# If labels change, this confirms bnodes need skolemization or temp: for stability.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[ a :Acquisition ;
+    :root        "acquire" ;
+    :sense       "to obtain ownership or possession of" ;
+    :acquirer    _:buyer ;
+    :acquisition _:asset ] .
+
+_:buyer a :Entity ; rdfs:label "Buyer (bnode)" .
+_:asset a :Entity ; rdfs:label "Asset (bnode)" .
