@@ -113,6 +113,7 @@ public class App {
 
     private static void getStats(Context ctx) {
         long shapes = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).toList().size();
+        
         Set<String> roles = new HashSet<>();
         UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).forEachRemaining(s ->
             s.listProperties(SH.property).forEachRemaining(p -> {
@@ -120,10 +121,22 @@ public class App {
                     roles.add(p.getResource().getPropertyResourceValue(SH.path).getURI());
             })
         );
+
+        // Count Rules (TripleRules + SPARQLRules)
+        long tripleRules = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.TripleRule).toList().size();
+        long sparqlRules = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, SH.SPARQLRule).toList().size();
+        long rules = tripleRules + sparqlRules;
+
         long lemmas = UNIFIED_GRAPH.listSubjectsWithProperty(RDF.type, UNIFIED_GRAPH.createResource(ONT_NS + "Verb")).toList().size();
         long senses = UNIFIED_GRAPH.listStatements(null, UNIFIED_GRAPH.createProperty(ONT_NS + "evokes"), (RDFNode) null).toList().size();
         
-        ctx.json(Map.of("shapes", shapes, "roles", roles.size(), "lemmas", lemmas, "senses", senses));
+        ctx.json(Map.of(
+            "shapes", shapes, 
+            "roles", roles.size(), 
+            "rules", rules,
+            "lemmas", lemmas, 
+            "senses", senses
+        ));
     }
 
     private static void getForms(Context ctx) {
