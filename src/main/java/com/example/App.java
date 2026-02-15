@@ -76,6 +76,29 @@ public class App {
         try {
             m.read("roles_shacl.ttl");
             System.out.println("[startup] Loaded roles_shacl.ttl: " + m.size() + " triples.");
+            
+            // Debug: List all rules found in the shapes graph
+            System.out.println("\n=== SHACL Rules Found ===");
+            ResIterator tripleRules = m.listSubjectsWithProperty(RDF.type, SH.TripleRule);
+            while (tripleRules.hasNext()) {
+                Resource rule = tripleRules.next();
+                System.out.println("TripleRule: " + rule.getURI());
+                // Print the rule content if available
+                if (rule.hasProperty(SH.construct)) {
+                    System.out.println("  Construct: " + rule.getProperty(SH.construct).getString());
+                }
+            }
+            
+            ResIterator sparqlRules = m.listSubjectsWithProperty(RDF.type, SH.SPARQLRule);
+            while (sparqlRules.hasNext()) {
+                Resource rule = sparqlRules.next();
+                System.out.println("SPARQLRule: " + rule.getURI());
+                if (rule.hasProperty(SH.construct)) {
+                    System.out.println("  Construct: " + rule.getProperty(SH.construct).getString());
+                }
+            }
+            System.out.println("========================\n");
+            
         } catch (Exception e) {
             System.err.println("[startup] FAILED to load roles_shacl.ttl: " + e.getMessage());
             e.printStackTrace();
@@ -104,8 +127,17 @@ public class App {
 
     // ── Core inference helper ─────────────────────────────────────────────────
     private static Model runInference(String turtleBody) {
+        System.out.println("\n=== Running Inference ===");
+        System.out.println("Input Turtle: \n" + turtleBody);
+        
         Model dataModel = JenaUtil.createMemoryModel();
-        dataModel.read(new ByteArrayInputStream(turtleBody.getBytes()), null, "TURTLE");
+        try {
+            dataModel.read(new ByteArrayInputStream(turtleBody.getBytes()), null, "TURTLE");
+            System.out.println("Parsed data model size: " + dataModel.size() + " triples");
+        } catch (Exception e) {
+            System.err.println("Failed to parse input Turtle: " + e.getMessage());
+            throw e;
+        }
 
         Model dataWithContext = JenaUtil.createMemoryModel();
         dataWithContext.add(SHAPES_GRAPH);
@@ -113,10 +145,40 @@ public class App {
         dataWithContext.setNsPrefixes(SHAPES_GRAPH.getNsPrefixMap());
         dataWithContext.setNsPrefixes(dataModel.getNsPrefixMap());
 
+        System.out.println("Data with context size (shapes + input): " + dataWithContext.size() + " triples");
+
+        // Debug: Check for Acquisition instances before rule execution
+        System.out.println("\nAcquisition instances before rules:");
+        StmtIterator beforeAcq = dataWithContext.listStatements(
+            null, 
+            RDF.type, 
+            dataWithContext.createResource(ONT_NS + "Acquisition")
+        );
+        while (beforeAcq.hasNext()) {
+            Statement stmt = beforeAcq.next();
+            System.out.println("  Found: " + stmt.getSubject());
+        }
+
+        // Execute rules
+        System.out.println("\nExecuting SHACL rules...");
         Model inferred = RuleUtil.executeRules(dataWithContext, SHAPES_GRAPH, null, null);
+        
+        System.out.println("Rules executed. Inferred triples count: " + inferred.size());
+        
+        // Debug: Print all inferred triples
+        if (inferred.size() > 0) {
+            System.out.println("\nInferred triples:");
+            inferred.write(System.out, "TURTLE");
+        } else {
+            System.out.println("WARNING: No triples were inferred!");
+        }
 
         dataModel.add(inferred);
         dataModel.setNsPrefixes(dataWithContext.getNsPrefixMap());
+        
+        System.out.println("Final model size: " + dataModel.size() + " triples");
+        System.out.println("=== Inference Complete ===\n");
+        
         return dataModel;
     }
 
@@ -138,20 +200,49 @@ public class App {
     //   b) actually used as a predicate in at least one triple
     // Returns the URI string, or "(not found)".
     private static String findMintedOpaqueIRI(Model m) {
-        StmtIterator it = m.listStatements(
-            null,
-            RDFS.subPropertyOf,
-            m.createResource(ONT_NS + "acquires")
-        );
+        System.out.println("\nSearching for opaque IRI...");
+        
+        // First, list all subproperties of :acquires
+        Property acquires = m.createProperty(ONT_NS + "acquires");
+        StmtIterator it = m.listStatements(null, RDFS.subPropertyOf, acquires);
+        
         while (it.hasNext()) {
             Resource prop = it.next().getSubject();
-            if (prop.isURIResource()
-                    && prop.getURI().startsWith(ONT_NS + "acquires_")) {
-                if (m.contains(null, m.createProperty(prop.getURI()), (RDFNode) null)) {
+            if (prop.isURIResource() && prop.getURI().startsWith(ONT_NS + "acquires_")) {
+                System.out.println("Found potential opaque property: " + prop.getURI());
+                
+                // Check if this property is actually used
+                boolean isUsed = m.contains(null, m.createProperty(prop.getURI()), (RDFNode) null);
+                System.out.println("  Is used in triples: " + isUsed);
+                
+                if (isUsed) {
+                    // Print the triples that use this property
+                    StmtIterator used = m.listStatements(null, m.createProperty(prop.getURI()), (RDFNode) null);
+                    while (used.hasNext()) {
+                        System.out.println("  Usage: " + used.next());
+                    }
                     return prop.getURI();
                 }
             }
         }
+        
+        // If not found via subproperty, also check directly for properties with the pattern
+        System.out.println("Checking for properties matching pattern acquires_* directly...");
+        StmtIterator allProps = m.listStatements(null, null, (RDFNode) null);
+        Set<String> foundProps = new HashSet<>();
+        while (allProps.hasNext()) {
+            Statement stmt = allProps.next();
+            String predicate = stmt.getPredicate().getURI();
+            if (predicate != null && predicate.startsWith(ONT_NS + "acquires_")) {
+                foundProps.add(predicate);
+                System.out.println("Found direct usage: " + predicate + " in triple: " + stmt);
+            }
+        }
+        
+        if (!foundProps.isEmpty()) {
+            return foundProps.iterator().next();
+        }
+        
         return "(not found)";
     }
 
@@ -196,6 +287,7 @@ public class App {
             Map<String, Object> results = new LinkedHashMap<>();
 
             // ── Test 1: Alphabet acquires Wiz ────────────────────────────────
+            System.out.println("\n\n========== TEST 1: Alphabet acquires Wiz ==========");
             Model expanded1 = runInference(TEST_1);
 
             Property acquires1 = expanded1.createProperty(ONT_NS + "acquires");
@@ -203,9 +295,16 @@ public class App {
             Resource wiz       = expanded1.createResource(TEMP_NS + "Wiz");
 
             boolean simple1 = expanded1.contains(alphabet, acquires1, wiz);
+            System.out.println("Test 1 - Simple rule fired: " + simple1);
+            
             String  iri1    = findMintedOpaqueIRI(expanded1);
-            boolean opaque1 = !iri1.equals("(not found)")
-                && expanded1.contains(alphabet, expanded1.createProperty(iri1), wiz);
+            System.out.println("Test 1 - Minted IRI: " + iri1);
+            
+            boolean opaque1 = !iri1.equals("(not found)");
+            if (opaque1) {
+                opaque1 = expanded1.contains(alphabet, expanded1.createProperty(iri1), wiz);
+                System.out.println("Test 1 - Opaque property used with correct entities: " + opaque1);
+            }
 
             results.put("test1_Alphabet_acquires_Wiz", Map.of(
                 "simple_rule_fired",    simple1,
@@ -217,6 +316,7 @@ public class App {
             ));
 
             // ── Test 2: Google acquires YouTube ──────────────────────────────
+            System.out.println("\n\n========== TEST 2: Google acquires YouTube ==========");
             Model expanded2 = runInference(TEST_2);
 
             Property acquires2 = expanded2.createProperty(ONT_NS + "acquires");
@@ -224,9 +324,16 @@ public class App {
             Resource youtube   = expanded2.createResource(TEMP_NS + "YouTube");
 
             boolean simple2 = expanded2.contains(google, acquires2, youtube);
+            System.out.println("Test 2 - Simple rule fired: " + simple2);
+            
             String  iri2    = findMintedOpaqueIRI(expanded2);
-            boolean opaque2 = !iri2.equals("(not found)")
-                && expanded2.contains(google, expanded2.createProperty(iri2), youtube);
+            System.out.println("Test 2 - Minted IRI: " + iri2);
+            
+            boolean opaque2 = !iri2.equals("(not found)");
+            if (opaque2) {
+                opaque2 = expanded2.contains(google, expanded2.createProperty(iri2), youtube);
+                System.out.println("Test 2 - Opaque property used with correct entities: " + opaque2);
+            }
 
             results.put("test2_Google_acquires_YouTube", Map.of(
                 "simple_rule_fired",    simple2,
@@ -240,17 +347,31 @@ public class App {
             // ── Cross-test: determinism proof ─────────────────────────────────
             boolean sameIRI = iri1.equals(iri2) && !iri1.equals("(not found)");
 
+            String verdict;
+            if (sameIRI) {
+                verdict = "PASS — same form-meaning pair correctly maps to same property IRI";
+            } else if (opaque1 || opaque2) {
+                verdict = "FAIL — opaque rule fired but IRIs differ (hash non-determinism)";
+            } else {
+                verdict = "PENDING — add :Acquisition_OpaqueIRIRule to roles_shacl.ttl";
+            }
+
             results.put("determinism_proof", Map.of(
                 "same_iri_both_tests", sameIRI,
                 "test1_iri",           iri1,
                 "test2_iri",           iri2,
                 "expected_iri",        EXPECTED_OPAQUE_IRI,
-                "verdict", sameIRI
-                    ? "PASS — same form-meaning pair correctly maps to same property IRI"
-                    : (opaque1 || opaque2)
-                        ? "FAIL — opaque rule fired but IRIs differ (hash non-determinism)"
-                        : "PENDING — add :Acquisition_OpaqueIRIRule to roles_shacl.ttl"
+                "verdict",             verdict
             ));
+
+            // Print summary
+            System.out.println("\n\n========== TEST SUMMARY ==========");
+            System.out.println("Test 1 IRI: " + iri1);
+            System.out.println("Test 2 IRI: " + iri2);
+            System.out.println("Expected IRI: " + EXPECTED_OPAQUE_IRI);
+            System.out.println("Same IRI: " + sameIRI);
+            System.out.println("Verdict: " + verdict);
+            System.out.println("===================================\n");
 
             ctx.json(results);
 
