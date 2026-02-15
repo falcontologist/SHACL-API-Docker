@@ -112,3 +112,30 @@
 
 :item2 a :Entity ;
     rdfs:label "Item Two"@en .
+
+# Alphabet acquires Wiz test case (for determinism proof)
+:acquisitionAlphabetWiz a :Acquisition ;
+    :lemma "acquire" ;
+    :synset "become the owner or possessor of something" ;
+    :acquirer :alphabet ;
+    :acquisition :wiz .
+
+# Google acquires YouTube test case (same lemma+synset, should produce same opaque IRI)
+:acquisitionGoogleYouTube a :Acquisition ;
+    :lemma "acquire" ;
+    :synset "become the owner or possessor of something" ;
+    :acquirer :google ;
+    :acquisition :youtube .
+
+# New entities for these tests
+:alphabet a :Entity ;
+    rdfs:label "Alphabet"@en .
+
+:wiz a :Entity ;
+    rdfs:label "Wiz"@en .
+
+:google a :Entity ;
+    rdfs:label "Google"@en .
+
+:youtube a :Entity ;
+    rdfs:label "YouTube"@en .
