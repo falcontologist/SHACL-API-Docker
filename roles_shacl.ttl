@@ -996,37 +996,25 @@ WHERE {
             sh:prefixes :OntologyPrefixes ] ;
     sh:targetClass :Acquisition .
 
-:Acquisition_OpaqueIRIRule a sh:NodeShape ;
-    sh:rule [ a sh:SPARQLRule ;
-            sh:order 2 ;
-            sh:prefixes :OntologyPrefixes ;
-            sh:construct """
-            PREFIX :     <http://example.org/ontology/>
-            PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            CONSTRUCT {
-                ?acquirer ?verbProp ?acquisition .
-                ?verbProp a rdf:Property ;
-                    rdfs:label      ?present3sg ;
-                    rdfs:comment    ?gloss ;
-                    rdfs:subPropertyOf :acquires .
-            }
-            WHERE {
-                $this :acquirer    ?acquirer .
-                $this :acquisition ?acquisition .
-                $this :root        ?rootLabel .
-                $this :sense       ?gloss .
-                ?verbNode a :Verb ;
-                          rdfs:label ?rootLabel ;
-                          :present3sg ?present3sg .
-                BIND(SHA256(CONCAT(STR(?rootLabel), "|", STR(?gloss))) AS ?hash)
-                BIND(IRI(CONCAT(
-                    "http://example.org/ontology/",
-                    STR(?present3sg), "_",
-                    SUBSTR(?hash, 1, 12)
-                )) AS ?verbProp)
-            }
-        """ ] ;
+:Acquisition_OpaqueIRIRule
+    a sh:SPARQLRule ;
+    sh:order 2 ;
+    sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?acquirer ?opaqueProperty ?acquired .
+        }
+        WHERE {
+            ?this a :Acquisition ;
+                  :root ?root ;
+                  :sense ?sense ;
+                  :acquirer ?acquirer ;
+                  :acquisition ?acquired .
+            
+            BIND(SHA256(CONCAT(?root, "|", ?sense)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), "acquires_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        } ;
     sh:targetClass :Acquisition .
 
 :EvaluationShape a sh:NodeShape ;
