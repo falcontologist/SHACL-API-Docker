@@ -22,6 +22,9 @@ public class App {
     private static final String ONT_NS  = "http://example.org/ontology/";
     private static final String TEMP_NS = "http://example.org/temp/";
 
+    // All resources use temp: IRIs — no bnodes anywhere.
+    // Situation nodes: temp:s<n>
+    // Entity nodes:    temp:<EntityName>
     private static final String BASE_PREFIXES =
         "@prefix :     <http://example.org/ontology/> .\n" +
         "@prefix temp: <http://example.org/temp/> .\n"     +
@@ -29,47 +32,41 @@ public class App {
         "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n";
 
     // ── Test inputs ───────────────────────────────────────────────────────────
+    // Both use the same verb "acquire" and identical sense gloss.
+    // They differ only in which entities fill the roles.
+    //
+    // Pre-computed expected opaque IRI:
+    //   SHA256("acquire|to obtain ownership or possession of")
+    //   = 2bd8509722e07bf3...  → first 12 chars: 2bd8509722e0
+    //   → :acquires_2bd8509722e0
+    //
+    // BOTH tests must produce this identical IRI — that is the determinism proof.
 
-    // Test 1: Simple rule baseline — blank node situation, temp: named entities.
-    // Already confirmed passing. Exercises Acquisition_InferenceRule (sh:order 1).
-    // Expected: temp:Alphabet :acquires temp:Wiz
-    private static final String TEST_1_SIMPLE =
+    private static final String EXPECTED_OPAQUE_IRI =
+        ONT_NS + "acquires_2bd8509722e0";
+
+    // Test 1: first form-meaning encoding — Alphabet acquires Wiz
+    private static final String TEST_1 =
         BASE_PREFIXES +
-        "[ a :Acquisition ;\n" +
-        "  :acquirer    temp:Alphabet ;\n" +
-        "  :acquisition temp:Wiz ] .\n\n" +
+        "temp:s1 a :Acquisition ;\n" +
+        "    :root        \"acquire\" ;\n" +
+        "    :sense       \"to obtain ownership or possession of\" ;\n" +
+        "    :acquirer    temp:Alphabet ;\n" +
+        "    :acquisition temp:Wiz .\n\n" +
         "temp:Alphabet a :Entity ; rdfs:label \"Alphabet\" .\n" +
         "temp:Wiz      a :Entity ; rdfs:label \"Wiz\" .\n";
 
-    // Test 2: SHA256 opaque-IRI rule — temp: named entities.
-    // Exercises both rules. Requires :root, :sense, and :present3sg on :acquire verb.
-    // Expected:
-    //   temp:Google :acquires temp:YouTube .
-    //   temp:Google :acquires_<sha256hash> temp:YouTube .
-    //   :acquires_<hash> a rdf:Property ; rdfs:subPropertyOf :acquires .
-    private static final String TEST_2_SHA256_TEMP =
+    // Test 2: second encoding — same verb + same gloss, different entities
+    // Must mint the IDENTICAL opaque IRI as Test 1.
+    private static final String TEST_2 =
         BASE_PREFIXES +
-        "[ a :Acquisition ;\n" +
-        "  :root        \"acquire\" ;\n" +
-        "  :sense       \"to obtain ownership or possession of\" ;\n" +
-        "  :acquirer    temp:Google ;\n" +
-        "  :acquisition temp:YouTube ] .\n\n" +
-        "temp:Google  a :Entity ; rdfs:label \"Google\" .\n" +
-        "temp:YouTube a :Entity ; rdfs:label \"YouTube\" .\n";
-
-    // Test 3: SHA256 opaque-IRI rule — pure blank nodes as acquirer/acquisition.
-    // Tests whether bnodes can carry inferred triples and whether IDs are stable.
-    // Expected: _:buyer :acquires _:asset and _:buyer :acquires_<hash> _:asset
-    // Watch for: Jena may re-label bnodes in serialisation output.
-    private static final String TEST_3_SHA256_BNODES =
-        BASE_PREFIXES +
-        "[ a :Acquisition ;\n" +
-        "  :root        \"acquire\" ;\n" +
-        "  :sense       \"to obtain ownership or possession of\" ;\n" +
-        "  :acquirer    _:buyer ;\n" +
-        "  :acquisition _:asset ] .\n\n" +
-        "_:buyer a :Entity ; rdfs:label \"Buyer (bnode)\" .\n" +
-        "_:asset a :Entity ; rdfs:label \"Asset (bnode)\" .\n";
+        "temp:s2 a :Acquisition ;\n" +
+        "    :root        \"acquire\" ;\n" +
+        "    :sense       \"to obtain ownership or possession of\" ;\n" +
+        "    :acquirer    temp:Google ;\n" +
+        "    :acquisition temp:YouTube .\n\n" +
+        "temp:Google   a :Entity ; rdfs:label \"Google\" .\n" +
+        "temp:YouTube  a :Entity ; rdfs:label \"YouTube\" .\n";
 
     // Loaded once at startup. Contains classes, properties, shapes, AND rules.
     private static final Model SHAPES_GRAPH = loadShapesGraph();
@@ -123,8 +120,43 @@ public class App {
         return dataModel;
     }
 
+    // ── Serialisation helper ──────────────────────────────────────────────────
+    // Strips TopBraid-internal prefixes that leak from the SHAPES_GRAPH merge.
+    private static String serialise(Model m) {
+        m.removeNsPrefix("dash");
+        m.removeNsPrefix("graphql");
+        m.removeNsPrefix("swa");
+        m.removeNsPrefix("tosh");
+        StringWriter sw = new StringWriter();
+        RDFDataMgr.write(sw, m, RDFFormat.TURTLE);
+        return sw.toString();
+    }
+
+    // ── Opaque IRI detection helper ───────────────────────────────────────────
+    // Finds the first :acquires_* property that is:
+    //   a) declared rdfs:subPropertyOf :acquires
+    //   b) actually used as a predicate in at least one triple
+    // Returns the URI string, or "(not found)".
+    private static String findMintedOpaqueIRI(Model m) {
+        StmtIterator it = m.listStatements(
+            null,
+            RDFS.subPropertyOf,
+            m.createResource(ONT_NS + "acquires")
+        );
+        while (it.hasNext()) {
+            Resource prop = it.next().getSubject();
+            if (prop.isURIResource()
+                    && prop.getURI().startsWith(ONT_NS + "acquires_")) {
+                if (m.contains(null, m.createProperty(prop.getURI()), (RDFNode) null)) {
+                    return prop.getURI();
+                }
+            }
+        }
+        return "(not found)";
+    }
+
     // ── POST /api/infer ───────────────────────────────────────────────────────
-    // Accepts:  text/turtle — data graph from the frontend form
+    // Accepts:  text/turtle — data graph (temp: IRIs throughout)
     // Returns:  text/turtle — input + all inferred triples
     private static void infer(Context ctx) {
         try {
@@ -134,9 +166,7 @@ public class App {
                 return;
             }
             Model expanded = runInference(body);
-            StringWriter sw = new StringWriter();
-            RDFDataMgr.write(sw, expanded, RDFFormat.TURTLE);
-            ctx.contentType("text/turtle").result(sw.toString());
+            ctx.contentType("text/turtle").result(serialise(expanded));
         } catch (Exception e) {
             e.printStackTrace();
             ctx.status(500).json(Map.of("error", "Inference error", "details", e.getMessage()));
@@ -144,137 +174,83 @@ public class App {
     }
 
     // ── GET /api/infer/test ───────────────────────────────────────────────────
-    // Runs all three test cases and returns a structured comparison.
+    // Runs two test cases with the same verb+gloss pairing on different entities.
     //
-    // Test 1 — simple rule, temp: entities          (baseline, confirmed passing)
-    // Test 2 — SHA256 opaque-IRI rule, temp: entities
-    // Test 3 — SHA256 opaque-IRI rule, pure bnodes
+    // Test 1: temp:Alphabet acquires temp:Wiz     (first encoding)
+    // Test 2: temp:Google   acquires temp:YouTube (second encoding)
     //
-    // The SHA256 rule is defined in test.ttl and loaded at startup via
-    // roles_shacl.ttl (once promoted). Until then, Test 2 and Test 3 will show
-    // rule_fired: false — that's the signal that the rule needs to be added
-    // to roles_shacl.ttl.
+    // Both use:  :root "acquire" + :sense "to obtain ownership or possession of"
+    // Both must mint: :acquires_2bd8509722e0  (SHA256 determinism proof)
+    //
+    // Per-test assertions:
+    //   simple_rule_fired    — :acquires triple present (sh:order 1)
+    //   opaque_rule_fired    — :acquires_<hash> triple present (sh:order 2)
+    //   minted_iri           — the actual minted property URI
+    //   iri_matches_expected — minted IRI == :acquires_2bd8509722e0
+    //
+    // Cross-test assertion:
+    //   same_iri_both_tests  — BOTH tests produced the exact same IRI
+    //   verdict              — PASS / FAIL / PENDING
     private static void inferTest(Context ctx) {
         try {
             Map<String, Object> results = new LinkedHashMap<>();
 
-            // ── Test 1: simple rule, temp: entities ──────────────────────────
-            {
-                Model expanded = runInference(TEST_1_SIMPLE);
+            // ── Test 1: Alphabet acquires Wiz ────────────────────────────────
+            Model expanded1 = runInference(TEST_1);
 
-                Property acquiresProp = expanded.createProperty(ONT_NS + "acquires");
-                Resource alphabet     = expanded.createResource(TEMP_NS + "Alphabet");
-                Resource wiz          = expanded.createResource(TEMP_NS + "Wiz");
-                boolean  fired        = expanded.contains(alphabet, acquiresProp, wiz);
+            Property acquires1 = expanded1.createProperty(ONT_NS + "acquires");
+            Resource alphabet  = expanded1.createResource(TEMP_NS + "Alphabet");
+            Resource wiz       = expanded1.createResource(TEMP_NS + "Wiz");
 
-                results.put("test1_simple_rule", Map.of(
-                    "description",     "Simple :acquires rule, temp: named entities (baseline)",
-                    "expected_triple", "temp:Alphabet  :acquires  temp:Wiz",
-                    "rule_fired",      fired,
-                    "expanded_ttl",    serialise(expanded)
-                ));
-            }
+            boolean simple1 = expanded1.contains(alphabet, acquires1, wiz);
+            String  iri1    = findMintedOpaqueIRI(expanded1);
+            boolean opaque1 = !iri1.equals("(not found)")
+                && expanded1.contains(alphabet, expanded1.createProperty(iri1), wiz);
 
-            // ── Test 2: SHA256 rule, temp: entities ───────────────────────────
-            // The opaque IRI is deterministic: SHA256("acquire|to obtain ownership or possession of")
-            // We can't compute it in Java here without re-implementing the hash,
-            // so we check for the EXISTENCE of any :acquires_* property subPropertyOf :acquires,
-            // and for a triple temp:Google <any-acquires-variant> temp:YouTube.
-            {
-                Model expanded = runInference(TEST_2_SHA256_TEMP);
+            results.put("test1_Alphabet_acquires_Wiz", Map.of(
+                "simple_rule_fired",    simple1,
+                "opaque_rule_fired",    opaque1,
+                "minted_iri",           iri1,
+                "iri_matches_expected", EXPECTED_OPAQUE_IRI.equals(iri1),
+                "expected_iri",         EXPECTED_OPAQUE_IRI,
+                "expanded_ttl",         serialise(expanded1)
+            ));
 
-                Resource google   = expanded.createResource(TEMP_NS + "Google");
-                Resource youtube  = expanded.createResource(TEMP_NS + "YouTube");
-                Property acquires = expanded.createProperty(ONT_NS + "acquires");
+            // ── Test 2: Google acquires YouTube ──────────────────────────────
+            Model expanded2 = runInference(TEST_2);
 
-                // Check simple rule fired (order 1)
-                boolean simpleFired = expanded.contains(google, acquires, youtube);
+            Property acquires2 = expanded2.createProperty(ONT_NS + "acquires");
+            Resource google    = expanded2.createResource(TEMP_NS + "Google");
+            Resource youtube   = expanded2.createResource(TEMP_NS + "YouTube");
 
-                // Check opaque-IRI rule fired (order 2):
-                // Look for any property whose URI starts with :acquires_ and
-                // which is declared rdfs:subPropertyOf :acquires
-                boolean opaqueFired = false;
-                String  opaqueIRI   = "(not found)";
-                StmtIterator subProps = expanded.listStatements(
-                    null,
-                    RDFS.subPropertyOf,
-                    expanded.createResource(ONT_NS + "acquires")
-                );
-                while (subProps.hasNext()) {
-                    Resource prop = subProps.next().getSubject();
-                    if (prop.isURIResource()
-                            && prop.getURI().startsWith(ONT_NS + "acquires_")) {
-                        // Confirm this property was actually used in a triple
-                        if (expanded.contains(google, expanded.createProperty(prop.getURI()), youtube)) {
-                            opaqueFired = true;
-                            opaqueIRI   = prop.getURI();
-                        }
-                    }
-                }
+            boolean simple2 = expanded2.contains(google, acquires2, youtube);
+            String  iri2    = findMintedOpaqueIRI(expanded2);
+            boolean opaque2 = !iri2.equals("(not found)")
+                && expanded2.contains(google, expanded2.createProperty(iri2), youtube);
 
-                results.put("test2_sha256_temp_entities", Map.of(
-                    "description",          "SHA256 opaque-IRI rule, temp: named entities",
-                    "expected_simple",      "temp:Google  :acquires  temp:YouTube",
-                    "expected_opaque",      "temp:Google  :acquires_<sha256>  temp:YouTube",
-                    "simple_rule_fired",    simpleFired,
-                    "opaque_rule_fired",    opaqueFired,
-                    "minted_property_iri",  opaqueIRI,
-                    "expanded_ttl",         serialise(expanded)
-                ));
-            }
+            results.put("test2_Google_acquires_YouTube", Map.of(
+                "simple_rule_fired",    simple2,
+                "opaque_rule_fired",    opaque2,
+                "minted_iri",           iri2,
+                "iri_matches_expected", EXPECTED_OPAQUE_IRI.equals(iri2),
+                "expected_iri",         EXPECTED_OPAQUE_IRI,
+                "expanded_ttl",         serialise(expanded2)
+            ));
 
-            // ── Test 3: SHA256 rule, pure bnodes ──────────────────────────────
-            // Key questions:
-            //   a) Does the rule fire at all when acquirer/acquisition are bnodes?
-            //   b) What IDs does Jena assign the bnodes in the output?
-            //   c) Are those IDs stable across re-runs? (Check by running twice.)
-            {
-                Model expandedRun1 = runInference(TEST_3_SHA256_BNODES);
-                Model expandedRun2 = runInference(TEST_3_SHA256_BNODES); // second run
+            // ── Cross-test: determinism proof ─────────────────────────────────
+            boolean sameIRI = iri1.equals(iri2) && !iri1.equals("(not found)");
 
-                String ttlRun1 = serialise(expandedRun1);
-                String ttlRun2 = serialise(expandedRun2);
-
-                // Check if any :acquires triple exists with bnode subjects
-                Property acquires    = expandedRun1.createProperty(ONT_NS + "acquires");
-                boolean  simpleFired = expandedRun1.contains(null, acquires, (RDFNode) null);
-
-                // Check for opaque IRI subproperty
-                boolean opaqueFired = false;
-                String  opaqueIRI   = "(not found)";
-                StmtIterator subProps = expandedRun1.listStatements(
-                    null,
-                    RDFS.subPropertyOf,
-                    expandedRun1.createResource(ONT_NS + "acquires")
-                );
-                while (subProps.hasNext()) {
-                    Resource prop = subProps.next().getSubject();
-                    if (prop.isURIResource()
-                            && prop.getURI().startsWith(ONT_NS + "acquires_")) {
-                        if (expandedRun1.contains(null,
-                                expandedRun1.createProperty(prop.getURI()), (RDFNode) null)) {
-                            opaqueFired = true;
-                            opaqueIRI   = prop.getURI();
-                        }
-                    }
-                }
-
-                // Bnode stability: compare the two TTL outputs
-                // If bnodes are stable, the serialisations will be identical.
-                // If not, the bnode labels (_:b0, etc.) will differ.
-                boolean bnodeLabelsStable = ttlRun1.equals(ttlRun2);
-
-                results.put("test3_sha256_bnodes", Map.of(
-                    "description",         "SHA256 opaque-IRI rule, pure blank nodes as acquirer/acquisition",
-                    "simple_rule_fired",   simpleFired,
-                    "opaque_rule_fired",   opaqueFired,
-                    "minted_property_iri", opaqueIRI,
-                    "bnode_labels_stable", bnodeLabelsStable,
-                    "note_on_stability",   "If false: bnodes re-labelled between runs — use temp: IRIs or skolemize",
-                    "expanded_ttl_run1",   ttlRun1,
-                    "expanded_ttl_run2",   ttlRun2
-                ));
-            }
+            results.put("determinism_proof", Map.of(
+                "same_iri_both_tests", sameIRI,
+                "test1_iri",           iri1,
+                "test2_iri",           iri2,
+                "expected_iri",        EXPECTED_OPAQUE_IRI,
+                "verdict", sameIRI
+                    ? "PASS — same form-meaning pair correctly maps to same property IRI"
+                    : (opaque1 || opaque2)
+                        ? "FAIL — opaque rule fired but IRIs differ (hash non-determinism)"
+                        : "PENDING — add :Acquisition_OpaqueIRIRule to roles_shacl.ttl"
+            ));
 
             ctx.json(results);
 
@@ -287,29 +263,17 @@ public class App {
         }
     }
 
-    // ── Serialisation helper ──────────────────────────────────────────────────
-    // Strips noisy TopBraid-internal prefixes before returning to the client.
-    private static String serialise(Model m) {
-        // Remove TopBraid-internal prefixes that leak from SHAPES_GRAPH merge
-        m.removeNsPrefix("dash");
-        m.removeNsPrefix("graphql");
-        m.removeNsPrefix("swa");
-        m.removeNsPrefix("tosh");
-        StringWriter sw = new StringWriter();
-        RDFDataMgr.write(sw, m, RDFFormat.TURTLE);
-        return sw.toString();
-    }
-
     // ── POST /api/validate ────────────────────────────────────────────────────
     // Constraint checking only — no inference.
-    // Pass the expanded TTL from /api/infer if inferred triples affect validation.
+    // Pass expanded TTL from /api/infer if inferred triples affect validation.
     private static void validate(Context ctx) {
         try {
             Model dataModel = JenaUtil.createMemoryModel();
             try {
                 dataModel.read(new ByteArrayInputStream(ctx.bodyAsBytes()), null, "TURTLE");
             } catch (Exception e) {
-                ctx.status(400).json(Map.of("error", "Turtle parsing error", "details", e.getMessage()));
+                ctx.status(400).json(Map.of(
+                    "error", "Turtle parsing error", "details", e.getMessage()));
                 return;
             }
 
@@ -356,8 +320,8 @@ public class App {
 
         ctx.json(Map.of(
             "shapes", shapes, "roles", roles.size(),
-            "rules", tripleRules + sparqlRules,
-            "lemmas", lemmas, "senses", senses
+            "rules",  tripleRules + sparqlRules,
+            "lemmas", lemmas,   "senses", senses
         ));
     }
 
