@@ -996,6 +996,39 @@ WHERE {
             sh:prefixes :OntologyPrefixes ] ;
     sh:targetClass :Acquisition .
 
+:Acquisition_OpaqueIRIRule a sh:NodeShape ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:order 2 ;
+            sh:prefixes :OntologyPrefixes ;
+            sh:construct """
+            PREFIX :     <http://example.org/ontology/>
+            PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            CONSTRUCT {
+                ?acquirer ?verbProp ?acquisition .
+                ?verbProp a rdf:Property ;
+                    rdfs:label      ?present3sg ;
+                    rdfs:comment    ?gloss ;
+                    rdfs:subPropertyOf :acquires .
+            }
+            WHERE {
+                $this :acquirer    ?acquirer .
+                $this :acquisition ?acquisition .
+                $this :root        ?rootLabel .
+                $this :sense       ?gloss .
+                ?verbNode a :Verb ;
+                          rdfs:label ?rootLabel ;
+                          :present3sg ?present3sg .
+                BIND(SHA256(CONCAT(STR(?rootLabel), "|", STR(?gloss))) AS ?hash)
+                BIND(IRI(CONCAT(
+                    "http://example.org/ontology/",
+                    STR(?present3sg), "_",
+                    SUBSTR(?hash, 1, 12)
+                )) AS ?verbProp)
+            }
+        """ ] ;
+    sh:targetClass :Acquisition .
+
 :EvaluationShape a sh:NodeShape ;
     rdfs:label "Form for Evaluation"@en ;
     sh:property [ sh:class :Entity ;
@@ -1578,7 +1611,8 @@ WHERE {
 :acquire a :Verb ;
     rdfs:label "acquire"@en ;
     :evokes :Acquisition ;
-    :vn_class :obtain-13_5_2 .
+    :vn_class :obtain-13_5_2 ;
+    :present3sg "acquires" .
 
 :acquires a rdf:Property ;
     rdfs:label "acquires"@en .
@@ -19344,7 +19378,8 @@ WHERE {
     :evokes :Existence ;
     :vn_class :spatial_conﬁguration-47_6 .
 
-:root a :Verb ;
+:root a :Verb,
+        rdf:Property ;
     rdfs:label "root"@en ;
     :evokes :Basic_Change_of_State,
         :Search ;
@@ -27203,6 +27238,9 @@ WHERE {
 
 :proto-role a rdf:Property ;
     rdfs:label "Proto-role"@en .
+
+:present3sg a rdf:Property ;
+    rdfs:label "present3sg"@en .
 
 :rehearse-26_8 a :VerbNetClass ;
     rdfs:label "rehearse-26.8"@en .
