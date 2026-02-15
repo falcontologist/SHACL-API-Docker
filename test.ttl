@@ -1,176 +1,114 @@
-# test.ttl
-# Focused tests for SHA256 opaque-IRI inference rule
-#
-# Test cases:
-#   Test 1 — Minimal SHA256 rule test (isolated)
-#   Test 2 — Multiple senses produce different hashes
-#   Test 3 — Same sense produces same hash (idempotency)
-#
-# Run via: POST /api/infer (send this file as body)
-
-@prefix :     <http://example.org/ontology/> .
-@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix : <http://example.org/ontology/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix sh:   <http://www.w3.org/ns/shacl#> .
-@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-# ─────────────────────────────────────────────────────────────────────────────
-# SCHEMA ADDITIONS
-# ─────────────────────────────────────────────────────────────────────────────
+# Test instances for opaque property inference
+:testAcquisition1 a :Acquisition ;
+    :lemma "acquire" ;
+    :synset "develop or internalize a new ability, skill, or preference" ;
+    :acquirer :alice ;
+    :acquisition :skill1 .
 
-# Properties needed by the SHA256 rule
-:present3sg a rdf:Property ;
-    rdfs:label "present3sg"@en .
+:testAcquisition2 a :Acquisition ;
+    :lemma "acquire" ;
+    :synset "take on, display, or exhibit a characteristic" ;
+    :acquirer :bob ;
+    :acquisition :quality1 .
 
-:root a rdf:Property ;
-    rdfs:label "root"@en .
+:testAcquisition3 a :Acquisition ;
+    :lemma "acquire" ;
+    :synset "become the owner or possessor of something" ;
+    :acquirer :charlie ;
+    :acquisition :property1 .
 
-:sense a rdf:Property ;
-    rdfs:label "sense"@en .
+:testAcquisition4 a :Acquisition ;
+    :lemma "learn" ;
+    :synset "gain knowledge or understanding of something through study or experience" ;
+    :acquirer :diana ;
+    :acquisition :knowledge1 .
 
-# Verb entry with present tense form
-:acquire a :Verb ;
-    rdfs:label "acquire" ;
-    :present3sg "acquires" .
+:testAcquisition5 a :Acquisition ;
+    :lemma "purchase" ;
+    :synset "obtain something by paying for it" ;
+    :acquirer :eve ;
+    :acquisition :product1 .
 
-# ─────────────────────────────────────────────────────────────────────────────
-# INFERENCE RULE (SHA256 opaque-IRI only)
-# ─────────────────────────────────────────────────────────────────────────────
+# Test instances with same lemma+synset combination (should produce same opaque property)
+:testAcquisition6 a :Acquisition ;
+    :lemma "acquire" ;
+    :synset "develop or internalize a new ability, skill, or preference" ;
+    :acquirer :frank ;
+    :acquisition :skill2 .
 
-:Acquisition_OpaqueIRIRule a sh:NodeShape ;
-    sh:rule [ a sh:SPARQLRule ;
-        sh:order 1 ;
-        sh:construct """
-            PREFIX :    <http://example.org/ontology/>
-            PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            CONSTRUCT {
-                ?acquirer ?verbProp ?acquisition .
-                ?verbProp a rdf:Property ;
-                    rdfs:label      ?present3sg ;
-                    rdfs:comment    ?gloss ;
-                    rdfs:subPropertyOf :acquires .
-            }
-            WHERE {
-                $this :acquirer    ?acquirer .
-                $this :acquisition ?acquisition .
-                $this :root        ?rootLabel .
-                $this :sense       ?gloss .
-                
-                # Look up the verb's present tense form
-                ?verb a :Verb ;
-                      rdfs:label ?rootLabel ;
-                      :present3sg ?present3sg .
-                
-                # Generate hash from root + sense
-                BIND(SHA256(CONCAT(STR(?rootLabel), "|", STR(?gloss))) AS ?hash)
-                BIND(IRI(CONCAT(
-                    "http://example.org/ontology/",
-                    STR(?present3sg), "_",
-                    SUBSTR(?hash, 1, 12)
-                )) AS ?verbProp)
-            }
-        """ ] ;
-    sh:targetClass :Acquisition .
+:testAcquisition7 a :Acquisition ;
+    :lemma "acquire" ;
+    :synset "develop or internalize a new ability, skill, or preference" ;
+    :acquirer :grace ;
+    :acquisition :skill3 .
 
-# Also need the simple :acquires property for reference
-:acquires a rdf:Property ;
-    rdfs:label "acquires" .
+# Entities
+:alice a :Entity ;
+    rdfs:label "Alice"@en .
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TEST 1 — Minimal SHA256 rule test
-# Expected:
-#   :TestBuyer1 :acquires_<hash1> :TestAsset1 .
-#   :acquires_<hash1> a rdf:Property ;
-#       rdfs:label "acquires" ;
-#       rdfs:comment "to obtain ownership" ;
-#       rdfs:subPropertyOf :acquires .
-# ─────────────────────────────────────────────────────────────────────────────
+:bob a :Entity ;
+    rdfs:label "Bob"@en .
 
-[ a :Acquisition ;
-    :root        "acquire" ;
-    :sense       "to obtain ownership" ;
-    :acquirer    :TestBuyer1 ;
-    :acquisition :TestAsset1 ] .
+:charlie a :Entity ;
+    rdfs:label "Charlie"@en .
 
-:TestBuyer1 a :Entity ; rdfs:label "Test Buyer 1" .
-:TestAsset1 a :Entity ; rdfs:label "Test Asset 1" .
+:diana a :Entity ;
+    rdfs:label "Diana"@en .
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TEST 2 — Multiple senses produce different hashes
-# Two acquisitions with same root but different senses
-# Expected:
-#   :TestBuyer2a :acquires_<hashA> :TestAsset2a .
-#   :TestBuyer2b :acquires_<hashB> :TestAsset2b .
-#   where hashA ≠ hashB
-# ─────────────────────────────────────────────────────────────────────────────
+:eve a :Entity ;
+    rdfs:label "Eve"@en .
 
-# Sense 1: ownership transfer
-[ a :Acquisition ;
-    :root        "acquire" ;
-    :sense       "to obtain ownership" ;
-    :acquirer    :TestBuyer2a ;
-    :acquisition :TestAsset2a ] .
+:frank a :Entity ;
+    rdfs:label "Frank"@en .
 
-:TestBuyer2a a :Entity ; rdfs:label "Test Buyer 2a" .
-:TestAsset2a a :Entity ; rdfs:label "Test Asset 2a" .
+:grace a :Entity ;
+    rdfs:label "Grace"@en .
 
-# Sense 2: learning/acquiring knowledge
-[ a :Acquisition ;
-    :root        "acquire" ;
-    :sense       "to learn or develop a skill" ;
-    :acquirer    :TestBuyer2b ;
-    :acquisition :TestAsset2b ] .
+:skill1 a :Entity ;
+    rdfs:label "Programming Skill"@en .
 
-:TestBuyer2b a :Entity ; rdfs:label "Test Buyer 2b" .
-:TestAsset2b a :Entity ; rdfs:label "Test Asset 2b" .
+:skill2 a :Entity ;
+    rdfs:label "Writing Skill"@en .
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TEST 3 — Same sense produces same hash (idempotency)
-# Two separate acquisitions with identical root+sense
-# Expected:
-#   Both acquisitions produce the SAME predicate IRI
-#   :acquires_<hash> (identical for both)
-# ─────────────────────────────────────────────────────────────────────────────
+:skill3 a :Entity ;
+    rdfs:label "Public Speaking Skill"@en .
 
-# First instance
-[ a :Acquisition ;
-    :root        "acquire" ;
-    :sense       "to merge or consolidate" ;
-    :acquirer    :TestBuyer3a ;
-    :acquisition :TestAsset3a ] .
+:quality1 a :Entity ;
+    rdfs:label "Patience"@en .
 
-:TestBuyer3a a :Entity ; rdfs:label "Test Buyer 3a" .
-:TestAsset3a a :Entity ; rdfs:label "Test Asset 3a" .
+:property1 a :Entity ;
+    rdfs:label "House"@en .
 
-# Second instance (same root+sense)
-[ a :Acquisition ;
-    :root        "acquire" ;
-    :sense       "to merge or consolidate" ;
-    :acquirer    :TestBuyer3b ;
-    :acquisition :TestAsset3b ] .
+:knowledge1 a :Entity ;
+    rdfs:label "Ancient History"@en .
 
-:TestBuyer3b a :Entity ; rdfs:label "Test Buyer 3b" .
-:TestAsset3b a :Entity ; rdfs:label "Test Asset 3b" .
+:product1 a :Entity ;
+    rdfs:label "Laptop"@en .
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TEST 4 — Different root words
-# Test with a different verb to ensure hash varies by root
-# Expected:
-#   :TestBuyer4 :acquires_<hash4> :TestAsset4
-#   where hash4 ≠ hashes from Test 1-3
-# ─────────────────────────────────────────────────────────────────────────────
+# Test instance that should NOT generate opaque property (missing lemma/synset)
+:testAcquisitionIncomplete a :Acquisition ;
+    :acquirer :hank ;
+    :acquisition :item1 .
 
-# Add another verb
-:purchase a :Verb ;
-    rdfs:label "purchase" ;
-    :present3sg "purchases" .
+:hank a :Entity ;
+    rdfs:label "Hank"@en .
 
-[ a :Acquisition ;
-    :root        "purchase" ;
-    :sense       "to buy with money" ;
-    :acquirer    :TestBuyer4 ;
-    :acquisition :TestAsset4 ] .
+:item1 a :Entity ;
+    rdfs:label "Mystery Item"@en .
 
-:TestBuyer4 a :Entity ; rdfs:label "Test Buyer 4" .
-:TestAsset4 a :Entity ; rdfs:label "Test Asset 4" .
+# Test instance that should generate simple inference but NOT opaque property
+:testAcquisitionNoSynset a :Acquisition ;
+    :lemma "obtain" ;
+    :acquirer :ian ;
+    :acquisition :item2 .
+
+:ian a :Entity ;
+    rdfs:label "Ian"@en .
+
+:item2 a :Entity ;
+    rdfs:label "Item Two"@en .
