@@ -12,6 +12,7 @@ FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /app/target/shacl-service-1.0-SNAPSHOT-jar-with-dependencies.jar ./app.jar
 COPY roles_shacl.ttl .
+COPY test.ttl .
 
 EXPOSE 8000
 CMD ["java", "-jar", "app.jar"]
