@@ -687,23 +687,6 @@ WHERE {
 """ ] ;
     sh:targetClass :Advising .
 
-:Affect_Shape a sh:NodeShape ;
-    rdfs:label "Form for Affect"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:name "reaction"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :reaction ],
-        [ sh:class :Entity ;
-            sh:name "affecter"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :affecter ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
-            sh:name "affectee"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :affectee ] ;
-    sh:targetClass :Affect .
-
 :Affiliation_Shape a sh:NodeShape ;
     rdfs:label "Form for Affiliation"@en ;
     sh:property [ sh:class :Entity ;
@@ -796,18 +779,6 @@ WHERE {
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :evaluator ] ;
     sh:targetClass :Association .
-
-:Attend_Shape a sh:NodeShape ;
-    rdfs:label "Form for Attend"@en ;
-    sh:property [ sh:minCount 1 ;
-            sh:name "attender"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :attender ],
-        [ sh:minCount 1 ;
-            sh:name "focus"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :focus ] ;
-    sh:targetClass :Attend .
 
 :Attitude_Shape a sh:NodeShape ;
     rdfs:label "Form for Attitude"@en ;
@@ -995,20 +966,6 @@ WHERE {
             sh:path :work ] ;
     sh:targetClass :Creation .
 
-:Desire_Shape a sh:NodeShape ;
-    rdfs:label "Form for Desire"@en ;
-    sh:property [ sh:class :Entry ;
-            sh:minCount 1 ;
-            sh:name "wish"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :wish ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
-            sh:name "wisher"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :wisher ] ;
-    sh:targetClass :Desire .
-
 :Evaluation_Shape a sh:NodeShape ;
     rdfs:label "Form for Evaluation"@en ;
     sh:property [ sh:class :Entity ;
@@ -1076,19 +1033,6 @@ WHERE {
             sh:path :task ] ;
     sh:targetClass :Execution .
 
-:Existence_Shape a sh:NodeShape ;
-    rdfs:label "Form for Existence"@en ;
-    sh:property [ sh:class :Entry ;
-            sh:name "mode"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :mode ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
-            sh:name "being"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :being ] ;
-    sh:targetClass :Existence .
-
 :Experience_Shape a sh:NodeShape ;
     rdfs:label "Form for Experience"@en ;
     sh:property [ sh:class :Entity ;
@@ -1123,14 +1067,14 @@ WHERE {
 :Governance_Shape a sh:NodeShape ;
     rdfs:label "Form for Governance"@en ;
     sh:property [ sh:class :Entity ;
+            sh:name "rule"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :rule ],
+        [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "subordinate"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :subordinate ],
-        [ sh:class :Entity ;
-            sh:name "rule"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :rule ] ;
+            sh:path :subordinate ] ;
     sh:targetClass :Governance .
 
 :Incremental_Shape a sh:NodeShape ;
@@ -1217,20 +1161,6 @@ WHERE {
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :knowledge ] ;
     sh:targetClass :Knowledge .
-
-:Location_Shape a sh:NodeShape ;
-    rdfs:label "Form for Location"@en ;
-    sh:property [ sh:class :Entry ;
-            sh:minCount 1 ;
-            sh:name "landmark"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :landmark ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
-            sh:name "trajector"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :trajector ] ;
-    sh:targetClass :Location .
 
 :Memory_Shape a sh:NodeShape ;
     rdfs:label "Form for Memory"@en ;
@@ -29793,7 +29723,8 @@ WHERE {
     :identifier "agree.v.02" ;
     :lexical_resource "WordNet" .
 
-:aim rdfs:label "Aim" .
+:aim a rdf:Property ;
+    rdfs:label "Aim" .
 
 :air.v.05 a :Synset ;
     rdfs:label "air.v.05 (synset)" ;
@@ -30299,7 +30230,8 @@ WHERE {
     :identifier "attend.v.01" ;
     :lexical_resource "WordNet" .
 
-:attender rdfs:label "Attender" .
+:attender a rdf:Property ;
+    rdfs:label "Attender" .
 
 :attenuate.v.02 a :Synset ;
     rdfs:label "attenuate.v.02 (synset)" ;
@@ -33588,7 +33520,8 @@ WHERE {
     :identifier "contend.v.06" ;
     :lexical_resource "WordNet" .
 
-:content rdfs:label "Content" .
+:content a rdf:Property ;
+    rdfs:label "Content" .
 
 :content.v.02 a :Synset ;
     rdfs:label "content.v.02 (synset)" ;
@@ -37763,7 +37696,8 @@ WHERE {
     :identifier "foam.v.01" ;
     :lexical_resource "WordNet" .
 
-:focus rdfs:label "Focus" .
+:focus a rdf:Property ;
+    rdfs:label "Focus" .
 
 :fold.v.01 a :Synset ;
     rdfs:label "fold.v.01 (synset)" ;
@@ -42202,7 +42136,8 @@ WHERE {
     :identifier "nuzzle.v.02" ;
     :lexical_resource "WordNet" .
 
-:object rdfs:label "Object" .
+:object a rdf:Property ;
+    rdfs:label "Object" .
 
 :object.v.01 a :Synset ;
     rdfs:label "object.v.01 (synset)" ;
@@ -46610,7 +46545,8 @@ WHERE {
     :identifier "send.v.06" ;
     :lexical_resource "WordNet" .
 
-:sense rdfs:label "Sense" .
+:sense a rdf:Property ;
+    rdfs:label "Sense" .
 
 :sentiment a rdf:Property ;
     rdfs:label "sentiment"@en ;
@@ -52252,7 +52188,8 @@ WHERE {
     :identifier "wiretap.v.01" ;
     :lexical_resource "WordNet" .
 
-:wish rdfs:label "Wish" .
+:wish a rdf:Property ;
+    rdfs:label "Wish" .
 
 :wish.v.02 a :Synset ;
     rdfs:label "wish.v.02 (synset)" ;
@@ -52275,7 +52212,8 @@ WHERE {
     :identifier "withhold.v.02" ;
     :lexical_resource "WordNet" .
 
-:witness rdfs:label "Witness" .
+:witness a rdf:Property ;
+    rdfs:label "Witness" .
 
 :witness.v.01 a :Synset ;
     rdfs:label "witness.v.01 (synset)" ;
@@ -52319,6 +52257,8 @@ WHERE {
     :gloss "move with a sibilant sound" ;
     :identifier "woosh.v.01" ;
     :lexical_resource "WordNet" .
+
+:work a rdf:Property .
 
 :work.v.01 a :Synset ;
     rdfs:label "work.v.01 (synset)" ;
@@ -56170,6 +56110,8 @@ WHERE {
     :identifier "reserve.v.04" ;
     :lexical_resource "WordNet" .
 
+:result a rdf:Property .
+
 :result.v.01 a :Synset ;
     rdfs:label "result.v.01 (synset)" ;
     :evokes :Existence_shape,
@@ -56238,7 +56180,8 @@ WHERE {
     :identifier "rub.v.03" ;
     :lexical_resource "WordNet" .
 
-:rule rdfs:label "Rule" .
+:rule a rdf:Property ;
+    rdfs:label "Rule" .
 
 :rule.v.02 a :Synset ;
     rdfs:label "rule.v.02 (synset)" ;
@@ -56547,7 +56490,8 @@ WHERE {
     :identifier "sign.v.05" ;
     :lexical_resource "WordNet" .
 
-:signal rdfs:label "Signal" .
+:signal a rdf:Property ;
+    rdfs:label "Signal" .
 
 :skewer.v.01 a :Synset ;
     rdfs:label "skewer.v.01 (synset)" ;
@@ -56771,6 +56715,8 @@ WHERE {
     :gloss "rub soap all over, usually with the purpose of cleaning" ;
     :identifier "soap.v.01" ;
     :lexical_resource "WordNet" .
+
+:source a rdf:Property .
 
 :sow.v.01 a :Synset ;
     rdfs:label "sow.v.01 (synset)" ;
@@ -57457,6 +57403,8 @@ WHERE {
     :identifier "vacuum.v.01" ;
     :lexical_resource "WordNet" .
 
+:value a rdf:Property .
+
 :vanish.v.02 a :Synset ;
     rdfs:label "vanish.v.02 (synset)" ;
     :evokes :Basic_Motion_shape ;
@@ -57918,6 +57866,8 @@ WHERE {
     :gloss "make calm or still" ;
     :identifier "calm.v.01" ;
     :lexical_resource "WordNet" .
+
+:cause a rdf:Property .
 
 :char.v.02 a :Synset ;
     rdfs:label "char.v.02 (synset)" ;
@@ -58568,7 +58518,8 @@ WHERE {
     :identifier "murder.v.01" ;
     :lexical_resource "WordNet" .
 
-:order rdfs:label "Order" .
+:order a rdf:Property ;
+    rdfs:label "Order" .
 
 :outwit.v.01 a :Synset ;
     rdfs:label "outwit.v.01 (synset)" ;
@@ -58981,7 +58932,8 @@ WHERE {
     :identifier "stagger.v.01" ;
     :lexical_resource "WordNet" .
 
-:state rdfs:label "State" .
+:state a rdf:Property ;
+    rdfs:label "State" .
 
 :state.v.01 a :Synset ;
     rdfs:label "state.v.01 (synset)" ;
@@ -59904,6 +59856,8 @@ WHERE {
     :identifier "surround.v.01" ;
     :lexical_resource "WordNet" .
 
+:target a rdf:Property .
+
 :tell.v.03 a :Synset ;
     rdfs:label "tell.v.03 (synset)" ;
     :evokes :Communicate_shape,
@@ -60263,7 +60217,8 @@ WHERE {
     rdfs:range :Entity ;
     rdfs:subPropertyOf :essence .
 
-:time rdfs:label "Time" .
+:time a rdf:Property ;
+    rdfs:label "Time" .
 
 :visualize.v.01 a :Synset ;
     rdfs:label "visualize.v.01 (synset)" ;
@@ -60864,8 +60819,19 @@ WHERE {
 :Concealment_shape a :Situation_Shape ;
     rdfs:label "Concealment (shape)" .
 
-:Desire_shape a :Situation_Shape ;
-    rdfs:label "Desire (shape)" .
+:Desire_shape a :Situation_Shape,
+        sh:NodeShape ;
+    rdfs:label "Desire (shape)",
+        "Form for Desire"@en ;
+    sh:property [ sh:minCount 1 ;
+            sh:name "wish"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :wish ],
+        [ sh:minCount 1 ;
+            sh:name "wisher"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :wisher ] ;
+    sh:targetClass :Desire .
 
 :Learn_shape a :Situation_Shape ;
     rdfs:label "Learn (shape)" .
@@ -61124,8 +61090,19 @@ WHERE {
 :Role_shape a :Situation_Shape ;
     rdfs:label "Role (shape)" .
 
-:Attend_shape a :Situation_Shape ;
-    rdfs:label "Attend (shape)" .
+:Attend_shape a :Situation_Shape,
+        sh:NodeShape ;
+    rdfs:label "Attend (shape)",
+        "Form for Attend"@en ;
+    sh:property [ sh:minCount 1 ;
+            sh:name "attender"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :attender ],
+        [ sh:minCount 1 ;
+            sh:name "focus"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :focus ] ;
+    sh:targetClass :Attend .
 
 :Vehicular_Motion_shape a :Situation_Shape ;
     rdfs:label "Vehicular Motion (shape)" .
@@ -61145,8 +61122,19 @@ WHERE {
 :Communicate_shape a :Situation_Shape ;
     rdfs:label "Communicate (shape)" .
 
-:Location_shape a :Situation_Shape ;
-    rdfs:label "Location (shape)" .
+:Location_shape a :Situation_Shape,
+        sh:NodeShape ;
+    rdfs:label "Location (shape)",
+        "Form for Location"@en ;
+    sh:property [ sh:minCount 1 ;
+            sh:name "landmark"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :landmark ],
+        [ sh:minCount 1 ;
+            sh:name "trajector"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :trajector ] ;
+    sh:targetClass :Location .
 
 :Search_shape a :Situation_Shape ;
     rdfs:label "Search (shape)" .
@@ -61189,11 +61177,34 @@ WHERE {
 :Basic_Motion_shape a :Situation_Shape ;
     rdfs:label "Basic Motion (shape)" .
 
-:Affect_shape a :Situation_Shape ;
-    rdfs:label "Affect (shape)" .
+:Affect_shape a :Situation_Shape,
+        sh:NodeShape ;
+    rdfs:label "Affect (shape)",
+        "Form for Affect"@en ;
+    sh:property [ sh:name "reaction"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :reaction ],
+        [ sh:name "affecter"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :affecter ],
+        [ sh:minCount 1 ;
+            sh:name "affectee"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :affectee ] ;
+    sh:targetClass :Affect .
 
-:Existence_shape a :Situation_Shape ;
-    rdfs:label "Existence (shape)" .
+:Existence_shape a :Situation_Shape,
+        sh:NodeShape ;
+    rdfs:label "Existence (shape)",
+        "Form for Existence"@en ;
+    sh:property [ sh:name "mode"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :mode ],
+        [ sh:minCount 1 ;
+            sh:name "being"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :being ] ;
+    sh:targetClass :Existence .
 
 :Causative_Incremental_shape a :Situation_Shape ;
     rdfs:label "Causative Incremental (shape)" .
