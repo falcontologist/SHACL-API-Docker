@@ -598,7 +598,10 @@
             sh:prefixes :Ontology_Prefixes ] ;
     sh:targetClass :Acquisition .
 
-:Acquisition_Opaque_IRI_Shape a sh:NodeShape ;
+:Acquisition_Opaque_IRI_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Acquisition Opaque IRI (shape)"@en ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
         PREFIX : <http://example.org/ontology/>
@@ -620,8 +623,10 @@
             sh:order 2 ] ;
     sh:targetClass :Acquisition .
 
-:Acquisition_Shape a sh:NodeShape ;
-    rdfs:label "Form for Dynamic Possession"@en ;
+:Acquisition_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Acquisition (shape)"@en ;
     sh:property [ sh:minCount 1 ;
             sh:name "acquirer"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -635,28 +640,27 @@
             sh:path :asset ] ;
     sh:targetClass :Acquisition .
 
-:Action_Shape a sh:NodeShape ;
-    rdfs:label "Form for Action"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:name "target"@en ;
+:Action_shape a :Situation_Shape,
+        sh:NodeShape ;
+    rdfs:label "Action (shape)"@en ;
+    sh:property [ sh:name "target"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :target ],
-        [ sh:class :Entity ;
-            sh:name "actor"@en ;
+        [ sh:name "actor"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :actor ],
-        [ sh:class :Entity ;
-            sh:name "action"@en ;
+        [ sh:name "action"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :action ],
-        [ sh:class :Entity ;
-            sh:name "implement"@en ;
+        [ sh:name "implement"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :implement ] ;
     sh:targetClass :Action .
 
-:Advising_Shape a sh:NodeShape ;
-    rdfs:label "Form for Advising"@en ;
+:Advising_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Advising (shape)"@en ;
     sh:property [ sh:name "advice"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :advice ],
@@ -687,37 +691,34 @@ WHERE {
 """ ] ;
     sh:targetClass :Advising .
 
-:Affiliation_Shape a sh:NodeShape ;
-    rdfs:label "Form for Affiliation"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:name "institution"@en ;
+:Affiliation_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Affiliation (shape)"@en ;
+    sh:property [ sh:name "institution"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :institution ],
-        [ sh:class :Entity ;
-            sh:name "rite"@en ;
+        [ sh:name "rite"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :rite ],
-        [ sh:class :Entity ;
-            sh:name "affiliator"@en ;
+        [ sh:name "affiliator"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :affiliator ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "participant"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :participant ],
-        [ sh:class :Entry ;
-            sh:name "role"@en ;
+        [ sh:name "role"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :role ],
-        [ sh:class :Entry ;
-            sh:name "task"@en ;
+        [ sh:name "task"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :task ] ;
     sh:targetClass :Affiliation .
 
-:Announcement_Shape a sh:NodeShape ;
-    rdfs:label "Form for Announcement"@en ;
+:Announcement_shape a :Situation_Shape,
+        sh:NodeShape ;
+    rdfs:label "Announcement (shape)"@en ;
     sh:property [ sh:name "manner"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :manner ],
@@ -754,8 +755,10 @@ WHERE {
 """ ] ;
     sh:targetClass :Announcement .
 
-:Association_Shape a sh:NodeShape ;
-    rdfs:label "Form for Association"@en ;
+:Association_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Association (shape)"@en ;
     sh:property [ sh:minCount 1 ;
             sh:name "associator"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -780,306 +783,279 @@ WHERE {
             sh:path :evaluator ] ;
     sh:targetClass :Association .
 
-:Attitude_Shape a sh:NodeShape ;
-    rdfs:label "Form for Attitude"@en ;
-    sh:property [ sh:class :Entry ;
-            sh:name "polarity"@en ;
+:Attitude_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Attitude (shape)"@en ;
+    sh:property [ sh:name "polarity"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :polarity ],
-        [ sh:class :Entry ;
-            sh:name "attitude"@en ;
+        [ sh:name "attitude"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :attitude ],
-        [ sh:class :Entry ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "proposition"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :proposition ],
-        [ sh:class :Entry ;
-            sh:name "certainty"@en ;
+        [ sh:name "certainty"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :certainty ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "adherent"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :adherent ],
-        [ sh:class :Entry ;
-            sh:name "modality"@en ;
+        [ sh:name "modality"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :modality ] ;
     sh:targetClass :Attitude .
 
-:Authority_Shape a sh:NodeShape ;
-    rdfs:label "Form for Authority"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:minCount 1 ;
+:Authority_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Authority (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
             sh:name "ruler"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :ruler ],
-        [ sh:class :Entry ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "jurisdiction"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :jurisdiction ] ;
     sh:targetClass :Authority .
 
-:Causation_Shape a sh:NodeShape ;
-    rdfs:label "Form for Causation"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:minCount 1 ;
+:Causation_shape a :Situation_Shape,
+        sh:NodeShape ;
+    rdfs:label "Causation (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
             sh:name "effect"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :effect ],
-        [ sh:class :Entity ;
-            sh:name "cause"@en ;
+        [ sh:name "cause"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :cause ],
-        [ sh:class :Entity ;
-            sh:name "causee"@en ;
+        [ sh:name "causee"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :causee ] ;
     sh:targetClass :Causation .
 
-:Cognition_Shape a sh:NodeShape ;
-    rdfs:label "Form for Cognition"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:name "educator"@en ;
+:Cognition_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Cognition (shape)"@en ;
+    sh:property [ sh:name "educator"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :educator ],
-        [ sh:class :Entity ;
-            sh:name "method"@en ;
+        [ sh:name "method"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :method ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "student"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :student ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "concept"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :concept ],
-        [ sh:class :Entry ;
-            sh:name "field"@en ;
+        [ sh:name "field"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :field ] ;
     sh:targetClass :Cognition .
 
-:Communication_Shape a sh:NodeShape ;
-    rdfs:label "Form for Communication"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:minCount 1 ;
+:Communication_shape a :Situation_Shape,
+        sh:NodeShape ;
+    rdfs:label "Communication (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
             sh:name "communicator"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :communicator ],
-        [ sh:class :Entry ;
-            sh:name "characterization"@en ;
+        [ sh:name "characterization"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :characterization ],
-        [ sh:class :Entry ;
-            sh:name "topic"@en ;
+        [ sh:name "topic"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :topic ],
-        [ sh:class :Entity ;
-            sh:name "addressee"@en ;
+        [ sh:name "addressee"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :addressee ],
-        [ sh:class :Entry ;
-            sh:name "signal"@en ;
+        [ sh:name "signal"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :signal ],
-        [ sh:class :Entry ;
-            sh:name "language"@en ;
+        [ sh:name "language"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :language ],
-        [ sh:class :Entity ;
-            sh:name "medium"@en ;
+        [ sh:name "medium"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :medium ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "message"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :message ] ;
     sh:targetClass :Communication .
 
-:Continuation_Shape a sh:NodeShape ;
-    rdfs:label "Form for Continuation"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:minCount 1 ;
+:Continuation_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Continuation (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
             sh:name "entity"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :entity ],
-        [ sh:class :Entry ;
-            sh:name "state"@en ;
+        [ sh:name "state"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :state ] ;
     sh:targetClass :Continuation .
 
-:Control_Shape a sh:NodeShape ;
-    rdfs:label "Form for Control"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:minCount 1 ;
+:Control_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Control (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
             sh:name "regulation"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :regulation ],
-        [ sh:class :Entity ;
-            sh:name "rule"@en ;
+        [ sh:name "rule"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :rule ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "subordinate"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :subordinate ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "controller"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :controller ] ;
     sh:targetClass :Control .
 
-:Creation_Shape a sh:NodeShape ;
-    rdfs:label "Form for Creation"@en ;
-    sh:property [ sh:class :Entry ;
-            sh:name "material"@en ;
+:Creation_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Creation (shape)"@en ;
+    sh:property [ sh:name "material"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :material ],
-        [ sh:class :Entity ;
-            sh:name "product"@en ;
+        [ sh:name "product"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :product ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "maker"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :maker ],
-        [ sh:class :Entity ;
-            sh:name "instrument"@en ;
+        [ sh:name "instrument"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :instrument ],
-        [ sh:class :Entity ;
-            sh:name "work"@en ;
+        [ sh:name "work"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :work ] ;
     sh:targetClass :Creation .
 
-:Evaluation_Shape a sh:NodeShape ;
-    rdfs:label "Form for Evaluation"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:name "standard"@en ;
+:Evaluation_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Evaluation (shape)"@en ;
+    sh:property [ sh:name "standard"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :standard ],
-        [ sh:class :Entity ;
-            sh:name "item"@en ;
+        [ sh:name "item"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :item ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "evaluator"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :evaluator ],
-        [ sh:class :Entry ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "sentiment"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :sentiment ],
-        [ sh:class :Entry ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "attribute"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :attribute ],
-        [ sh:class :Entry ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "value"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :value ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "conclusion"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :conclusion ],
-        [ sh:class :Entry ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "multiplier"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :multiplier ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "phenomenon"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :phenomenon ] ;
     sh:targetClass :Evaluation .
 
-:Execution_Shape a sh:NodeShape ;
-    rdfs:label "Form for Execution"@en ;
-    sh:property [ sh:class :Entry ;
-            sh:name "pe"@en ;
+:Execution_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Execution (shape)"@en ;
+    sh:property [ sh:name "pe"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :phase ],
-        [ sh:class :Entry ;
-            sh:name "modulation"@en ;
+        [ sh:name "modulation"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :modulation ],
-        [ sh:class :Entity ;
-            sh:name "executor"@en ;
+        [ sh:name "executor"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :executor ],
-        [ sh:class :Entry ;
-            sh:name "task"@en ;
+        [ sh:name "task"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :task ] ;
     sh:targetClass :Execution .
 
-:Experience_Shape a sh:NodeShape ;
-    rdfs:label "Form for Experience"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:minCount 1 ;
+:Experience_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Experience (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
             sh:name "experiencer"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :experiencer ],
-        [ sh:class :Entry ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "stimulus"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :stimulus ] ;
     sh:targetClass :Experience .
 
-:Force_Shape a sh:NodeShape ;
-    rdfs:label "Form for Force"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:minCount 1 ;
+:Force_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Force (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
             sh:name "agonist"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :agonist ],
-        [ sh:class :Entity ;
-            sh:name "antagonist"@en ;
+        [ sh:name "antagonist"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :antagonist ],
-        [ sh:class :Entity ;
-            sh:name "means"@en ;
+        [ sh:name "means"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :means ] ;
     sh:targetClass :Force .
 
-:Governance_Shape a sh:NodeShape ;
-    rdfs:label "Form for Governance"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:name "rule"@en ;
+:Governance_shape a :Situation_Shape,
+        sh:NodeShape ;
+    rdfs:label "Governance (shape)"@en ;
+    sh:property [ sh:name "rule"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :rule ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "subordinate"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :subordinate ] ;
     sh:targetClass :Governance .
 
-:Incremental_Shape a sh:NodeShape ;
-    rdfs:label "Form for Incremental"@en ;
-    sh:property [ sh:name "mover"@en ;
+:Incremental_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Incremental (shape)"@en ;
+    sh:property [ sh:name "result"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :result ],
+        [ sh:name "mover"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :mover ],
         [ sh:name "origin"@en ;
@@ -1103,141 +1079,133 @@ WHERE {
             sh:path :affectee ],
         [ sh:name "destination"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :destination ],
-        [ sh:name "result"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :result ] ;
+            sh:path :destination ] ;
     sh:targetClass :Incremental .
 
-:Information_Shape a sh:NodeShape ;
-    rdfs:label "Form for Information"@en ;
-    sh:property [ sh:class :Entry ;
-            sh:name "source"@en ;
+:Information_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Information (shape)"@en ;
+    sh:property [ sh:name "source"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :source ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "content"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :content ] ;
     sh:targetClass :Information .
 
-:Interaction_Shape a sh:NodeShape ;
-    rdfs:label "Form for Interaction"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:minCount 1 ;
+:Interaction_shape a :Situation_Shape,
+        sh:NodeShape ;
+    rdfs:label "Interaction (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
             sh:name "interactor"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :interactor ],
-        [ sh:class :Entity ;
-            sh:name "interaction"@en ;
+        [ sh:name "interaction"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :interaction ] ;
     sh:targetClass :Interaction .
 
-:Kinship_Shape a sh:NodeShape ;
-    rdfs:label "Form for Kinship"@en ;
-    sh:property [ sh:class :Entry ;
-            sh:name "relation"@en ;
+:Kinship_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Kinship (shape)"@en ;
+    sh:property [ sh:name "relation"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :relation ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "relative"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :relative ] ;
     sh:targetClass :Kinship .
 
-:Knowledge_Shape a sh:NodeShape ;
-    rdfs:label "Form for Knowledge"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:minCount 1 ;
+:Knowledge_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Knowledge (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
             sh:name "knower"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :knower ],
-        [ sh:class :Entry ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "knowledge"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :knowledge ] ;
     sh:targetClass :Knowledge .
 
-:Memory_Shape a sh:NodeShape ;
-    rdfs:label "Form for Memory"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:minCount 1 ;
+:Memory_shape a :Situation_Shape,
+        sh:NodeShape ;
+    rdfs:label "Memory (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
             sh:name "witness"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :witness ],
-        [ sh:class :Entry ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "impression"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :impression ] ;
     sh:targetClass :Memory .
 
-:Motion_Shape a sh:NodeShape ;
-    rdfs:label "Form for Motion"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:name "mover"@en ;
+:Motion_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Motion (shape)"@en ;
+    sh:property [ sh:name "mover"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :mover ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "theme"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :theme ],
-        [ sh:class :Entry ;
-            sh:name "orientation"@en ;
+        [ sh:name "orientation"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :orientation ],
-        [ sh:class :Entity ;
-            sh:name "conveyance"@en ;
+        [ sh:name "conveyance"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :conveyance ] ;
     sh:targetClass :Motion .
 
-:Occurrence_Shape a sh:NodeShape ;
-    rdfs:label "Form for Occurrence"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:minCount 1 ;
+:Occurrence_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Occurrence (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
             sh:name "situation"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :situation ],
-        [ sh:class :Entry ;
-            sh:name "order"@en ;
+        [ sh:name "order"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :order ],
-        [ sh:class :Entry ;
-            sh:name "manner"@en ;
+        [ sh:name "manner"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :manner ],
-        [ sh:class :Entry ;
-            sh:name "time"@en ;
+        [ sh:name "time"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :time ] ;
     sh:targetClass :Occurrence .
 
-:Perception_Shape a sh:NodeShape ;
-    rdfs:label "Form for Perception"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:name "sense"@en ;
+:Perception_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Perception (shape)"@en ;
+    sh:property [ sh:name "sense"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :sense ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "percept"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :percept ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "perceiver"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :perceiver ] ;
     sh:targetClass :Perception .
 
-:Possession_Shape a sh:NodeShape ;
-    rdfs:label "Form for Possession"@en ;
+:Possession_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Possession (shape)"@en ;
     sh:property [ sh:minCount 1 ;
             sh:name "possessor"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -1266,8 +1234,10 @@ WHERE {
             sh:path :affectee ] ;
     sh:targetClass :Possession .
 
-:Quantification_Shape a sh:NodeShape ;
-    rdfs:label "Form for Quantification"@en ;
+:Quantification_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Quantification (shape)"@en ;
     sh:property [ sh:name "evaluator"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :evaluator ],
@@ -1290,70 +1260,63 @@ WHERE {
             sh:path :value ] ;
     sh:targetClass :Quantification .
 
-:Transaction_Shape a sh:NodeShape ;
-    rdfs:label "Form for Transaction"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:name "recipient"@en ;
+:Transaction_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Transaction (shape)"@en ;
+    sh:property [ sh:name "recipient"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :recipient ],
-        [ sh:class :Entity ;
-            sh:name "transactor"@en ;
+        [ sh:name "transactor"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :transactor ],
-        [ sh:class :Entity ;
-            sh:name "item"@en ;
+        [ sh:name "item"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :item ],
-        [ sh:class :Entity ;
-            sh:name "asset"@en ;
+        [ sh:name "asset"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :asset ] ;
     sh:targetClass :Transaction .
 
-:Transformation_Shape a sh:NodeShape ;
-    rdfs:label "Form for Transformation"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:minCount 1 ;
+:Transformation_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Transformation (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
             sh:name "undergoer"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :undergoer ],
-        [ sh:class :Entity ;
-            sh:name "result"@en ;
+        [ sh:name "result"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :result ],
-        [ sh:class :Entity ;
-            sh:name "transformer"@en ;
+        [ sh:name "transformer"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :transformer ],
-        [ sh:class :Entity ;
-            sh:name "catalyst"@en ;
+        [ sh:name "catalyst"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :catalyst ] ;
     sh:targetClass :Transformation .
 
-:Volition_Shape a sh:NodeShape ;
-    rdfs:label "Form for Volition"@en ;
-    sh:property [ sh:class :Entity ;
-            sh:minCount 1 ;
+:Volition_shape a :Situation_Shape,
+        :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Volition (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
             sh:name "aim"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :aim ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "aversion"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :aversion ],
-        [ sh:class :Entity ;
-            sh:name "stratagem"@en ;
+        [ sh:name "stratagem"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :stratagem ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "intender"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :intender ],
-        [ sh:class :Entity ;
-            sh:minCount 1 ;
+        [ sh:minCount 1 ;
             sh:name "object"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:path :object ] ;
@@ -52505,7 +52468,7 @@ WHERE {
     :identifier "zoom.v.01" ;
     :lexical_resource "WordNet" .
 
-:Correlate_and_Differ_shape a :Situation_Shape ;
+:Correlate_and_Differ_shape a :Situation_shape ;
     rdfs:label "Correlate and Differ (shape)" .
 
 :abate.v.02 a :Synset ;
@@ -59230,16 +59193,16 @@ WHERE {
     :identifier "zonk_out.v.01" ;
     :lexical_resource "WordNet" .
 
-:Liken_and_Differentiate_shape a :Situation_Shape ;
+:Liken_and_Differentiate_shape a :Situation_shape ;
     rdfs:label "Liken and Differentiate (shape)" .
 
-:Long_shape a :Situation_Shape ;
+:Long_shape a :Situation_shape ;
     rdfs:label "Long (shape)" .
 
 :Quantification a :Semantic_Domain ;
     rdfs:label "Quantification"@en .
 
-:Static_Possession_shape a :Situation_Shape ;
+:Static_Possession_shape a :Situation_shape ;
     rdfs:label "Static Possession (shape)" .
 
 :ache.v.02 a :Synset ;
@@ -59946,7 +59909,7 @@ WHERE {
 :Association a :Semantic_Domain ;
     rdfs:label "Association"@en .
 
-:Enforcement_shape a :Situation_Shape ;
+:Enforcement_shape a :Situation_shape ;
     rdfs:label "Enforcement (shape)" .
 
 :Incremental a :Semantic_Domain ;
@@ -60238,7 +60201,7 @@ WHERE {
     :identifier "writhe.v.01" ;
     :lexical_resource "WordNet" .
 
-:Absorb_shape a :Situation_Shape ;
+:Absorb_shape a :Situation_shape ;
     rdfs:label "Absorb (shape)" .
 
 :affectee a rdf:Property ;
@@ -60352,7 +60315,7 @@ WHERE {
     :identifier "wheedle.v.01" ;
     :lexical_resource "WordNet" .
 
-:Limitation_shape a :Situation_Shape ;
+:Limitation_shape a :Situation_shape ;
     rdfs:label "Limitation (shape)" .
 
 :accompany-51_7.vnclass a :VN_Class ;
@@ -60418,7 +60381,7 @@ WHERE {
 :wink-40_3_1.vnclass a :VN_Class ;
     rdfs:label "wink-40.3.1 (vn class)" .
 
-:Counting_shape a :Situation_Shape ;
+:Counting_shape a :Situation_shape ;
     rdfs:label "Counting (shape)" .
 
 :Physical a :Realm ;
@@ -60534,7 +60497,7 @@ WHERE {
 :wish-62.vnclass a :VN_Class ;
     rdfs:label "wish-62 (vn class)" .
 
-:Feeding_shape a :Situation_Shape ;
+:Feeding_shape a :Situation_shape ;
     rdfs:label "Feeding (shape)" .
 
 :change_bodily_state-40_8_4.vnclass a :VN_Class ;
@@ -60567,7 +60530,7 @@ WHERE {
 :Proto_State a :Aspect ;
     rdfs:label "Proto-State"@en .
 
-:Replace_shape a :Situation_Shape ;
+:Replace_shape a :Situation_shape ;
     rdfs:label "Replace (shape)" .
 
 :concealment-16.vnclass a :VN_Class ;
@@ -60602,10 +60565,10 @@ WHERE {
 :tingle-40_8_2.vnclass a :VN_Class ;
     rdfs:label "tingle-40.8.2 (vn class)" .
 
-:Collective_shape a :Situation_Shape ;
+:Collective_shape a :Situation_shape ;
     rdfs:label "Collective (shape)" .
 
-:Constrain_shape a :Situation_Shape ;
+:Constrain_shape a :Situation_shape ;
     rdfs:label "Constrain (shape)" .
 
 :appoint-29_1.vnclass a :VN_Class ;
@@ -60647,7 +60610,7 @@ WHERE {
 :murder-42_1.vnclass a :VN_Class ;
     rdfs:label "murder-42.1 (vn class)" .
 
-:Feel_shape a :Situation_Shape ;
+:Feel_shape a :Situation_shape ;
     rdfs:label "Feel (shape)" .
 
 :birth-28_2.vnclass a :VN_Class ;
@@ -60744,10 +60707,10 @@ WHERE {
 :wipe_instr-10_4_2.vnclass a :VN_Class ;
     rdfs:label "wipe_instr-10.4.2 (vn class)" .
 
-:Manipulate_shape a :Situation_Shape ;
+:Manipulate_shape a :Situation_shape ;
     rdfs:label "Manipulate (shape)" .
 
-:Pick_Up_and_Drop_Off_shape a :Situation_Shape ;
+:Pick_Up_and_Drop_Off_shape a :Situation_shape ;
     rdfs:label "Pick Up and Drop Off (shape)" .
 
 :bend-45_2.vnclass a :VN_Class ;
@@ -60786,7 +60749,7 @@ WHERE {
 :light_emission-43_1.vnclass a :VN_Class ;
     rdfs:label "light_emission-43.1 (vn class)" .
 
-:Intend_shape a :Situation_Shape ;
+:Intend_shape a :Situation_shape ;
     rdfs:label "Intend (shape)" .
 
 :bump-18_4.vnclass a :VN_Class ;
@@ -60816,10 +60779,10 @@ WHERE {
 :remedy-45_7.vnclass a :VN_Class ;
     rdfs:label "remedy-45.7 (vn class)" .
 
-:Concealment_shape a :Situation_Shape ;
+:Concealment_shape a :Situation_shape ;
     rdfs:label "Concealment (shape)" .
 
-:Desire_shape a :Situation_Shape,
+:Desire_shape a :Situation_shape,
         sh:NodeShape ;
     rdfs:label "Desire (shape)",
         "Form for Desire"@en ;
@@ -60833,7 +60796,7 @@ WHERE {
             sh:path :wisher ] ;
     sh:targetClass :Desire .
 
-:Learn_shape a :Situation_Shape ;
+:Learn_shape a :Situation_shape ;
     rdfs:label "Learn (shape)" .
 
 :put_spatial-9_2.vnclass a :VN_Class ;
@@ -60881,7 +60844,7 @@ WHERE {
 :substance_emission-43_4.vnclass a :VN_Class ;
     rdfs:label "substance_emission-43.4 (vn class)" .
 
-:Pursuit_shape a :Situation_Shape ;
+:Pursuit_shape a :Situation_shape ;
     rdfs:label "Pursuit (shape)" .
 
 :appear-48_1_1.vnclass a :VN_Class ;
@@ -60905,10 +60868,10 @@ WHERE {
 :transfer_mesg-37_1_1.vnclass a :VN_Class ;
     rdfs:label "transfer_mesg-37.1.1 (vn class)" .
 
-:Base_and_Deduce_shape a :Situation_Shape ;
+:Base_and_Deduce_shape a :Situation_shape ;
     rdfs:label "Base and Deduce (shape)" .
 
-:Capacity_shape a :Situation_Shape ;
+:Capacity_shape a :Situation_shape ;
     rdfs:label "Capacity (shape)" .
 
 :hit-18_1.vnclass a :VN_Class ;
@@ -60932,7 +60895,7 @@ WHERE {
 :throw-17_1.vnclass a :VN_Class ;
     rdfs:label "throw-17.1 (vn class)" .
 
-:Defend_shape a :Situation_Shape ;
+:Defend_shape a :Situation_shape ;
     rdfs:label "Defend (shape)" .
 
 :assessment-34_1.vnclass a :VN_Class ;
@@ -60941,10 +60904,10 @@ WHERE {
 :preparing-26_3.vnclass a :VN_Class ;
     rdfs:label "preparing-26.3 (vn class)" .
 
-:Form_shape a :Situation_Shape ;
+:Form_shape a :Situation_shape ;
     rdfs:label "Form (shape)" .
 
-:Look_shape a :Situation_Shape ;
+:Look_shape a :Situation_shape ;
     rdfs:label "Look (shape)" .
 
 :battle-36_4.vnclass a :VN_Class ;
@@ -60965,7 +60928,7 @@ WHERE {
 :escape-51_1.vnclass a :VN_Class ;
     rdfs:label "escape-51.1 (vn class)" .
 
-:Membership_shape a :Situation_Shape ;
+:Membership_shape a :Situation_shape ;
     rdfs:label "Membership (shape)" .
 
 :captain-29_8.vnclass a :VN_Class ;
@@ -60974,7 +60937,7 @@ WHERE {
 :modes_of_being_with_motion-47_3.vnclass a :VN_Class ;
     rdfs:label "modes_of_being_with_motion-47.3 (vn class)" .
 
-:Measurement_shape a :Situation_Shape ;
+:Measurement_shape a :Situation_shape ;
     rdfs:label "Measurement (shape)" .
 
 :characterize-29_2.vnclass a :VN_Class ;
@@ -60983,7 +60946,7 @@ WHERE {
 :crane-40_3_2.vnclass a :VN_Class ;
     rdfs:label "crane-40.3.2 (vn class)" .
 
-:Pay_and_Charge_shape a :Situation_Shape ;
+:Pay_and_Charge_shape a :Situation_shape ;
     rdfs:label "Pay and Charge (shape)" .
 
 :nonverbal_expression-40_2.vnclass a :VN_Class ;
@@ -60992,10 +60955,10 @@ WHERE {
 :wipe_manner-10_4_1.vnclass a :VN_Class ;
     rdfs:label "wipe_manner-10.4.1 (vn class)" .
 
-:Cause_and_Effect_shape a :Situation_Shape ;
+:Cause_and_Effect_shape a :Situation_shape ;
     rdfs:label "Cause and Effect (shape)" .
 
-:Know_shape a :Situation_Shape ;
+:Know_shape a :Situation_shape ;
     rdfs:label "Know (shape)" .
 
 :Typical a :Usage ;
@@ -61019,28 +60982,28 @@ WHERE {
 :pocket-9_10.vnclass a :VN_Class ;
     rdfs:label "pocket-9.10 (vn class)" .
 
-:Hurt_shape a :Situation_Shape ;
+:Hurt_shape a :Situation_shape ;
     rdfs:label "Hurt (shape)" .
 
-:Cause_Role_shape a :Situation_Shape ;
+:Cause_Role_shape a :Situation_shape ;
     rdfs:label "Cause Role (shape)" .
 
-:Carry_shape a :Situation_Shape ;
+:Carry_shape a :Situation_shape ;
     rdfs:label "Carry (shape)" .
 
-:Future_Having_shape a :Situation_Shape ;
+:Future_Having_shape a :Situation_shape ;
     rdfs:label "Future Having (shape)" .
 
 :marvel-31_3.vnclass a :VN_Class ;
     rdfs:label "marvel-31.3 (vn class)" .
 
-:Joint_Statement_shape a :Situation_Shape ;
+:Joint_Statement_shape a :Situation_shape ;
     rdfs:label "Joint Statement (shape)" .
 
-:Send_shape a :Situation_Shape ;
+:Send_shape a :Situation_shape ;
     rdfs:label "Send (shape)" .
 
-:Cause_Membership_shape a :Situation_Shape ;
+:Cause_Membership_shape a :Situation_shape ;
     rdfs:label "Cause Membership (shape)" .
 
 :tape-22_4.vnclass a :VN_Class ;
@@ -61049,48 +61012,50 @@ WHERE {
 :animal_sounds-38.vnclass a :VN_Class ;
     rdfs:label "animal_sounds-38 (vn class)" .
 
-:Situation_Shape rdfs:label "Situation Shape" .
-
 :judgment-33_1.vnclass a :VN_Class ;
     rdfs:label "judgment-33.1 (vn class)" .
 
-:Throw_shape a :Situation_Shape ;
+:Throw_shape a :Situation_shape ;
     rdfs:label "Throw (shape)" .
 
-:Request_shape a :Situation_Shape ;
+:Request_shape a :Situation_shape ;
     rdfs:label "Request (shape)" .
 
-:Response_shape a :Situation_Shape ;
+:Response_shape a :Situation_shape ;
     rdfs:label "Response (shape)" .
 
 :manner_speaking-37_3.vnclass a :VN_Class ;
     rdfs:label "manner_speaking-37.3 (vn class)" .
 
-:Sense_shape a :Situation_Shape ;
+:Sense_shape a :Situation_shape ;
     rdfs:label "Sense (shape)" .
 
-:Require_and_Satisfy_shape a :Situation_Shape ;
+:Require_and_Satisfy_shape a :Situation_shape ;
     rdfs:label "Require and Satisfy (shape)" .
 
-:Ingestion_shape a :Situation_Shape ;
+:Situation_shape a :Situation_shape,
+        sh:NodeShape ;
+    rdfs:label "Situation (shape)"@en .
+
+:Ingestion_shape a :Situation_shape ;
     rdfs:label "Ingestion (shape)" .
 
 :sound_emission-43_2.vnclass a :VN_Class ;
     rdfs:label "sound_emission-43.2 (vn class)" .
 
-:Inducive_shape a :Situation_Shape ;
+:Inducive_shape a :Situation_shape ;
     rdfs:label "Inducive (shape)" .
 
-:Reciprocal_shape a :Situation_Shape ;
+:Reciprocal_shape a :Situation_shape ;
     rdfs:label "Reciprocal (shape)" .
 
-:Buy_and_Sell_shape a :Situation_Shape ;
+:Buy_and_Sell_shape a :Situation_shape ;
     rdfs:label "Buy and Sell (shape)" .
 
-:Role_shape a :Situation_Shape ;
+:Role_shape a :Situation_shape ;
     rdfs:label "Role (shape)" .
 
-:Attend_shape a :Situation_Shape,
+:Attend_shape a :Situation_shape,
         sh:NodeShape ;
     rdfs:label "Attend (shape)",
         "Form for Attend"@en ;
@@ -61104,10 +61069,10 @@ WHERE {
             sh:path :focus ] ;
     sh:targetClass :Attend .
 
-:Vehicular_Motion_shape a :Situation_Shape ;
+:Vehicular_Motion_shape a :Situation_shape ;
     rdfs:label "Vehicular Motion (shape)" .
 
-:Image_Creation_shape a :Situation_Shape ;
+:Image_Creation_shape a :Situation_shape ;
     rdfs:label "Image Creation (shape)" .
 
 :butter-9_9.vnclass a :VN_Class ;
@@ -61119,10 +61084,10 @@ WHERE {
 :run-51_3_2.vnclass a :VN_Class ;
     rdfs:label "run-51.3.2 (vn class)" .
 
-:Communicate_shape a :Situation_Shape ;
+:Communicate_shape a :Situation_shape ;
     rdfs:label "Communicate (shape)" .
 
-:Location_shape a :Situation_Shape,
+:Location_shape a :Situation_shape,
         sh:NodeShape ;
     rdfs:label "Location (shape)",
         "Form for Location"@en ;
@@ -61136,13 +61101,13 @@ WHERE {
             sh:path :trajector ] ;
     sh:targetClass :Location .
 
-:Search_shape a :Situation_Shape ;
+:Search_shape a :Situation_shape ;
     rdfs:label "Search (shape)" .
 
-:Attack_shape a :Situation_Shape ;
+:Attack_shape a :Situation_shape ;
     rdfs:label "Attack (shape)" .
 
-:Dynamic_Possession_shape a :Situation_Shape ;
+:Dynamic_Possession_shape a :Situation_shape ;
     rdfs:label "Dynamic Possession (shape)" .
 
 :other_cos-45_4.vnclass a :VN_Class ;
@@ -61153,31 +61118,31 @@ WHERE {
 
 :VN_Class rdfs:label "VerbNet Class" .
 
-:Transfer_of_Possession_shape a :Situation_Shape ;
+:Transfer_of_Possession_shape a :Situation_shape ;
     rdfs:label "Transfer of Possession (shape)" .
 
-:Causative_Creation_shape a :Situation_Shape ;
+:Causative_Creation_shape a :Situation_shape ;
     rdfs:label "Causative Creation (shape)" .
 
-:Judge_shape a :Situation_Shape ;
+:Judge_shape a :Situation_shape ;
     rdfs:label "Judge (shape)" .
 
-:Causative_Change_of_State_shape a :Situation_Shape ;
+:Causative_Change_of_State_shape a :Situation_shape ;
     rdfs:label "Causative Change of State (shape)" .
 
-:Basic_Force_shape a :Situation_Shape ;
+:Basic_Force_shape a :Situation_shape ;
     rdfs:label "Basic Force (shape)" .
 
-:Emission_shape a :Situation_Shape ;
+:Emission_shape a :Situation_shape ;
     rdfs:label "Emission (shape)" .
 
-:Statement_shape a :Situation_Shape ;
+:Statement_shape a :Situation_shape ;
     rdfs:label "Statement (shape)" .
 
-:Basic_Motion_shape a :Situation_Shape ;
+:Basic_Motion_shape a :Situation_shape ;
     rdfs:label "Basic Motion (shape)" .
 
-:Affect_shape a :Situation_Shape,
+:Affect_shape a :Situation_shape,
         sh:NodeShape ;
     rdfs:label "Affect (shape)",
         "Form for Affect"@en ;
@@ -61193,7 +61158,7 @@ WHERE {
             sh:path :affectee ] ;
     sh:targetClass :Affect .
 
-:Existence_shape a :Situation_Shape,
+:Existence_shape a :Situation_shape,
         sh:NodeShape ;
     rdfs:label "Existence (shape)",
         "Form for Existence"@en ;
@@ -61206,13 +61171,13 @@ WHERE {
             sh:path :being ] ;
     sh:targetClass :Existence .
 
-:Causative_Incremental_shape a :Situation_Shape ;
+:Causative_Incremental_shape a :Situation_shape ;
     rdfs:label "Causative Incremental (shape)" .
 
-:Basic_Change_of_State_shape a :Situation_Shape ;
+:Basic_Change_of_State_shape a :Situation_shape ;
     rdfs:label "Basic Change of State (shape)" .
 
-:Basic_Incremental_shape a :Situation_Shape ;
+:Basic_Incremental_shape a :Situation_shape ;
     rdfs:label "Basic Incremental (shape)" .
 
 :Lemma rdfs:label "Lemma" .
