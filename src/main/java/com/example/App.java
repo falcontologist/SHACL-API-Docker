@@ -7,7 +7,6 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
-import org.apache.jena.vocabulary.XSD;
 import org.topbraid.jenax.util.JenaUtil;
 import org.topbraid.shacl.validation.ValidationUtil;
 import org.topbraid.shacl.vocabulary.SH;
@@ -24,7 +23,12 @@ public class App {
     private static final Model SHAPES_GRAPH = loadShapesGraph();
 
     public static void main(String[] args) {
-        Javalin app = Javalin.create(config -> config.enableCorsForAllOrigins()).start(8080);
+        // FIXED: Updated CORS configuration for Javalin 6+
+        Javalin app = Javalin.create(config -> {
+            config.bundledPlugins.enableCors(cors -> {
+                cors.addRule(it -> it.anyHost());
+            });
+        }).start(8080);
 
         // API Endpoints
         app.get("/api/stats", App::getStats);
@@ -208,9 +212,7 @@ public class App {
             // Return result
             boolean conforms = report.getProperty(SH.conforms).getBoolean();
             
-            // Expand data (Inference) - Merging inferred triples back into the output
-            // Note: Simple inference simulation by checking if validation added anything to the model
-            // For full SHACL rules, TopBraid would update the dataModel if configured.
+            // Expand data (Inference)
             StringWriter dataWriter = new StringWriter();
             RDFDataMgr.write(dataWriter, dataModel, RDFFormat.TURTLE);
 
