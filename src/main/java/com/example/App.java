@@ -171,22 +171,52 @@ public class App {
         ctx.json(Map.of("forms", forms));
     }
 
-    /**
-     * GET STATS
-     * Counts the key classes in the graph.
-     */
+/**
+ * GET STATS
+ * Counts the key classes in the graph and distinct properties in sh:property paths.
+ */
     private static void getStats(Context ctx) {
         long shapeCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).toList().size();
         
-        // FIXED: Count Roles by listing objects of sh:property.
-        // This catches property shapes even if they are blank nodes without an explicit type definition.
-        long roleCount = SHAPES_GRAPH.listObjectsOfProperty(SH.property).toList().size();
+        // FIXED: Count distinct properties from sh:property paths
+        Set<String> distinctProperties = new HashSet<>();
         
-        long ruleCount  = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.SPARQLRule).toList().size();
+        // Iterate all property shapes (objects of sh:property)
+        NodeIterator propertyShapes = SHAPES_GRAPH.listObjectsOfProperty(SH.property);
+        while (propertyShapes.hasNext()) {
+            Resource propertyShape = propertyShapes.next().asResource();
+            
+            // Get the sh:path value
+            if (propertyShape.hasProperty(SH.path)) {
+                RDFNode pathNode = propertyShape.getProperty(SH.path).getObject();
+                
+                // Handle different types of paths (simple property, predicate paths, etc.)
+                if (pathNode.isResource()) {
+                    String localName = pathNode.asResource().getLocalName();
+                    if (localName != null && !localName.isEmpty()) {
+                        distinctProperties.add(localName);
+                    } else {
+                        // Fallback to URI if no local name
+                        String uri = pathNode.asResource().getURI();
+                        if (uri != null) {
+                            distinctProperties.add(uri);
+                        }
+                    }
+                } else if (pathNode.isLiteral()) {
+                    // Some SHACL paths might be literals in some configurations
+                    distinctProperties.add(pathNode.asLiteral().getString());
+                }
+            }
+        }
         
-        long lemmaCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SHAPES_GRAPH.createResource(ONT_NS + "Lemma")).toList().size();
-        long senseCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SHAPES_GRAPH.createResource(ONT_NS + "Synset")).toList().size();
-
+        long roleCount = distinctProperties.size();
+        
+        long ruleCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.SPARQLRule).toList().size();
+        long lemmaCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, 
+                SHAPES_GRAPH.createResource(ONT_NS + "Lemma")).toList().size();
+        long senseCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, 
+                SHAPES_GRAPH.createResource(ONT_NS + "Synset")).toList().size();
+    
         ctx.json(Map.of(
                 "shapes", shapeCount,
                 "roles", roleCount,
