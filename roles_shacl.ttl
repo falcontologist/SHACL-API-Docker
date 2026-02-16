@@ -595,1282 +595,1327 @@
     :realm :Mental ;
     rdfs:subClassOf :Situation .
 
-### PROPERTIES (213) ###
+### ROOT AND STRUCTURAL PROPERTIES ###
 
-:acquirer a rdf:Property ;
-    rdfs:label "acquirer"@en ;
-    rdfs:subPropertyOf :transactor .
+:shape_element a rdf:Property ;
+    rdfs:label "shape element"@en ;
+    rdfs:comment "The root superproperty for all semantic role and modifier properties."@en .
 
-:acquires a rdf:Property ;
-    rdfs:label "acquires"@en .
+:proto_role a rdf:Property ;
+    rdfs:label "proto-role"@en ;
+    rdfs:comment "Superproperty for all proto-role properties."@en ;
+    rdfs:subPropertyOf :shape_element .
 
-:acquisition a rdf:Property ;
-    rdfs:label "acquisition"@en ;
-    rdfs:subPropertyOf :item .
+:modifier a rdf:Property ;
+    rdfs:label "modifier"@en ;
+    rdfs:comment "Superproperty for all modifier properties."@en ;
+    rdfs:subPropertyOf :shape_element .
 
-:action a rdf:Property ;
-    rdfs:label "action"@en ;
-    :usage :Optional ;
-    rdfs:domain :Action ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :goal .
+### PROTO-ROLES ###
 
-:actor a rdf:Property ;
-    rdfs:label "actor"@en ;
-    :usage :Optional ;
-    rdfs:domain :Action ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
+:proto_agent a rdf:Property ;
+    rdfs:label "proto-agent"@en ;
+    rdfs:comment "Proto-role for initiator/agent participants."@en ;
+    rdfs:subPropertyOf :proto_role .
 
-:addressee a rdf:Property ;
-    rdfs:label "addressee"@en ;
-    :usage :Optional ;
-    rdfs:domain :Communication ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :goal .
+:proto_instrument a rdf:Property ;
+    rdfs:label "proto-instrument"@en ;
+    rdfs:comment "Proto-role for resource/instrument participants."@en ;
+    rdfs:subPropertyOf :proto_role .
 
-:adherent a rdf:Property ;
-    rdfs:label "adherent"@en ;
-    :usage :Typical ;
-    rdfs:domain :Attitude ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
+:proto_patient a rdf:Property ;
+    rdfs:label "proto-patient"@en ;
+    rdfs:comment "Proto-role for essence/patient participants."@en ;
+    rdfs:subPropertyOf :proto_role .
 
-:advice a rdf:Property ;
-    rdfs:label "advice"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :message .
+:proto_source a rdf:Property ;
+    rdfs:label "proto-source"@en ;
+    rdfs:comment "Proto-role for source-oriented participants (stub for future expansion)."@en ;
+    rdfs:subPropertyOf :proto_role .
 
-:advisee a rdf:Property ;
-    rdfs:label "advisee"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :addressee,
-        :recipient .
+:proto_path a rdf:Property ;
+    rdfs:label "proto-path"@en ;
+    rdfs:comment "Proto-role for path-oriented participants (stub for future expansion)."@en ;
+    rdfs:subPropertyOf :proto_role .
 
-:adviser a rdf:Property ;
-    rdfs:label "adviser"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :communicator .
+:proto_goal a rdf:Property ;
+    rdfs:label "proto-goal"@en ;
+    rdfs:comment "Proto-role for goal-oriented participants."@en ;
+    rdfs:subPropertyOf :proto_role .
 
-:affectee a rdf:Property ;
-    rdfs:label "affectee"@en ;
-    :usage :Typical ;
-    rdfs:domain :Affect ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:affecter a rdf:Property ;
-    rdfs:label "affecter"@en ;
-    :usage :Optional ;
-    rdfs:domain :Affect ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
-
-:affiliator a rdf:Property ;
-    rdfs:label "affiliator"@en ;
-    :usage :Optional ;
-    rdfs:domain :Affiliation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
+### Basic Roles (Ring 3) ###
 
 :agonist a rdf:Property ;
     rdfs:label "agonist"@en ;
-    :usage :Typical ;
     rdfs:domain :Force ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:aim a rdf:Property ;
-    rdfs:label "Aim" .
-
-:analogue a rdf:Property ;
-    rdfs:label "analogue"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :phenomenon .
-
-:announcement a rdf:Property ;
-    rdfs:label "announcement"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :message .
-
-:announcer a rdf:Property ;
-    rdfs:label "announcer"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :communicator .
+    rdfs:subPropertyOf :proto_patient .
 
 :antagonist a rdf:Property ;
     rdfs:label "antagonist"@en ;
-    :usage :Optional ;
     rdfs:domain :Force ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
+    rdfs:subPropertyOf :proto_agent .
 
-:applier a rdf:Property ;
-    rdfs:label "applier"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :mover .
+:means a rdf:Property ;
+    rdfs:label "means"@en ;
+    rdfs:domain :Force ;
+    rdfs:subPropertyOf :proto_instrument .
 
-:asset a rdf:Property ;
-    rdfs:label "asset"@en ;
-    :usage :Optional ;
-    rdfs:domain :Transaction ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :resource .
+## Creation Domain ##
+:maker a rdf:Property ;
+    rdfs:label "maker"@en ;
+    rdfs:domain :Creation ;
+    rdfs:subPropertyOf :proto_agent .
 
-:associator a rdf:Property ;
-    rdfs:label "associator"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :evaluator .
+:instrument a rdf:Property ;
+    rdfs:label "instrument"@en ;
+    rdfs:domain :Creation ;
+    rdfs:subPropertyOf :proto_instrument .
 
-:attacker a rdf:Property ;
-    rdfs:label "attacker"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :actor .
+:work a rdf:Property ;
+    rdfs:label "work"@en ;
+    rdfs:domain :Creation ;
+    rdfs:subPropertyOf :proto_patient .
 
-:attender a rdf:Property ;
-    rdfs:label "Attender" .
+:product a rdf:Property ;
+    rdfs:label "product"@en ;
+    rdfs:domain :Creation ;
+    rdfs:subPropertyOf :proto_goal .
 
-:attitude a rdf:Property ;
-    rdfs:label "attitude"@en ;
-    :usage :Optional ;
-    rdfs:domain :Attitude ;
-    rdfs:range :Entry ;
+:material a rdf:Property ;
+    rdfs:label "material"@en ;
+    rdfs:domain :Creation ;
+    rdfs:subPropertyOf :modifier .
+
+## Existence Domain ##
+:being a rdf:Property ;
+    rdfs:label "being"@en ;
+    rdfs:domain :Existence ;
+    rdfs:subPropertyOf :proto_patient .
+
+:mode a rdf:Property ;
+    rdfs:label "mode"@en ;
+    rdfs:domain :Existence ;
+    rdfs:subPropertyOf :modifier .
+
+## Transformation Domain ##
+:transformer a rdf:Property ;
+    rdfs:label "transformer"@en ;
+    rdfs:domain :Transformation ;
+    rdfs:subPropertyOf :proto_agent .
+
+:catalyst a rdf:Property ;
+    rdfs:label "catalyst"@en ;
+    rdfs:domain :Transformation ;
+    rdfs:subPropertyOf :proto_instrument .
+
+:undergoer a rdf:Property ;
+    rdfs:label "undergoer"@en ;
+    rdfs:domain :Transformation ;
+    rdfs:subPropertyOf :proto_patient .
+
+:result a rdf:Property ;
+    rdfs:label "result"@en ;
+    rdfs:domain :Transformation ;
+    rdfs:subPropertyOf :proto_goal .
+
+## Motion Domain ##
+:mover a rdf:Property ;
+    rdfs:label "mover"@en ;
+    rdfs:domain :Motion ;
+    rdfs:subPropertyOf :proto_agent .
+
+:conveyance a rdf:Property ;
+    rdfs:label "conveyance"@en ;
+    rdfs:domain :Motion ;
+    rdfs:subPropertyOf :proto_instrument .
+
+:theme a rdf:Property ;
+    rdfs:label "theme"@en ;
+    rdfs:domain :Motion ;
+    rdfs:subPropertyOf :proto_patient .
+
+:orientation a rdf:Property ;
+    rdfs:label "orientation"@en ;
+    rdfs:domain :Motion ;
+    rdfs:subPropertyOf :modifier .
+
+## Location Domain ##
+:trajector a rdf:Property ;
+    rdfs:label "trajector"@en ;
+    rdfs:domain :Location ;
+    rdfs:subPropertyOf :proto_patient .
+
+:landmark a rdf:Property ;
+    rdfs:label "landmark"@en ;
+    rdfs:domain :Location ;
+    rdfs:subPropertyOf :modifier .
+
+## Occurrence Domain ##
+:situation a rdf:Property ;
+    rdfs:label "situation"@en ;
+    rdfs:domain :Occurrence ;
+    rdfs:subPropertyOf :proto_patient .
+
+:time a rdf:Property ;
+    rdfs:label "time"@en ;
+    rdfs:domain :Occurrence ;
+    rdfs:subPropertyOf :modifier .
+
+:order a rdf:Property ;
+    rdfs:label "order"@en ;
+    rdfs:domain :Occurrence ;
+    rdfs:subPropertyOf :modifier .
+
+:manner a rdf:Property ;
+    rdfs:label "manner"@en ;
+    rdfs:domain :Occurrence ;
+    rdfs:subPropertyOf :modifier .
+
+## Continuation Domain ##
+:entity a rdf:Property ;
+    rdfs:label "entity"@en ;
+    rdfs:domain :Continuation ;
+    rdfs:subPropertyOf :proto_patient .
+
+:state a rdf:Property ;
+    rdfs:label "state"@en ;
+    rdfs:domain :Continuation ;
+    rdfs:subPropertyOf :modifier .
+
+### MENTAL REALM - BASIC ROLES (Ring 3) ###
+
+## Perception Domain ##
+:perceiver a rdf:Property ;
+    rdfs:label "perceiver"@en ;
+    rdfs:domain :Perception ;
+    rdfs:subPropertyOf :proto_agent .
+
+:sense a rdf:Property ;
+    rdfs:label "sense"@en ;
+    rdfs:domain :Perception ;
+    rdfs:subPropertyOf :proto_instrument .
+
+:percept a rdf:Property ;
+    rdfs:label "percept"@en ;
+    rdfs:domain :Perception ;
+    rdfs:subPropertyOf :proto_patient .
+
+## Affect Domain ##
+:affecter a rdf:Property ;
+    rdfs:label "affecter"@en ;
+    rdfs:domain :Affect ;
+    rdfs:subPropertyOf :proto_agent .
+
+:affectee a rdf:Property ;
+    rdfs:label "affectee"@en ;
+    rdfs:domain :Affect ;
+    rdfs:subPropertyOf :proto_patient .
+
+:reaction a rdf:Property ;
+    rdfs:label "reaction"@en ;
+    rdfs:domain :Affect ;
+    rdfs:subPropertyOf :proto_goal .
+
+## Experience Domain ##
+:experiencer a rdf:Property ;
+    rdfs:label "experiencer"@en ;
+    rdfs:domain :Experience ;
+    rdfs:subPropertyOf :proto_patient .
+
+:stimulus a rdf:Property ;
+    rdfs:label "stimulus"@en ;
+    rdfs:domain :Experience ;
+    rdfs:subPropertyOf :modifier .
+
+## Memory Domain ##
+:witness a rdf:Property ;
+    rdfs:label "witness"@en ;
+    rdfs:domain :Memory ;
+    rdfs:subPropertyOf :proto_patient .
+
+:impression a rdf:Property ;
+    rdfs:label "impression"@en ;
+    rdfs:domain :Memory ;
+    rdfs:subPropertyOf :modifier .
+
+## Volition Domain ##
+:intender a rdf:Property ;
+    rdfs:label "intender"@en ;
+    rdfs:domain :Volition ;
+    rdfs:subPropertyOf :proto_agent .
+
+:stratagem a rdf:Property ;
+    rdfs:label "stratagem"@en ;
+    rdfs:domain :Volition ;
+    rdfs:subPropertyOf :proto_instrument .
+
+:object a rdf:Property ;
+    rdfs:label "object"@en ;
+    rdfs:domain :Volition ;
+    rdfs:subPropertyOf :proto_patient .
+
+:aversion a rdf:Property ;
+    rdfs:label "aversion"@en ;
+    rdfs:domain :Volition ;
+    rdfs:subPropertyOf :proto_goal .
+
+:aim a rdf:Property ;
+    rdfs:label "aim"@en ;
+    rdfs:domain :Volition ;
+    rdfs:subPropertyOf :proto_goal .
+
+## Desire Domain ##
+:wisher a rdf:Property ;
+    rdfs:label "wisher"@en ;
+    rdfs:domain :Desire ;
+    rdfs:subPropertyOf :proto_patient .
+
+:wish a rdf:Property ;
+    rdfs:label "wish"@en ;
+    rdfs:domain :Desire ;
+    rdfs:subPropertyOf :modifier .
+
+## Cognition Domain ##
+:educator a rdf:Property ;
+    rdfs:label "educator"@en ;
+    rdfs:domain :Cognition ;
+    rdfs:subPropertyOf :proto_agent .
+
+:method a rdf:Property ;
+    rdfs:label "method"@en ;
+    rdfs:domain :Cognition ;
+    rdfs:subPropertyOf :proto_instrument .
+
+:concept a rdf:Property ;
+    rdfs:label "concept"@en ;
+    rdfs:domain :Cognition ;
+    rdfs:subPropertyOf :proto_patient .
+
+:student a rdf:Property ;
+    rdfs:label "student"@en ;
+    rdfs:domain :Cognition ;
+    rdfs:subPropertyOf :proto_goal .
+
+:field a rdf:Property ;
+    rdfs:label "field"@en ;
+    rdfs:domain :Cognition ;
+    rdfs:subPropertyOf :modifier .
+
+## Knowledge Domain ##
+:knower a rdf:Property ;
+    rdfs:label "knower"@en ;
+    rdfs:domain :Knowledge ;
+    rdfs:subPropertyOf :proto_patient .
+
+:knowledge a rdf:Property ;
+    rdfs:label "knowledge"@en ;
+    rdfs:domain :Knowledge ;
+    rdfs:subPropertyOf :modifier .
+
+## Evaluation Domain ##
+:evaluator a rdf:Property ;
+    rdfs:label "evaluator"@en ;
+    rdfs:domain :Evaluation ;
+    rdfs:subPropertyOf :proto_agent .
+
+:standard a rdf:Property ;
+    rdfs:label "standard"@en ;
+    rdfs:domain :Evaluation ;
+    rdfs:subPropertyOf :proto_instrument .
+
+:phenomenon a rdf:Property ;
+    rdfs:label "phenomenon"@en ;
+    rdfs:domain :Evaluation ;
+    rdfs:subPropertyOf :proto_patient .
+
+:conclusion a rdf:Property ;
+    rdfs:label "conclusion"@en ;
+    rdfs:domain :Evaluation ;
+    rdfs:subPropertyOf :proto_goal .
+
+:value a rdf:Property ;
+    rdfs:label "value"@en ;
+    rdfs:domain :Evaluation ;
+    rdfs:subPropertyOf :modifier .
+
+:multiplier a rdf:Property ;
+    rdfs:label "multiplier"@en ;
+    rdfs:domain :Evaluation ;
     rdfs:subPropertyOf :modifier .
 
 :attribute a rdf:Property ;
     rdfs:label "attribute"@en ;
-    :usage :Typical ;
     rdfs:domain :Evaluation ;
-    rdfs:range :Entry ;
     rdfs:subPropertyOf :modifier .
 
-:aversion a rdf:Property ;
-    rdfs:label "aversion"@en ;
-    :usage :Typical ;
-    rdfs:domain :Volition ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :goal .
+:sentiment a rdf:Property ;
+    rdfs:label "sentiment"@en ;
+    rdfs:domain :Evaluation ;
+    rdfs:subPropertyOf :modifier .
 
-:barrier a rdf:Property ;
-    rdfs:label "barrier"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :implement .
+## Attitude Domain ##
+:adherent a rdf:Property ;
+    rdfs:label "adherent"@en ;
+    rdfs:domain :Attitude ;
+    rdfs:subPropertyOf :proto_patient .
 
-:basis a rdf:Property ;
-    rdfs:label "basis"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :standard .
+:proposition a rdf:Property ;
+    rdfs:label "proposition"@en ;
+    rdfs:domain :Attitude ;
+    rdfs:subPropertyOf :modifier .
 
-:bearer a rdf:Property ;
-    rdfs:label "bearer"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :carrier .
+:polarity a rdf:Property ;
+    rdfs:label "polarity"@en ;
+    rdfs:domain :Attitude ;
+    rdfs:subPropertyOf :modifier .
 
-:before a rdf:Property ;
-    rdfs:label "before"@en ;
-    :usage :Optional ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :order .
-
-:being a rdf:Property ;
-    rdfs:label "being"@en ;
-    :usage :Typical ;
-    rdfs:domain :Existence ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:beneficiary a rdf:Property ;
-    rdfs:label "beneficiary"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :affectee .
-
-:buyer a rdf:Property ;
-    rdfs:label "buyer"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :transactor .
-
-:candidate a rdf:Property ;
-    rdfs:label "candidate"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :phenomenon .
-
-:cargo a rdf:Property ;
-    rdfs:label "cargo"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :theme .
-
-:carrier a rdf:Property ;
-    rdfs:label "carrier"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :resource .
-
-:catalyst a rdf:Property ;
-    rdfs:label "catalyst"@en ;
-    :usage :Optional ;
-    rdfs:domain :Transformation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :resource .
-
-:cause a rdf:Property .
-
-:causee a rdf:Property ;
-    rdfs:label "causee"@en ;
-    :usage :Optional ;
-    rdfs:domain :Causation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
+:modality a rdf:Property ;
+    rdfs:label "modality"@en ;
+    rdfs:domain :Attitude ;
+    rdfs:subPropertyOf :modifier .
 
 :certainty a rdf:Property ;
     rdfs:label "certainty"@en ;
-    :usage :Optional ;
     rdfs:domain :Attitude ;
-    rdfs:range :Entry ;
     rdfs:subPropertyOf :modifier .
 
-:characterization a rdf:Property ;
-    rdfs:label "characterization"@en ;
-    :usage :Optional ;
-    rdfs:domain :Communication ;
-    rdfs:range :Entry ;
+:attitude a rdf:Property ;
+    rdfs:label "attitude"@en ;
+    rdfs:domain :Attitude ;
     rdfs:subPropertyOf :modifier .
 
-:collaborator a rdf:Property ;
-    rdfs:label "collaborator"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :interactor .
+## Execution Domain ##
+:executor a rdf:Property ;
+    rdfs:label "executor"@en ;
+    rdfs:domain :Execution ;
+    rdfs:subPropertyOf :proto_agent .
 
-:communicator a rdf:Property ;
-    rdfs:label "communicator"@en ;
-    :usage :Typical ;
-    rdfs:domain :Communication ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
+:task a rdf:Property ;
+    rdfs:label "task"@en ;
+    rdfs:domain :Execution ;
+    rdfs:subPropertyOf :proto_patient .
 
-:concealer a rdf:Property ;
-    rdfs:label "concealer"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :mover .
+:modulation a rdf:Property ;
+    rdfs:label "modulation"@en ;
+    rdfs:domain :Execution ;
+    rdfs:subPropertyOf :modifier .
 
-:concept a rdf:Property ;
-    rdfs:label "concept"@en ;
-    :usage :Typical ;
-    rdfs:domain :Cognition ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
+:phase a rdf:Property ;
+    rdfs:label "phase"@en ;
+    rdfs:domain :Execution ;
+    rdfs:subPropertyOf :modifier .
 
-:conclusion a rdf:Property ;
-    rdfs:label "conclusion"@en ;
-    :usage :Typical ;
-    rdfs:domain :Evaluation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :goal .
+## Causation Domain ##
+:cause a rdf:Property ;
+    rdfs:label "cause"@en ;
+    rdfs:domain :Causation ;
+    rdfs:subPropertyOf :proto_agent .
 
-:conduit a rdf:Property ;
-    rdfs:label "conduit"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :carrier .
-
-:container a rdf:Property ;
-    rdfs:label "container"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :phenomenon .
-
-:content a rdf:Property ;
-    rdfs:label "Content" .
-
-:controller a rdf:Property ;
-    rdfs:label "controller"@en ;
-    :usage :Typical ;
-    rdfs:domain :Control ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
-
-:conveyance a rdf:Property ;
-    rdfs:label "conveyance"@en ;
-    :usage :Optional ;
-    rdfs:domain :Motion ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :resource .
-
-:creator a rdf:Property ;
-    rdfs:label "creator"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :maker .
-
-:criterion a rdf:Property ;
-    rdfs:label "criterion"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :standard .
-
-:dealer a rdf:Property ;
-    rdfs:label "dealer"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :transactor .
-
-:decider a rdf:Property ;
-    rdfs:label "decider"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :evaluator .
-
-:decision a rdf:Property ;
-    rdfs:label "decision"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :conclusion .
-
-:defendee a rdf:Property ;
-    rdfs:label "defendee"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :target .
-
-:defender a rdf:Property ;
-    rdfs:label "defender"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :actor .
-
-:depriver a rdf:Property ;
-    rdfs:label "depriver"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :mover .
-
-:destination a rdf:Property ;
-    rdfs:label "destination"@en ;
-    :usage :Optional ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :orientation .
-
-:destroyer a rdf:Property ;
-    rdfs:label "destroyer"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :maker .
-
-:driver a rdf:Property ;
-    rdfs:label "driver"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :mover .
-
-:duration a rdf:Property ;
-    rdfs:label "duration"@en ;
-    :usage :Optional ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :time .
-
-:during a rdf:Property ;
-    rdfs:label "during"@en ;
-    :usage :Optional ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :order .
-
-:educator a rdf:Property ;
-    rdfs:label "educator"@en ;
-    :usage :Optional ;
-    rdfs:domain :Cognition ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
+:causee a rdf:Property ;
+    rdfs:label "causee"@en ;
+    rdfs:domain :Causation ;
+    rdfs:subPropertyOf :proto_patient .
 
 :effect a rdf:Property ;
     rdfs:label "effect"@en ;
-    :usage :Typical ;
     rdfs:domain :Causation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :goal .
+    rdfs:subPropertyOf :proto_goal .
 
-:employee a rdf:Property ;
-    rdfs:label "employee"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :participant .
+### SOCIAL REALM - BASIC ROLES (Ring 3) ###
 
-:employer a rdf:Property ;
-    rdfs:label "employer"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :affiliator .
+## Communication Domain ##
+:communicator a rdf:Property ;
+    rdfs:label "communicator"@en ;
+    rdfs:domain :Communication ;
+    rdfs:subPropertyOf :proto_agent .
 
-:end a rdf:Property ;
-    rdfs:label "end"@en ;
-    :usage :Optional ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :time .
+:medium a rdf:Property ;
+    rdfs:label "medium"@en ;
+    rdfs:domain :Communication ;
+    rdfs:subPropertyOf :proto_instrument .
 
-:engager a rdf:Property ;
-    rdfs:label "engager"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :participant .
+:message a rdf:Property ;
+    rdfs:label "message"@en ;
+    rdfs:domain :Communication ;
+    rdfs:subPropertyOf :proto_patient .
 
-:entity a rdf:Property ;
-    rdfs:label "entity"@en ;
-    :usage :Typical ;
-    rdfs:domain :Continuation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
+:addressee a rdf:Property ;
+    rdfs:label "addressee"@en ;
+    rdfs:domain :Communication ;
+    rdfs:subPropertyOf :proto_goal .
 
-:essence a rdf:Property ;
-    rdfs:label "Essence"@en ;
-    rdfs:subPropertyOf :proto-role .
-
-:evaluator a rdf:Property ;
-    rdfs:label "evaluator"@en ;
-    :usage :Typical ;
-    rdfs:domain :Evaluation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
-
-:event a rdf:Property ;
-    rdfs:label "event"@en ;
-    :usage :Typical ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:evidence a rdf:Property ;
-    rdfs:label "evidence"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :standard .
-
-:evokes a rdf:Property .
-
-:executor a rdf:Property ;
-    rdfs:label "executor"@en ;
-    :usage :Optional ;
-    rdfs:domain :Execution ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
-
-:expeller a rdf:Property ;
-    rdfs:label "expeller"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :affiliator .
-
-:experiencer a rdf:Property ;
-    rdfs:label "experiencer"@en ;
-    :usage :Typical ;
-    rdfs:domain :Experience ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:facilitator a rdf:Property ;
-    rdfs:label "facilitator"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :cause .
-
-:field a rdf:Property ;
-    rdfs:label "field"@en ;
-    :usage :Optional ;
-    rdfs:domain :Cognition ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:final_state a rdf:Property ;
-    rdfs:label "final state"@en ;
-    :usage :Optional ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :state .
-
-:focus a rdf:Property ;
-    rdfs:label "Focus" .
-
-:frequency a rdf:Property ;
-    rdfs:label "frequency"@en ;
-    :usage :Optional ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :time .
-
-:garment a rdf:Property ;
-    rdfs:label "garment"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :theme .
-
-:gatekeeper a rdf:Property ;
-    rdfs:label "gatekeeper"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :affiliator .
-
-:goal a rdf:Property ;
-    rdfs:label "Goal"@en ;
-    rdfs:subPropertyOf :proto-role .
-
-:governor a rdf:Property ;
-    rdfs:label "governor"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
-
-:guarantor a rdf:Property ;
-    rdfs:label "guarantor"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :actor .
-
-:implement a rdf:Property ;
-    rdfs:label "implement"@en ;
-    :usage :Optional ;
-    rdfs:domain :Action ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :resource .
-
-:impression a rdf:Property ;
-    rdfs:label "impression"@en ;
-    :usage :Typical ;
-    rdfs:domain :Memory ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:inducee a rdf:Property ;
-    rdfs:label "inducee"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :target .
-
-:inducer a rdf:Property ;
-    rdfs:label "inducer"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :actor .
-
-:industry a rdf:Property ;
-    rdfs:label "industry"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :institution .
-
-:initial_state a rdf:Property ;
-    rdfs:label "initial state"@en ;
-    :usage :Optional ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :state .
-
-:initiator a rdf:Property ;
-    rdfs:label "Initiator"@en ;
-    rdfs:subPropertyOf :proto-role .
-
-:instant a rdf:Property ;
-    rdfs:label "instant"@en ;
-    :usage :Optional ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :time .
-
-:institution a rdf:Property ;
-    rdfs:label "institution"@en ;
-    :usage :Optional ;
-    rdfs:domain :Affiliation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :goal .
-
-:instrument a rdf:Property ;
-    rdfs:label "instrument"@en ;
-    :usage :Optional ;
-    rdfs:domain :Creation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :resource .
-
-:intender a rdf:Property ;
-    rdfs:label "intender"@en ;
-    :usage :Typical ;
-    rdfs:domain :Volition ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
-
-:intent a rdf:Property ;
-    rdfs:label "intent"@en ;
-    :usage :Typical ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:interaction a rdf:Property ;
-    rdfs:label "interaction"@en ;
-    :usage :Optional ;
-    rdfs:domain :Interaction ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :goal .
-
-:interactor a rdf:Property ;
-    rdfs:label "interactor"@en ;
-    :usage :Typical ;
-    rdfs:domain :Interaction ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
-
-:issuer a rdf:Property ;
-    rdfs:label "issuer"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :transactor .
-
-:item a rdf:Property ;
-    rdfs:label "item"@en ;
-    :usage :Optional,
-        :Typical ;
-    rdfs:domain :Evaluation,
-        :Transaction ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence,
-        :phenomenon .
-
-:jurisdiction a rdf:Property ;
-    rdfs:label "jurisdiction"@en ;
-    :usage :Typical ;
-    rdfs:domain :Authority ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:knower a rdf:Property ;
-    rdfs:label "knower"@en ;
-    :usage :Typical ;
-    rdfs:domain :Knowledge ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:knowledge a rdf:Property ;
-    rdfs:label "knowledge"@en ;
-    :usage :Typical ;
-    rdfs:domain :Knowledge ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:landmark a rdf:Property ;
-    rdfs:label "landmark"@en ;
-    :usage :Typical ;
-    rdfs:domain :Location ;
-    rdfs:range :Entry ;
+:characterization a rdf:Property ;
+    rdfs:label "characterization"@en ;
+    rdfs:domain :Communication ;
     rdfs:subPropertyOf :modifier .
 
 :language a rdf:Property ;
     rdfs:label "language"@en ;
-    :usage :Optional ;
     rdfs:domain :Communication ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:lemma a rdf:Property ;
-    rdfs:label "lemma"@en ;
-    rdfs:comment "The base lexical form."@en .
-
-:location a rdf:Property ;
-    rdfs:label "location"@en ;
-    :usage :Optional ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :orientation .
-
-:maker a rdf:Property ;
-    rdfs:label "maker"@en ;
-    :usage :Typical ;
-    rdfs:domain :Creation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
-
-:maleficiary a rdf:Property ;
-    rdfs:label "maleficiary"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :affectee .
-
-:manner a rdf:Property ;
-    rdfs:label "manner"@en ;
-    :usage :Optional ;
-    rdfs:domain :Occurrence ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:material a rdf:Property ;
-    rdfs:label "material"@en ;
-    :usage :Optional ;
-    rdfs:domain :Creation ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:means a rdf:Property ;
-    rdfs:label "means"@en ;
-    :usage :Optional ;
-    rdfs:domain :Force ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :resource .
-
-:medium a rdf:Property ;
-    rdfs:label "medium"@en ;
-    :usage :Optional ;
-    rdfs:domain :Communication ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :resource .
-
-:member a rdf:Property ;
-    rdfs:label "member"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :participant .
-
-:message a rdf:Property ;
-    rdfs:label "message"@en ;
-    :usage :Typical ;
-    rdfs:domain :Communication ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:method a rdf:Property ;
-    rdfs:label "method"@en ;
-    :usage :Optional ;
-    rdfs:domain :Cognition ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :resource .
-
-:modality a rdf:Property ;
-    rdfs:label "modality"@en ;
-    :usage :Optional ;
-    rdfs:domain :Attitude ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:mode a rdf:Property ;
-    rdfs:label "mode"@en ;
-    :usage :Optional ;
-    rdfs:domain :Existence ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:modifier a rdf:Property ;
-    rdfs:label "Modifier"@en ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :proto-role .
-
-:modulation a rdf:Property ;
-    rdfs:label "modulation"@en ;
-    :usage :Optional ;
-    rdfs:domain :Execution ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:mover a rdf:Property ;
-    rdfs:label "mover"@en ;
-    :usage :Optional ;
-    rdfs:domain :Motion ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
-
-:multiplier a rdf:Property ;
-    rdfs:label "multiplier"@en ;
-    :usage :Typical ;
-    rdfs:domain :Evaluation ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:object a rdf:Property ;
-    rdfs:label "Object" .
-
-:occupation a rdf:Property ;
-    rdfs:label "occupation"@en ;
-    :usage :Optional ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :role .
-
-:opponent a rdf:Property ;
-    rdfs:label "opponent"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :adherent .
-
-:option a rdf:Property ;
-    rdfs:label "option"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :phenomenon .
-
-:order a rdf:Property ;
-    rdfs:label "Order" .
-
-:organization a rdf:Property ;
-    rdfs:label "organization"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :institution .
-
-:orientation a rdf:Property ;
-    rdfs:label "orientation"@en ;
-    :usage :Optional ;
-    rdfs:domain :Motion ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:origin a rdf:Property ;
-    rdfs:label "origin"@en ;
-    :usage :Optional ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :orientation .
-
-:participant a rdf:Property ;
-    rdfs:label "participant"@en ;
-    :usage :Typical ;
-    rdfs:domain :Affiliation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:passenger a rdf:Property ;
-    rdfs:label "passenger"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :theme .
-
-:perceiver a rdf:Property ;
-    rdfs:label "perceiver"@en ;
-    :usage :Typical ;
-    rdfs:domain :Perception ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
-
-:percept a rdf:Property ;
-    rdfs:label "percept"@en ;
-    :usage :Typical ;
-    rdfs:domain :Perception ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:phase a rdf:Property ;
-    rdfs:label "pe"@en ;
-    :usage :Optional ;
-    rdfs:domain :Execution ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:phenomenon a rdf:Property ;
-    rdfs:label "phenomenon"@en ;
-    :usage :Typical ;
-    rdfs:domain :Evaluation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:polarity a rdf:Property ;
-    rdfs:label "polarity"@en ;
-    :usage :Optional ;
-    rdfs:domain :Attitude ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:possession a rdf:Property ;
-    rdfs:label "possession"@en ;
-    :usage :Typical ;
-    rdfs:domain :Possession ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:possessor a rdf:Property ;
-    rdfs:label "possessor"@en ;
-    :usage :Typical ;
-    rdfs:domain :Possession ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:present3sg a rdf:Property ;
-    rdfs:label "present3sg"@en .
-
-:preventer a rdf:Property ;
-    rdfs:label "preventer"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :cause .
-
-:product a rdf:Property ;
-    rdfs:label "product"@en ;
-    :usage :Optional ;
-    rdfs:domain :Creation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :goal .
-
-:proponent a rdf:Property ;
-    rdfs:label "proponent"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :adherent .
-
-:proposition a rdf:Property ;
-    rdfs:label "proposition"@en ;
-    :usage :Typical ;
-    rdfs:domain :Attitude ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:proto-role a rdf:Property ;
-    rdfs:label "Proto-role"@en .
-
-:provider a rdf:Property ;
-    rdfs:label "provider"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :mover .
-
-:qualifier a rdf:Property ;
-    rdfs:label "qualifier"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :evaluator .
-
-:quality a rdf:Property ;
-    rdfs:label "quality"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :conclusion .
-
-:quantifier a rdf:Property ;
-    rdfs:label "quantifier"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :evaluator .
-
-:quantity a rdf:Property ;
-    rdfs:label "quantity"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :conclusion .
-
-:reaction a rdf:Property ;
-    rdfs:label "reaction"@en ;
-    :usage :Optional ;
-    rdfs:domain :Affect ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :goal .
-
-:recipient a rdf:Property ;
-    rdfs:label "recipient"@en ;
-    :usage :Optional ;
-    rdfs:domain :Transaction ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :goal .
-
-:reciprocator a rdf:Property ;
-    rdfs:label "reciprocator"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :interactor .
-
-:refrainer a rdf:Property ;
-    rdfs:label "refrainer"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :participant .
-
-:regulation a rdf:Property ;
-    rdfs:label "regulation"@en ;
-    :usage :Typical ;
-    rdfs:domain :Control ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :goal .
-
-:relation a rdf:Property ;
-    rdfs:label "relation"@en ;
-    :usage :Optional ;
-    rdfs:domain :Kinship ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:relative a rdf:Property ;
-    rdfs:label "relative"@en ;
-    :usage :Typical ;
-    rdfs:domain :Kinship ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:remover a rdf:Property ;
-    rdfs:label "remover"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :mover .
-
-:requestee a rdf:Property ;
-    rdfs:label "requestee"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :addressee .
-
-:requester a rdf:Property ;
-    rdfs:label "requester"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :communicator .
-
-:requirement a rdf:Property ;
-    rdfs:label "requirement"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :standard .
-
-:resource a rdf:Property ;
-    rdfs:label "Resource"@en ;
-    rdfs:subPropertyOf :proto-role .
-
-:responder a rdf:Property ;
-    rdfs:label "responder"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :communicator .
-
-:response a rdf:Property ;
-    rdfs:label "response"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :message .
-
-:result a rdf:Property .
-
-:revealer a rdf:Property ;
-    rdfs:label "revealer"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :mover .
-
-:rite a rdf:Property ;
-    rdfs:label "rite"@en ;
-    :usage :Optional ;
-    rdfs:domain :Affiliation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :resource .
-
-:role a rdf:Property ;
-    rdfs:label "role"@en ;
-    :usage :Optional ;
-    rdfs:domain :Affiliation ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :modifier .
-
-:rule a rdf:Property ;
-    rdfs:label "Rule" .
-
-:ruler a rdf:Property ;
-    rdfs:label "ruler"@en ;
-    :usage :Typical ;
-    rdfs:domain :Authority ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:seller a rdf:Property ;
-    rdfs:label "seller"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :transactor .
-
-:semantic_domain a rdf:Property .
-
-:sense a rdf:Property ;
-    rdfs:label "Sense" .
-
-:sentiment a rdf:Property ;
-    rdfs:label "sentiment"@en ;
-    :usage :Typical ;
-    rdfs:domain :Evaluation ;
-    rdfs:range :Entry ;
     rdfs:subPropertyOf :modifier .
 
 :signal a rdf:Property ;
-    rdfs:label "Signal" .
-
-:situation a rdf:Property ;
-    rdfs:label "situation"@en ;
-    :usage :Typical ;
-    rdfs:domain :Occurrence ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:source a rdf:Property .
-
-:speaker a rdf:Property ;
-    rdfs:label "speaker"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :communicator .
-
-:standard a rdf:Property ;
-    rdfs:label "standard"@en ;
-    :usage :Optional ;
-    rdfs:domain :Evaluation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :resource .
-
-:state a rdf:Property ;
-    rdfs:label "State" .
-
-:stimulus a rdf:Property ;
-    rdfs:label "stimulus"@en ;
-    :usage :Typical ;
-    rdfs:domain :Experience ;
-    rdfs:range :Entry ;
+    rdfs:label "signal"@en ;
+    rdfs:domain :Communication ;
     rdfs:subPropertyOf :modifier .
-
-:stratagem a rdf:Property ;
-    rdfs:label "stratagem"@en ;
-    :usage :Optional ;
-    rdfs:domain :Volition ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :resource .
-
-:student a rdf:Property ;
-    rdfs:label "student"@en ;
-    :usage :Typical ;
-    rdfs:domain :Cognition ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :goal .
-
-:subordinate a rdf:Property ;
-    rdfs:label "subordinate"@en ;
-    :usage :Typical ;
-    rdfs:domain :Control,
-        :Governance ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:synset a rdf:Property ;
-    rdfs:label "synset"@en ;
-    rdfs:comment "The concept that can be expressed using multiple lexical forms."@en .
-
-:target a rdf:Property .
-
-:task a rdf:Property ;
-    rdfs:label "task"@en ;
-    :usage :Optional,
-        :Typical ;
-    rdfs:domain :Affiliation,
-        :Execution ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :essence,
-        :role .
-
-:theme a rdf:Property ;
-    rdfs:label "theme"@en ;
-    :usage :Typical ;
-    rdfs:domain :Motion ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
-
-:time a rdf:Property ;
-    rdfs:label "Time" .
 
 :topic a rdf:Property ;
     rdfs:label "topic"@en ;
-    :usage :Optional ;
     rdfs:domain :Communication ;
-    rdfs:range :Entry ;
     rdfs:subPropertyOf :modifier .
 
-:trajector a rdf:Property ;
-    rdfs:label "trajector"@en ;
-    :usage :Typical ;
-    rdfs:domain :Location ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
+## Information Domain ##
+:content a rdf:Property ;
+    rdfs:label "content"@en ;
+    rdfs:domain :Information ;
+    rdfs:subPropertyOf :proto_patient .
 
-:trajectory a rdf:Property ;
-    rdfs:label "trajectory"@en ;
-    :usage :Optional ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :orientation .
+:source a rdf:Property ;
+    rdfs:label "source"@en ;
+    rdfs:domain :Information ;
+    rdfs:subPropertyOf :modifier .
 
+## Transaction Domain ##
 :transactor a rdf:Property ;
     rdfs:label "transactor"@en ;
-    :usage :Optional ;
     rdfs:domain :Transaction ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
+    rdfs:subPropertyOf :proto_agent .
 
-:transformer a rdf:Property ;
-    rdfs:label "transformer"@en ;
-    :usage :Optional ;
-    rdfs:domain :Transformation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :initiator .
+:asset a rdf:Property ;
+    rdfs:label "asset"@en ;
+    rdfs:domain :Transaction ;
+    rdfs:subPropertyOf :proto_instrument .
 
-:undergoer a rdf:Property ;
-    rdfs:label "undergoer"@en ;
-    :usage :Typical ;
-    rdfs:domain :Transformation ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
+:item a rdf:Property ;
+    rdfs:label "item"@en ;
+    rdfs:domain :Transaction ;
+    rdfs:subPropertyOf :proto_patient .
 
-:unit a rdf:Property ;
-    rdfs:label "unit"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :standard .
+:recipient a rdf:Property ;
+    rdfs:label "recipient"@en ;
+    rdfs:domain :Transaction ;
+    rdfs:subPropertyOf :proto_goal .
 
-:utterance a rdf:Property ;
-    rdfs:label "utterance"@en ;
-    :usage :Optional ;
-    rdfs:range :Entry ;
-    rdfs:subPropertyOf :source .
+## Possession Domain ##
+:possessor a rdf:Property ;
+    rdfs:label "possessor"@en ;
+    rdfs:domain :Possession ;
+    rdfs:subPropertyOf :proto_patient .
 
-:value a rdf:Property .
+:possession a rdf:Property ;
+    rdfs:label "possession"@en ;
+    rdfs:domain :Possession ;
+    rdfs:subPropertyOf :modifier .
 
-:vehicle a rdf:Property ;
-    rdfs:label "vehicle"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :carrier .
+## Action Domain ##
+:actor a rdf:Property ;
+    rdfs:label "actor"@en ;
+    rdfs:domain :Action ;
+    rdfs:subPropertyOf :proto_agent .
 
-:victim a rdf:Property ;
-    rdfs:label "victim"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :target .
+:implement a rdf:Property ;
+    rdfs:label "implement"@en ;
+    rdfs:domain :Action ;
+    rdfs:subPropertyOf :proto_instrument .
 
-:vn_class a rdf:Property ;
-    rdfs:range :Verb_Net_Class .
+:target a rdf:Property ;
+    rdfs:label "target"@en ;
+    rdfs:domain :Action ;
+    rdfs:subPropertyOf :proto_patient .
 
-:weapon a rdf:Property ;
-    rdfs:label "weapon"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :implement .
+:action a rdf:Property ;
+    rdfs:label "action"@en ;
+    rdfs:domain :Action ;
+    rdfs:subPropertyOf :proto_goal .
+
+## Interaction Domain ##
+:interactor a rdf:Property ;
+    rdfs:label "interactor"@en ;
+    rdfs:domain :Interaction ;
+    rdfs:subPropertyOf :proto_agent .
+
+:interaction a rdf:Property ;
+    rdfs:label "interaction"@en ;
+    rdfs:domain :Interaction ;
+    rdfs:subPropertyOf :proto_goal .
+
+## Control Domain ##
+:controller a rdf:Property ;
+    rdfs:label "controller"@en ;
+    rdfs:domain :Control ;
+    rdfs:subPropertyOf :proto_agent .
+
+:rule a rdf:Property ;
+    rdfs:label "rule"@en ;
+    rdfs:domain :Control ;
+    rdfs:subPropertyOf :proto_instrument .
+
+:subordinate a rdf:Property ;
+    rdfs:label "subordinate"@en ;
+    rdfs:domain :Control ;
+    rdfs:subPropertyOf :proto_patient .
+
+:regulation a rdf:Property ;
+    rdfs:label "regulation"@en ;
+    rdfs:domain :Control ;
+    rdfs:subPropertyOf :proto_goal .
+
+## Authority Domain ##
+:ruler a rdf:Property ;
+    rdfs:label "ruler"@en ;
+    rdfs:domain :Authority ;
+    rdfs:subPropertyOf :proto_patient .
+
+:jurisdiction a rdf:Property ;
+    rdfs:label "jurisdiction"@en ;
+    rdfs:domain :Authority ;
+    rdfs:subPropertyOf :modifier .
+
+## Affiliation Domain ##
+:affiliator a rdf:Property ;
+    rdfs:label "affiliator"@en ;
+    rdfs:domain :Affiliation ;
+    rdfs:subPropertyOf :proto_agent .
+
+:rite a rdf:Property ;
+    rdfs:label "rite"@en ;
+    rdfs:domain :Affiliation ;
+    rdfs:subPropertyOf :proto_instrument .
+
+:participant a rdf:Property ;
+    rdfs:label "participant"@en ;
+    rdfs:domain :Affiliation ;
+    rdfs:subPropertyOf :proto_patient .
+
+:institution a rdf:Property ;
+    rdfs:label "institution"@en ;
+    rdfs:domain :Affiliation ;
+    rdfs:subPropertyOf :proto_goal .
+
+:role a rdf:Property ;
+    rdfs:label "role"@en ;
+    rdfs:domain :Affiliation ;
+    rdfs:subPropertyOf :modifier .
+
+## Kinship Domain ##
+:relative a rdf:Property ;
+    rdfs:label "relative"@en ;
+    rdfs:domain :Kinship ;
+    rdfs:subPropertyOf :proto_patient .
+
+:relation a rdf:Property ;
+    rdfs:label "relation"@en ;
+    rdfs:domain :Kinship ;
+    rdfs:subPropertyOf :modifier .
+
+### Extended Roles (Ring 4) ###
+
+## Creation - Extended ##
+:creator a rdf:Property ;
+    rdfs:label "creator"@en ;
+    rdfs:domain :Creation ;
+
+    rdfs:subPropertyOf :maker .
+
+:destroyer a rdf:Property ;
+    rdfs:label "destroyer"@en ;
+    rdfs:domain :Creation ;
+
+    rdfs:subPropertyOf :maker .
+
+## Motion - Extended ##
+:driver a rdf:Property ;
+    rdfs:label "driver"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :mover .
+
+:applier a rdf:Property ;
+    rdfs:label "applier"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :mover .
+
+:remover a rdf:Property ;
+    rdfs:label "remover"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :mover .
+
+:provider a rdf:Property ;
+    rdfs:label "provider"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :mover .
+
+:depriver a rdf:Property ;
+    rdfs:label "depriver"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :mover .
+
+:concealer a rdf:Property ;
+    rdfs:label "concealer"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :mover .
+
+:revealer a rdf:Property ;
+    rdfs:label "revealer"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :mover .
+
+:bearer a rdf:Property ;
+    rdfs:label "bearer"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :conveyance .
 
 :wearer a rdf:Property ;
     rdfs:label "wearer"@en ;
-    :usage :Optional ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :carrier .
+    rdfs:domain :Motion ;
 
-:wish a rdf:Property ;
-    rdfs:label "Wish" .
+    rdfs:subPropertyOf :conveyance .
 
-:wisher a rdf:Property ;
-    rdfs:label "wisher"@en ;
-    :usage :Typical ;
-    rdfs:domain :Desire ;
-    rdfs:range :Entity ;
-    rdfs:subPropertyOf :essence .
+:conduit a rdf:Property ;
+    rdfs:label "conduit"@en ;
+    rdfs:domain :Motion ;
 
-:witness a rdf:Property ;
-    rdfs:label "Witness" .
+    rdfs:subPropertyOf :conveyance .
 
-:work a rdf:Property .
+:vehicle a rdf:Property ;
+    rdfs:label "vehicle"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :conveyance .
+
+:cargo a rdf:Property ;
+    rdfs:label "cargo"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :theme .
+
+:garment a rdf:Property ;
+    rdfs:label "garment"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :theme .
+
+:passenger a rdf:Property ;
+    rdfs:label "passenger"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :theme .
+
+:origin a rdf:Property ;
+    rdfs:label "origin"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :orientation .
+
+:trajectory a rdf:Property ;
+    rdfs:label "trajectory"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :orientation .
+
+:location a rdf:Property ;
+    rdfs:label "location"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :orientation .
+
+:destination a rdf:Property ;
+    rdfs:label "destination"@en ;
+    rdfs:domain :Motion ;
+
+    rdfs:subPropertyOf :orientation .
+
+## Occurrence - Extended ##
+:start a rdf:Property ;
+    rdfs:label "start"@en ;
+    rdfs:domain :Occurrence ;
+
+    rdfs:subPropertyOf :time .
+
+:duration a rdf:Property ;
+    rdfs:label "duration"@en ;
+    rdfs:domain :Occurrence ;
+
+    rdfs:subPropertyOf :time .
+
+:frequency a rdf:Property ;
+    rdfs:label "frequency"@en ;
+    rdfs:domain :Occurrence ;
+
+    rdfs:subPropertyOf :time .
+
+:instant a rdf:Property ;
+    rdfs:label "instant"@en ;
+    rdfs:domain :Occurrence ;
+
+    rdfs:subPropertyOf :time .
+
+:end a rdf:Property ;
+    rdfs:label "end"@en ;
+    rdfs:domain :Occurrence ;
+
+    rdfs:subPropertyOf :time .
+
+:before a rdf:Property ;
+    rdfs:label "before"@en ;
+    rdfs:domain :Occurrence ;
+
+    rdfs:subPropertyOf :order .
+
+:during a rdf:Property ;
+    rdfs:label "during"@en ;
+    rdfs:domain :Occurrence ;
+
+    rdfs:subPropertyOf :order .
+
+## Continuation - Extended ##
+:initial_state a rdf:Property ;
+    rdfs:label "initial state"@en ;
+    rdfs:domain :Continuation ;
+
+    rdfs:subPropertyOf :state .
+
+:final_state a rdf:Property ;
+    rdfs:label "final state"@en ;
+    rdfs:domain :Continuation ;
+
+    rdfs:subPropertyOf :state .
+
+## Affect - Extended ##
+:harmer a rdf:Property ;
+    rdfs:label "harmer"@en ;
+    rdfs:domain :Affect ;
+
+    rdfs:subPropertyOf :affecter .
+
+:helper a rdf:Property ;
+    rdfs:label "helper"@en ;
+    rdfs:domain :Affect ;
+
+    rdfs:subPropertyOf :affecter .
+
+:beneficiary a rdf:Property ;
+    rdfs:label "beneficiary"@en ;
+    rdfs:domain :Affect ;
+
+    rdfs:subPropertyOf :affectee .
+
+:maleficiary a rdf:Property ;
+    rdfs:label "maleficiary"@en ;
+    rdfs:domain :Affect ;
+
+    rdfs:subPropertyOf :affectee .
+
+## Volition - Extended ##
+:avoider a rdf:Property ;
+    rdfs:label "avoider"@en ;
+    rdfs:domain :Volition ;
+
+    rdfs:subPropertyOf :intender .
+
+:dedicator a rdf:Property ;
+    rdfs:label "dedicator"@en ;
+    rdfs:domain :Volition ;
+
+    rdfs:subPropertyOf :intender .
+
+:pursuer a rdf:Property ;
+    rdfs:label "pursuer"@en ;
+    rdfs:domain :Volition ;
+
+    rdfs:subPropertyOf :intender .
+
+## Evaluation - Extended ##
+:associator a rdf:Property ;
+    rdfs:label "associator"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :evaluator .
+
+:decider a rdf:Property ;
+    rdfs:label "decider"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :evaluator .
+
+:qualifier a rdf:Property ;
+    rdfs:label "qualifier"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :evaluator .
+
+:quantifier a rdf:Property ;
+    rdfs:label "quantifier"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :evaluator .
+
+:basis a rdf:Property ;
+    rdfs:label "basis"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :standard .
+
+:criterion a rdf:Property ;
+    rdfs:label "criterion"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :standard .
+
+:evidence a rdf:Property ;
+    rdfs:label "evidence"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :standard .
+
+:requirement a rdf:Property ;
+    rdfs:label "requirement"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :standard .
+
+:unit a rdf:Property ;
+    rdfs:label "unit"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :standard .
+
+:analogue a rdf:Property ;
+    rdfs:label "analogue"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :phenomenon .
+
+:candidate a rdf:Property ;
+    rdfs:label "candidate"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :phenomenon .
+
+:container a rdf:Property ;
+    rdfs:label "container"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :phenomenon .
+
+:option a rdf:Property ;
+    rdfs:label "option"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :phenomenon .
+
+:decision a rdf:Property ;
+    rdfs:label "decision"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :conclusion .
+
+:quality a rdf:Property ;
+    rdfs:label "quality"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :conclusion .
+
+:quantity a rdf:Property ;
+    rdfs:label "quantity"@en ;
+    rdfs:domain :Evaluation ;
+
+    rdfs:subPropertyOf :conclusion .
+
+## Attitude - Extended ##
+:proponent a rdf:Property ;
+    rdfs:label "proponent"@en ;
+    rdfs:domain :Attitude ;
+
+    rdfs:subPropertyOf :adherent .
+
+:opponent a rdf:Property ;
+    rdfs:label "opponent"@en ;
+    rdfs:domain :Attitude ;
+
+    rdfs:subPropertyOf :adherent .
+
+## Causation - Extended ##
+:facilitator a rdf:Property ;
+    rdfs:label "facilitator"@en ;
+    rdfs:domain :Causation ;
+
+    rdfs:subPropertyOf :cause .
+
+:preventer a rdf:Property ;
+    rdfs:label "preventer"@en ;
+    rdfs:domain :Causation ;
+
+    rdfs:subPropertyOf :cause .
+
+## Communication - Extended ##
+:adviser a rdf:Property ;
+    rdfs:label "adviser"@en ;
+    rdfs:domain :Communication ;
+
+    rdfs:subPropertyOf :communicator .
+
+:speaker a rdf:Property ;
+    rdfs:label "speaker"@en ;
+    rdfs:domain :Communication ;
+
+    rdfs:subPropertyOf :communicator .
+
+:requester a rdf:Property ;
+    rdfs:label "requester"@en ;
+    rdfs:domain :Communication ;
+
+    rdfs:subPropertyOf :communicator .
+
+:responder a rdf:Property ;
+    rdfs:label "responder"@en ;
+    rdfs:domain :Communication ;
+
+    rdfs:subPropertyOf :communicator .
+
+:announcer a rdf:Property ;
+    rdfs:label "announcer"@en ;
+    rdfs:domain :Communication ;
+
+    rdfs:subPropertyOf :communicator .
+
+:advice a rdf:Property ;
+    rdfs:label "advice"@en ;
+    rdfs:domain :Communication ;
+
+    rdfs:subPropertyOf :message .
+
+:request a rdf:Property ;
+    rdfs:label "request"@en ;
+    rdfs:domain :Communication ;
+
+    rdfs:subPropertyOf :message .
+
+:response a rdf:Property ;
+    rdfs:label "response"@en ;
+    rdfs:domain :Communication ;
+
+    rdfs:subPropertyOf :message .
+
+:announcement a rdf:Property ;
+    rdfs:label "announcement"@en ;
+    rdfs:domain :Communication ;
+
+    rdfs:subPropertyOf :message .
+
+:advisee a rdf:Property ;
+    rdfs:label "advisee"@en ;
+    rdfs:domain :Communication ;
+
+    rdfs:subPropertyOf :addressee .
+
+:requestee a rdf:Property ;
+    rdfs:label "requestee"@en ;
+    rdfs:domain :Communication ;
+
+    rdfs:subPropertyOf :addressee .
+
+## Information - Extended ##
+:utterance a rdf:Property ;
+    rdfs:label "utterance"@en ;
+    rdfs:domain :Information ;
+
+    rdfs:subPropertyOf :source .
+
+:document a rdf:Property ;
+    rdfs:label "document"@en ;
+    rdfs:domain :Information ;
+
+    rdfs:subPropertyOf :source .
+
+## Transaction - Extended ##
+:issuer a rdf:Property ;
+    rdfs:label "issuer"@en ;
+    rdfs:domain :Transaction ;
+
+    rdfs:subPropertyOf :transactor .
+
+:buyer a rdf:Property ;
+    rdfs:label "buyer"@en ;
+    rdfs:domain :Transaction ;
+
+    rdfs:subPropertyOf :transactor .
+
+:seller a rdf:Property ;
+    rdfs:label "seller"@en ;
+    rdfs:domain :Transaction ;
+
+    rdfs:subPropertyOf :transactor .
+
+:dealer a rdf:Property ;
+    rdfs:label "dealer"@en ;
+    rdfs:domain :Transaction ;
+
+    rdfs:subPropertyOf :transactor .
+
+:acquirer a rdf:Property ;
+    rdfs:label "acquirer"@en ;
+    rdfs:domain :Transaction ;
+
+    rdfs:subPropertyOf :transactor .
+
+:acquisition a rdf:Property ;
+    rdfs:label "acquisition"@en ;
+    rdfs:domain :Transaction ;
+
+    rdfs:subPropertyOf :item .
+
+## Action - Extended ##
+:attacker a rdf:Property ;
+    rdfs:label "attacker"@en ;
+    rdfs:domain :Action ;
+
+    rdfs:subPropertyOf :actor .
+
+:defender a rdf:Property ;
+    rdfs:label "defender"@en ;
+    rdfs:domain :Action ;
+
+    rdfs:subPropertyOf :actor .
+
+:guarantor a rdf:Property ;
+    rdfs:label "guarantor"@en ;
+    rdfs:domain :Action ;
+
+    rdfs:subPropertyOf :actor .
+
+:barrier a rdf:Property ;
+    rdfs:label "barrier"@en ;
+    rdfs:domain :Action ;
+
+    rdfs:subPropertyOf :implement .
+
+:weapon a rdf:Property ;
+    rdfs:label "weapon"@en ;
+    rdfs:domain :Action ;
+
+    rdfs:subPropertyOf :implement .
+
+:defendee a rdf:Property ;
+    rdfs:label "defendee"@en ;
+    rdfs:domain :Action ;
+
+    rdfs:subPropertyOf :target .
+
+:victim a rdf:Property ;
+    rdfs:label "victim"@en ;
+    rdfs:domain :Action ;
+
+    rdfs:subPropertyOf :target .
+
+:inducee a rdf:Property ;
+    rdfs:label "inducee"@en ;
+    rdfs:domain :Action ;
+
+    rdfs:subPropertyOf :target .
+
+## Interaction - Extended ##
+:reciprocator a rdf:Property ;
+    rdfs:label "reciprocator"@en ;
+    rdfs:domain :Interaction ;
+
+    rdfs:subPropertyOf :interactor .
+
+:collaborator a rdf:Property ;
+    rdfs:label "collaborator"@en ;
+    rdfs:domain :Interaction ;
+
+    rdfs:subPropertyOf :interactor .
+
+## Control - Extended ##
+:enforcer a rdf:Property ;
+    rdfs:label "enforcer"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :controller .
+
+:governor a rdf:Property ;
+    rdfs:label "governor"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :controller .
+
+:inducer a rdf:Property ;
+    rdfs:label "inducer"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :controller .
+
+:liberator a rdf:Property ;
+    rdfs:label "liberator"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :controller .
+
+:limiter a rdf:Property ;
+    rdfs:label "limiter"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :controller .
+
+:obligor a rdf:Property ;
+    rdfs:label "obligor"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :controller .
+
+:permitter a rdf:Property ;
+    rdfs:label "permitter"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :controller .
+
+:prohibitor a rdf:Property ;
+    rdfs:label "prohibitor"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :controller .
+
+:captive a rdf:Property ;
+    rdfs:label "captive"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :subordinate .
+
+:limitee a rdf:Property ;
+    rdfs:label "limitee"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :subordinate .
+
+:obligee a rdf:Property ;
+    rdfs:label "obligee"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :subordinate .
+
+:permittee a rdf:Property ;
+    rdfs:label "permittee"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :subordinate .
+
+:prohibitee a rdf:Property ;
+    rdfs:label "prohibitee"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :subordinate .
+
+:compliance a rdf:Property ;
+    rdfs:label "compliance"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :regulation .
+
+:constraint a rdf:Property ;
+    rdfs:label "constraint"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :regulation .
+
+:obligation a rdf:Property ;
+    rdfs:label "obligation"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :regulation .
+
+:permission a rdf:Property ;
+    rdfs:label "permission"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :regulation .
+
+:prohibition a rdf:Property ;
+    rdfs:label "prohibition"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :regulation .
+
+:scope a rdf:Property ;
+    rdfs:label "scope"@en ;
+    rdfs:domain :Control ;
+
+    rdfs:subPropertyOf :regulation .
+
+## Affiliation - Extended ##
+:gatekeeper a rdf:Property ;
+    rdfs:label "gatekeeper"@en ;
+    rdfs:domain :Affiliation ;
+
+    rdfs:subPropertyOf :affiliator .
+
+:employer a rdf:Property ;
+    rdfs:label "employer"@en ;
+    rdfs:domain :Affiliation ;
+
+    rdfs:subPropertyOf :affiliator .
+
+:expeller a rdf:Property ;
+    rdfs:label "expeller"@en ;
+    rdfs:domain :Affiliation ;
+
+    rdfs:subPropertyOf :affiliator .
+
+:member a rdf:Property ;
+    rdfs:label "member"@en ;
+    rdfs:domain :Affiliation ;
+
+    rdfs:subPropertyOf :participant .
+
+:employee a rdf:Property ;
+    rdfs:label "employee"@en ;
+    rdfs:domain :Affiliation ;
+
+    rdfs:subPropertyOf :participant .
+
+:engager a rdf:Property ;
+    rdfs:label "engager"@en ;
+    rdfs:domain :Affiliation ;
+
+    rdfs:subPropertyOf :participant .
+
+:refrainer a rdf:Property ;
+    rdfs:label "refrainer"@en ;
+    rdfs:domain :Affiliation ;
+
+    rdfs:subPropertyOf :participant .
+
+:industry a rdf:Property ;
+    rdfs:label "industry"@en ;
+    rdfs:domain :Affiliation ;
+
+    rdfs:subPropertyOf :institution .
+
+:organization a rdf:Property ;
+    rdfs:label "organization"@en ;
+    rdfs:domain :Affiliation ;
+
+    rdfs:subPropertyOf :institution .
+
+:occupation a rdf:Property ;
+    rdfs:label "occupation"@en ;
+    rdfs:domain :Affiliation ;
+
+    rdfs:subPropertyOf :role .
+
+:rank a rdf:Property ;
+    rdfs:label "rank"@en ;
+    rdfs:domain :Affiliation ;
+
+    rdfs:subPropertyOf :role .
+
 
 ### SHAPES (112) ###
 
