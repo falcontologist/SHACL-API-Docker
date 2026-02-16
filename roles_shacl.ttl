@@ -1123,14 +1123,14 @@ WHERE {
 :Governance_Shape a sh:NodeShape ;
     rdfs:label "Form for Governance"@en ;
     sh:property [ sh:class :Entity ;
-            sh:name "rule"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :rule ],
-        [ sh:class :Entity ;
             sh:minCount 1 ;
             sh:name "subordinate"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :subordinate ] ;
+            sh:path :subordinate ],
+        [ sh:class :Entity ;
+            sh:name "rule"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :rule ] ;
     sh:targetClass :Governance .
 
 :Incremental_Shape a sh:NodeShape ;
@@ -29793,6 +29793,8 @@ WHERE {
     :identifier "agree.v.02" ;
     :lexical_resource "WordNet" .
 
+:aim rdfs:label "Aim" .
+
 :air.v.05 a :Synset ;
     rdfs:label "air.v.05 (synset)" ;
     :evokes :Basic_Change_of_State_shape ;
@@ -30296,6 +30298,8 @@ WHERE {
     :gloss "be present at (meetings, church services, university), etc." ;
     :identifier "attend.v.01" ;
     :lexical_resource "WordNet" .
+
+:attender rdfs:label "Attender" .
 
 :attenuate.v.02 a :Synset ;
     rdfs:label "attenuate.v.02 (synset)" ;
@@ -33583,6 +33587,8 @@ WHERE {
     :gloss "be engaged in a fight; carry on a fight" ;
     :identifier "contend.v.06" ;
     :lexical_resource "WordNet" .
+
+:content rdfs:label "Content" .
 
 :content.v.02 a :Synset ;
     rdfs:label "content.v.02 (synset)" ;
@@ -37756,6 +37762,8 @@ WHERE {
     :gloss "become bubbly or frothy or foaming" ;
     :identifier "foam.v.01" ;
     :lexical_resource "WordNet" .
+
+:focus rdfs:label "Focus" .
 
 :fold.v.01 a :Synset ;
     rdfs:label "fold.v.01 (synset)" ;
@@ -42194,6 +42202,8 @@ WHERE {
     :identifier "nuzzle.v.02" ;
     :lexical_resource "WordNet" .
 
+:object rdfs:label "Object" .
+
 :object.v.01 a :Synset ;
     rdfs:label "object.v.01 (synset)" ;
     :evokes :Statement_shape ;
@@ -46599,6 +46609,8 @@ WHERE {
     :gloss "transfer" ;
     :identifier "send.v.06" ;
     :lexical_resource "WordNet" .
+
+:sense rdfs:label "Sense" .
 
 :sentiment a rdf:Property ;
     rdfs:label "sentiment"@en ;
@@ -52240,6 +52252,8 @@ WHERE {
     :identifier "wiretap.v.01" ;
     :lexical_resource "WordNet" .
 
+:wish rdfs:label "Wish" .
+
 :wish.v.02 a :Synset ;
     rdfs:label "wish.v.02 (synset)" ;
     :evokes :Search_shape ;
@@ -52260,6 +52274,8 @@ WHERE {
     :gloss "retain and refrain from disbursing; of payments" ;
     :identifier "withhold.v.02" ;
     :lexical_resource "WordNet" .
+
+:witness rdfs:label "Witness" .
 
 :witness.v.01 a :Synset ;
     rdfs:label "witness.v.01 (synset)" ;
@@ -56222,6 +56238,8 @@ WHERE {
     :identifier "rub.v.03" ;
     :lexical_resource "WordNet" .
 
+:rule rdfs:label "Rule" .
+
 :rule.v.02 a :Synset ;
     rdfs:label "rule.v.02 (synset)" ;
     :evokes :Statement_shape ;
@@ -56528,6 +56546,8 @@ WHERE {
     :gloss "communicate silently and non-verbally by signals or signs" ;
     :identifier "sign.v.05" ;
     :lexical_resource "WordNet" .
+
+:signal rdfs:label "Signal" .
 
 :skewer.v.01 a :Synset ;
     rdfs:label "skewer.v.01 (synset)" ;
@@ -58548,6 +58568,8 @@ WHERE {
     :identifier "murder.v.01" ;
     :lexical_resource "WordNet" .
 
+:order rdfs:label "Order" .
+
 :outwit.v.01 a :Synset ;
     rdfs:label "outwit.v.01 (synset)" ;
     :evokes :Require_and_Satisfy_shape ;
@@ -58958,6 +58980,8 @@ WHERE {
     :gloss "walk as if unable to control one's movements" ;
     :identifier "stagger.v.01" ;
     :lexical_resource "WordNet" .
+
+:state rdfs:label "State" .
 
 :state.v.01 a :Synset ;
     rdfs:label "state.v.01 (synset)" ;
@@ -60238,6 +60262,8 @@ WHERE {
     rdfs:domain :Motion ;
     rdfs:range :Entity ;
     rdfs:subPropertyOf :essence .
+
+:time rdfs:label "Time" .
 
 :visualize.v.01 a :Synset ;
     rdfs:label "visualize.v.01 (synset)" ;
