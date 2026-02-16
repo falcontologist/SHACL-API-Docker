@@ -177,7 +177,11 @@ public class App {
      */
     private static void getStats(Context ctx) {
         long shapeCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).toList().size();
-        long roleCount  = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.PropertyShape).toList().size();
+        
+        // FIXED: Count Roles by listing objects of sh:property.
+        // This catches property shapes even if they are blank nodes without an explicit type definition.
+        long roleCount = SHAPES_GRAPH.listObjectsOfProperty(SH.property).toList().size();
+        
         long ruleCount  = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.SPARQLRule).toList().size();
         
         long lemmaCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SHAPES_GRAPH.createResource(ONT_NS + "Lemma")).toList().size();
