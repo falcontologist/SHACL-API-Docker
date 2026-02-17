@@ -86,24 +86,25 @@
                         <span class="required-note">* required</span>
                     </div>
                     <div class="form-container" id="dynamicForm"></div>
-                    
-                    <div class="action-bar" id="actionBar">
-                        <div class="action-grid">
-                            <button id="addEntryBtn" class="btn-success">Add Entry</button>
-                            <button id="inferBtn" class="btn-infer">Run Inference</button>
-                            <button id="validateBtn" class="btn-validate">Run Validation</button>
-                        </div>
-                        <div class="utility-row">
-                            <button id="templateBtn" class="btn-secondary small">Download CSV</button>
-                            <button id="cancelBtn" class="btn-text">Reset Form</button>
-                        </div>
-                    </div>
-
-                    <div id="validationReport" class="report-box hidden">
-                        <div class="report-header">SHACL Validation Report</div>
-                        <pre id="reportContent"></pre>
-                    </div>
                 </section>
+
+                <!-- Action buttons - visible even when form is hidden -->
+                <div class="action-bar" id="actionBar">
+                    <div class="action-grid">
+                        <button id="addEntryBtn" class="btn-success">Add Entry</button>
+                        <button id="inferBtn" class="btn-infer">Run Inference</button>
+                        <button id="validateBtn" class="btn-validate">Run Validation</button>
+                    </div>
+                    <div class="utility-row">
+                        <button id="templateBtn" class="btn-secondary small">Download CSV</button>
+                        <button id="cancelBtn" class="btn-text">Reset Form</button>
+                    </div>
+                </div>
+
+                <div id="validationReport" class="report-box hidden">
+                    <div class="report-header">SHACL Validation Report</div>
+                    <pre id="reportContent"></pre>
+                </div>
 
                 <section class="section output-section">
                     <div class="label-row">
