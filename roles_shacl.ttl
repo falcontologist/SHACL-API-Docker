@@ -1932,7 +1932,27 @@
     sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
     sh:property [ sh:name "transformer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transformer ] ;
-    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ] ;
+    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transformer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Absorb ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transformer ?transformer ;
+                  :theme ?theme .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Absorb .
 
 :Acquisition_Opaque_IRI_shape a :Situation_shape, sh:NodeShape ;
@@ -1970,7 +1990,27 @@
             sh:path :acquisition ],
         [ sh:name "asset"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :asset ] ;
+            sh:path :asset ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?acquirer ?opaqueProperty ?acquisition .
+        }
+        WHERE {
+            ?this a :Acquisition ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :acquirer ?acquirer ;
+                  :acquisition ?acquisition .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Acquisition .
 
 :Action_shape a :Situation_shape, sh:NodeShape ;
@@ -1980,7 +2020,27 @@
     sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
     sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
     sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
-    sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ] ;
+    sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?actor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Action ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :actor ?actor ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Action .
 
 :Advising_shape a :Situation_shape, sh:NodeShape ;
@@ -2018,7 +2078,27 @@ WHERE {
 :Affect_shape a :Situation_shape, sh:NodeShape ;
     rdfs:label "Affect (shape)"@en ;
     sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
-    sh:property [ sh:name "affecter"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affecter ] ;
+    sh:property [ sh:name "affecter"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affecter ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?affecter ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Affect ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :affecter ?affecter ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Affect .
 
 :Affiliation_shape a :Situation_shape, sh:NodeShape ;
@@ -2032,7 +2112,27 @@ WHERE {
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "role"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :role ] ;
     sh:property [ sh:name "task"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :task ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?affiliator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Affiliation ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :affiliator ?affiliator ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Affiliation .
 
 :Announcement_shape a :Situation_shape, sh:NodeShape ;
@@ -2081,7 +2181,27 @@ WHERE {
     sh:property [ sh:name "basis"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :basis ] ;
     sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
     sh:property [ sh:name "requirement"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :requirement ] ;
-    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?associator ?opaqueProperty ?analogue .
+        }
+        WHERE {
+            ?this a :Association ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :associator ?associator ;
+                  :analogue ?analogue .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Association .
 
 :Attack_shape a :Situation_shape, sh:NodeShape ;
@@ -2091,7 +2211,27 @@ WHERE {
     sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
     sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
     sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
-    sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ] ;
+    sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?actor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Attack ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :actor ?actor ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Attack .
 
 :Attend_shape a :Situation_shape, sh:NodeShape ;
@@ -2144,7 +2284,27 @@ WHERE {
     sh:property [ sh:name "basis"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :basis ] ;
     sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
     sh:property [ sh:name "requirement"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :requirement ] ;
-    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?associator ?opaqueProperty ?analogue .
+        }
+        WHERE {
+            ?this a :Base_and_Deduce ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :associator ?associator ;
+                  :analogue ?analogue .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Base_and_Deduce .
 
 :Basic_Change_of_State_shape a :Situation_shape, sh:NodeShape ;
@@ -2160,7 +2320,27 @@ WHERE {
     sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
     sh:property [ sh:name "transformer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transformer ] ;
-    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ] ;
+    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transformer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Basic_Change_of_State ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transformer ?transformer ;
+                  :theme ?theme .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Basic_Change_of_State .
 
 :Basic_Force_shape a :Situation_shape, sh:NodeShape ;
@@ -2174,7 +2354,27 @@ WHERE {
     sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
     sh:property [ sh:name "purpose"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :purpose ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?antagonist ?opaqueProperty ?agonist .
+        }
+        WHERE {
+            ?this a :Basic_Force ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :antagonist ?antagonist ;
+                  :agonist ?agonist .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Basic_Force .
 
 :Basic_Incremental_shape a :Situation_shape, sh:NodeShape ;
@@ -2187,7 +2387,27 @@ WHERE {
     sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?mover ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Basic_Incremental ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :mover ?mover ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Basic_Incremental .
 
 :Basic_Motion_shape a :Situation_shape, sh:NodeShape ;
@@ -2199,7 +2419,27 @@ WHERE {
     sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?mover ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Basic_Motion ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :mover ?mover ;
+                  :theme ?theme .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Basic_Motion .
 
 :Being_shape a :Situation_shape, sh:NodeShape ;
@@ -2259,7 +2499,27 @@ WHERE {
     sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
     sh:property [ sh:name "transformer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transformer ] ;
-    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ] ;
+    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transformer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Causative_Change_of_State ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transformer ?transformer ;
+                  :theme ?theme .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Causative_Change_of_State .
 
 :Causative_Creation_shape a :Situation_shape, sh:NodeShape ;
@@ -2276,7 +2536,27 @@ WHERE {
     sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
-    sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ] ;
+    sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?maker ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Causative_Creation ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :maker ?maker ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Causative_Creation .
 
 :Causative_Incremental_shape a :Situation_shape, sh:NodeShape ;
@@ -2289,7 +2569,27 @@ WHERE {
     sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?mover ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Causative_Incremental ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :mover ?mover ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Causative_Incremental .
 
 :Cause_Membership_shape a :Situation_shape, sh:NodeShape ;
@@ -2303,7 +2603,27 @@ WHERE {
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "role"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :role ] ;
     sh:property [ sh:name "task"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :task ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?affiliator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Cause_Membership ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :affiliator ?affiliator ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Cause_Membership .
 
 :Cause_Role_shape a :Situation_shape, sh:NodeShape ;
@@ -2317,7 +2637,27 @@ WHERE {
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "role"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :role ] ;
     sh:property [ sh:name "task"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :task ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?affiliator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Cause_Role ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :affiliator ?affiliator ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Cause_Role .
 
 :Cause_and_Effect_shape a :Situation_shape, sh:NodeShape ;
@@ -2347,7 +2687,27 @@ WHERE {
     sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
     sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
     sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
-    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ] ;
+    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Commercial_Transaction ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Commercial_Transaction .
 
 :Communicate_shape a :Situation_shape, sh:NodeShape ;
@@ -2360,7 +2720,27 @@ WHERE {
     sh:property [ sh:name "medium"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :medium ] ;
     sh:property [ sh:name "message"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :message ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
-    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?communicator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Communicate ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :communicator ?communicator ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Communicate .
 
 :Communication_shape a :Situation_shape, sh:NodeShape ;
@@ -2373,7 +2753,27 @@ WHERE {
     sh:property [ sh:name "medium"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :medium ] ;
     sh:property [ sh:name "message"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :message ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
-    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?communicator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Communication ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :communicator ?communicator ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Communication .
 
 :Compare_and_Contrast_shape a :Situation_shape, sh:NodeShape ;
@@ -2384,7 +2784,27 @@ WHERE {
     sh:property [ sh:name "basis"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :basis ] ;
     sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
     sh:property [ sh:name "requirement"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :requirement ] ;
-    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?associator ?opaqueProperty ?analogue .
+        }
+        WHERE {
+            ?this a :Compare_and_Contrast ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :associator ?associator ;
+                  :analogue ?analogue .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Compare_and_Contrast .
 
 :Concealment_shape a :Situation_shape, sh:NodeShape ;
@@ -2397,7 +2817,27 @@ WHERE {
     sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?mover ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Concealment ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :mover ?mover ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Concealment .
 
 :Constrain_shape a :Situation_shape, sh:NodeShape ;
@@ -2411,7 +2851,27 @@ WHERE {
     sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
     sh:property [ sh:name "purpose"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :purpose ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?antagonist ?opaqueProperty ?agonist .
+        }
+        WHERE {
+            ?this a :Constrain ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :antagonist ?antagonist ;
+                  :agonist ?agonist .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Constrain .
 
 :Continuation_shape a :Situation_shape, sh:NodeShape ;
@@ -2429,7 +2889,27 @@ WHERE {
     rdfs:label "Control (shape)"@en ;
     sh:property [ sh:name "controller"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :controller ] ;
     sh:property [ sh:name "regulation"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :regulation ] ;
-    sh:property [ sh:name "subordinate"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :subordinate ] ;
+    sh:property [ sh:name "subordinate"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :subordinate ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?controller ?opaqueProperty ?subordinate .
+        }
+        WHERE {
+            ?this a :Control ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :controller ?controller ;
+                  :subordinate ?subordinate .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Control .
 
 :Conversion_shape a :Situation_shape, sh:NodeShape ;
@@ -2439,7 +2919,27 @@ WHERE {
     sh:property [ sh:name "container"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :container ] ;
     sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
     sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
-    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ] ;
+    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?evaluator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Conversion ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :evaluator ?evaluator ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Conversion .
 
 :Correlate_and_Differ_shape a :Situation_shape, sh:NodeShape ;
@@ -2469,7 +2969,27 @@ WHERE {
     sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
-    sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ] ;
+    sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?maker ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Creation ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :maker ?maker ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Creation .
 
 :Defend_shape a :Situation_shape, sh:NodeShape ;
@@ -2479,7 +2999,27 @@ WHERE {
     sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
     sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
     sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
-    sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ] ;
+    sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?actor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Defend ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :actor ?actor ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Defend .
 
 :Desire_shape a :Situation_shape, sh:NodeShape ;
@@ -2495,7 +3035,27 @@ WHERE {
     sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
     sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
     sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
-    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ] ;
+    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Dynamic_Possession ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Dynamic_Possession .
 
 :Emission_shape a :Situation_shape, sh:NodeShape ;
@@ -2512,7 +3072,27 @@ WHERE {
     sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
-    sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ] ;
+    sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?maker ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Emission ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :maker ?maker ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Emission .
 
 :Enforcement_shape a :Situation_shape, sh:NodeShape ;
@@ -2535,7 +3115,27 @@ WHERE {
     sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
     sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
     sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
-    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ] ;
+    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Exchange ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Exchange .
 
 :Execution_shape a :Situation_shape, sh:NodeShape ;
@@ -2551,7 +3151,27 @@ WHERE {
             sh:path :executor ],
         [ sh:name "task"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :task ] ;
+            sh:path :task ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?executor ?opaqueProperty ?task .
+        }
+        WHERE {
+            ?this a :Execution ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :executor ?executor ;
+                  :task ?task .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Execution .
 
 :Existence_shape a :Situation_shape, sh:NodeShape ;
@@ -2592,7 +3212,27 @@ WHERE {
     sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
     sh:property [ sh:name "transformer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transformer ] ;
-    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ] ;
+    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transformer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Feeding ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transformer ?transformer ;
+                  :theme ?theme .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Feeding .
 
 :Feel_shape a :Situation_shape, sh:NodeShape ;
@@ -2602,7 +3242,27 @@ WHERE {
     sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
     sh:property [ sh:name "phenomenon"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :phenomenon ] ;
     sh:property [ sh:name "situation"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :situation ] ;
-    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ] ;
+    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?evaluator ?opaqueProperty ?phenomenon .
+        }
+        WHERE {
+            ?this a :Feel ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :evaluator ?evaluator ;
+                  :phenomenon ?phenomenon .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Feel .
 
 :Force_shape a :Situation_shape, sh:NodeShape ;
@@ -2616,7 +3276,27 @@ WHERE {
     sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
     sh:property [ sh:name "purpose"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :purpose ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?antagonist ?opaqueProperty ?agonist .
+        }
+        WHERE {
+            ?this a :Force ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :antagonist ?antagonist ;
+                  :agonist ?agonist .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Force .
 
 :Form_shape a :Situation_shape, sh:NodeShape ;
@@ -2633,7 +3313,27 @@ WHERE {
     sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
-    sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ] ;
+    sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?maker ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Form ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :maker ?maker ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Form .
 
 :Future_Having_shape a :Situation_shape, sh:NodeShape ;
@@ -2643,7 +3343,27 @@ WHERE {
     sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
     sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
     sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
-    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ] ;
+    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Future_Having ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Future_Having .
 
 :Governance_shape a :Situation_shape, sh:NodeShape ;
@@ -2670,7 +3390,27 @@ WHERE {
     sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
     sh:property [ sh:name "transformer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transformer ] ;
-    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ] ;
+    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transformer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Hurt ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transformer ?transformer ;
+                  :theme ?theme .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Hurt .
 
 :Image_Creation_shape a :Situation_shape, sh:NodeShape ;
@@ -2687,7 +3427,27 @@ WHERE {
     sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
-    sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ] ;
+    sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?maker ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Image_Creation ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :maker ?maker ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Image_Creation .
 
 :Incremental_shape a :Situation_shape, sh:NodeShape ;
@@ -2700,7 +3460,27 @@ WHERE {
     sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?mover ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Incremental ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :mover ?mover ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Incremental .
 
 :Inducive_shape a :Situation_shape, sh:NodeShape ;
@@ -2710,7 +3490,27 @@ WHERE {
     sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
     sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
     sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
-    sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ] ;
+    sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?actor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Inducive ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :actor ?actor ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Inducive .
 
 :Information_shape a :Situation_shape, sh:NodeShape ;
@@ -2737,7 +3537,27 @@ WHERE {
     sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
     sh:property [ sh:name "transformer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transformer ] ;
-    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ] ;
+    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transformer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Ingestion ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transformer ?transformer ;
+                  :theme ?theme .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Ingestion .
 
 :Intend_shape a :Situation_shape, sh:NodeShape ;
@@ -2767,7 +3587,27 @@ WHERE {
     sh:property [ sh:name "medium"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :medium ] ;
     sh:property [ sh:name "message"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :message ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
-    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?communicator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Joint_Statement ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :communicator ?communicator ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Joint_Statement .
 
 :Judge_shape a :Situation_shape, sh:NodeShape ;
@@ -2777,7 +3617,27 @@ WHERE {
     sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
     sh:property [ sh:name "phenomenon"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :phenomenon ] ;
     sh:property [ sh:name "situation"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :situation ] ;
-    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ] ;
+    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?evaluator ?opaqueProperty ?phenomenon .
+        }
+        WHERE {
+            ?this a :Judge ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :evaluator ?evaluator ;
+                  :phenomenon ?phenomenon .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Judge .
 
 :Kinship_shape a :Situation_shape, sh:NodeShape ;
@@ -2825,7 +3685,27 @@ WHERE {
     sh:property [ sh:name "basis"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :basis ] ;
     sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
     sh:property [ sh:name "requirement"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :requirement ] ;
-    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?associator ?opaqueProperty ?analogue .
+        }
+        WHERE {
+            ?this a :Liken_and_Differentiate ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :associator ?associator ;
+                  :analogue ?analogue .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Liken_and_Differentiate .
 
 :Limitation_shape a :Situation_shape, sh:NodeShape ;
@@ -2864,7 +3744,27 @@ WHERE {
     sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
     sh:property [ sh:name "purpose"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :purpose ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?antagonist ?opaqueProperty ?agonist .
+        }
+        WHERE {
+            ?this a :Manipulate ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :antagonist ?antagonist ;
+                  :agonist ?agonist .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Manipulate .
 
 :Measurement_shape a :Situation_shape, sh:NodeShape ;
@@ -2874,7 +3774,27 @@ WHERE {
     sh:property [ sh:name "container"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :container ] ;
     sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
     sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
-    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ] ;
+    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?evaluator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Measurement ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :evaluator ?evaluator ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Measurement .
 
 :Membership_shape a :Situation_shape, sh:NodeShape ;
@@ -2911,7 +3831,27 @@ WHERE {
     sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?mover ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Motion ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :mover ?mover ;
+                  :theme ?theme .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Motion .
 
 :Occurrence_shape a :Situation_shape, sh:NodeShape ;
@@ -2967,7 +3907,27 @@ WHERE {
     sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?mover ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Pick_Up_and_Drop_Off ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :mover ?mover ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Pick_Up_and_Drop_Off .
 
 :Possession_shape a :Situation_shape, sh:NodeShape ;
@@ -2977,7 +3937,27 @@ WHERE {
     sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
     sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
     sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
-    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ] ;
+    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Possession ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Possession .
 
 :Pursuit_shape a :Situation_shape, sh:NodeShape ;
@@ -2989,7 +3969,27 @@ WHERE {
     sh:property [ sh:name "pursuer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :pursuer ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?pursuer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Pursuit ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :pursuer ?pursuer ;
+                  :theme ?theme .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Pursuit .
 
 :Quantification_shape a :Situation_shape, sh:NodeShape ;
@@ -2999,7 +3999,27 @@ WHERE {
     sh:property [ sh:name "container"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :container ] ;
     sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
     sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
-    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ] ;
+    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?evaluator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Quantification ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :evaluator ?evaluator ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Quantification .
 
 :Reciprocal_shape a :Situation_shape, sh:NodeShape ;
@@ -3016,7 +4036,27 @@ WHERE {
     sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
     sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
     sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
-    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ] ;
+    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Replace ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Replace .
 
 :Request_shape a :Situation_shape, sh:NodeShape ;
@@ -3029,7 +4069,27 @@ WHERE {
     sh:property [ sh:name "medium"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :medium ] ;
     sh:property [ sh:name "message"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :message ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
-    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?communicator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Request ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :communicator ?communicator ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Request .
 
 :Require_and_Satisfy_shape a :Situation_shape, sh:NodeShape ;
@@ -3040,7 +4100,27 @@ WHERE {
     sh:property [ sh:name "basis"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :basis ] ;
     sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
     sh:property [ sh:name "requirement"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :requirement ] ;
-    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?associator ?opaqueProperty ?analogue .
+        }
+        WHERE {
+            ?this a :Require_and_Satisfy ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :associator ?associator ;
+                  :analogue ?analogue .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Require_and_Satisfy .
 
 :Response_shape a :Situation_shape, sh:NodeShape ;
@@ -3053,7 +4133,27 @@ WHERE {
     sh:property [ sh:name "medium"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :medium ] ;
     sh:property [ sh:name "message"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :message ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
-    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?communicator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Response ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :communicator ?communicator ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Response .
 
 :Role_shape a :Situation_shape, sh:NodeShape ;
@@ -3114,7 +4214,27 @@ WHERE {
     sh:property [ sh:name "medium"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :medium ] ;
     sh:property [ sh:name "message"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :message ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
-    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?communicator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Statement ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :communicator ?communicator ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Statement .
 
 :Static_Possession_shape a :Situation_shape, sh:NodeShape ;
@@ -3148,7 +4268,27 @@ WHERE {
             sh:path :item ],
         [ sh:name "asset"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:path :asset ] ;
+            sh:path :asset ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?item .
+        }
+        WHERE {
+            ?this a :Transaction ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :item ?item .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Transaction .
 
 :Transfer_of_Possession_shape a :Situation_shape, sh:NodeShape ;
@@ -3158,7 +4298,27 @@ WHERE {
     sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
     sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
     sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
-    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ] ;
+    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Transfer_of_Possession ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :affectee ?affectee .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Transfer_of_Possession .
 
 :Transformation_shape a :Situation_shape, sh:NodeShape ;
@@ -3174,7 +4334,27 @@ WHERE {
     sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
     sh:property [ sh:name "transformer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transformer ] ;
-    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ] ;
+    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transformer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Transformation ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transformer ?transformer ;
+                  :theme ?theme .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Transformation .
 
 :Vehicular_Motion_shape a :Situation_shape, sh:NodeShape ;
@@ -3186,7 +4366,27 @@ WHERE {
     sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
     sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
     sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
-    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?driver ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Vehicular_Motion ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :driver ?driver ;
+                  :theme ?theme .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(CONCAT(?lemma, "s") AS ?verbForm)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
     sh:targetClass :Vehicular_Motion .
 
 :Volition_shape a :Situation_shape, sh:NodeShape ;
