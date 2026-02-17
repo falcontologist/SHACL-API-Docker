@@ -171,59 +171,59 @@ public class App {
         ctx.json(Map.of("forms", forms));
     }
 
-/**
- * GET STATS
- * Counts the key classes in the graph and distinct properties in sh:property paths.
- */
+    /**
+     * GET STATS
+     * Counts the key classes and traverses the RDFS hierarchy to count
+     * specific roles and modifiers.
+     */
     private static void getStats(Context ctx) {
         long shapeCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).toList().size();
-        
-        // FIXED: Count distinct properties from sh:property paths
-        Set<String> distinctProperties = new HashSet<>();
-        
-        // Iterate all property shapes (objects of sh:property)
-        NodeIterator propertyShapes = SHAPES_GRAPH.listObjectsOfProperty(SH.property);
-        while (propertyShapes.hasNext()) {
-            Resource propertyShape = propertyShapes.next().asResource();
-            
-            // Get the sh:path value
-            if (propertyShape.hasProperty(SH.path)) {
-                RDFNode pathNode = propertyShape.getProperty(SH.path).getObject();
-                
-                // Handle different types of paths (simple property, predicate paths, etc.)
-                if (pathNode.isResource()) {
-                    String localName = pathNode.asResource().getLocalName();
-                    if (localName != null && !localName.isEmpty()) {
-                        distinctProperties.add(localName);
-                    } else {
-                        // Fallback to URI if no local name
-                        String uri = pathNode.asResource().getURI();
-                        if (uri != null) {
-                            distinctProperties.add(uri);
-                        }
-                    }
-                } else if (pathNode.isLiteral()) {
-                    // Some SHACL paths might be literals in some configurations
-                    distinctProperties.add(pathNode.asLiteral().getString());
-                }
-            }
-        }
-        
-        long roleCount = distinctProperties.size();
-        
+
+        // 1. Count Roles: recursively find all sub-properties of :proto_role
+        Resource protoRoleRoot = SHAPES_GRAPH.getResource(ONT_NS + "proto_role");
+        long roleCount = countDescendants(protoRoleRoot);
+
+        // 2. Count Modifiers: recursively find all sub-properties of :modifier
+        Resource modifierRoot = SHAPES_GRAPH.getResource(ONT_NS + "modifier");
+        long modifierCount = countDescendants(modifierRoot);
+
         long ruleCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.SPARQLRule).toList().size();
         long lemmaCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, 
                 SHAPES_GRAPH.createResource(ONT_NS + "Lemma")).toList().size();
         long senseCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, 
                 SHAPES_GRAPH.createResource(ONT_NS + "Synset")).toList().size();
-    
+
         ctx.json(Map.of(
                 "shapes", shapeCount,
                 "roles", roleCount,
+                "modifiers", modifierCount,
                 "rules", ruleCount,
                 "lemmas", lemmaCount,
                 "senses", senseCount
         ));
+    }
+
+    /**
+     * Recursive helper to count all unique sub-properties (descendants) of a given root.
+     */
+    private static long countDescendants(Resource root) {
+        Set<Resource> descendants = new HashSet<>();
+        collectDescendantsRecursive(root, descendants);
+        return descendants.size();
+    }
+
+    private static void collectDescendantsRecursive(Resource parent, Set<Resource> visited) {
+        // Find all subjects where ?s rdfs:subPropertyOf parent
+        ResIterator it = SHAPES_GRAPH.listSubjectsWithProperty(RDFS.subPropertyOf, parent);
+        while (it.hasNext()) {
+            Resource child = it.next();
+            // Prevent cycles and double counting
+            if (!visited.contains(child)) {
+                visited.add(child);
+                // Recursively find children of this child
+                collectDescendantsRecursive(child, visited);
+            }
+        }
     }
 
     /**
