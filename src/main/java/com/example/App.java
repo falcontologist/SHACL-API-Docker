@@ -119,6 +119,12 @@ public class App {
             String shapeName = shape.getLocalName();
             List<Map<String, Object>> fields = new ArrayList<>();
 
+            // 1. NEW: Extract the target class (e.g., :Acquisition)
+            String targetClass = shapeName; // Default fallback
+            if (shape.hasProperty(SH.targetClass)) {
+                targetClass = shape.getPropertyResourceValue(SH.targetClass).getLocalName();
+            }
+
             StmtIterator props = shape.listProperties(SH.property);
             while (props.hasNext()) {
                 Resource propertyShape = props.next().getResource();
@@ -142,7 +148,11 @@ public class App {
             }
             
             if (!fields.isEmpty()) {
-                forms.put(shapeName, Map.of("fields", fields));
+                // 2. NEW: Include targetClass in the response
+                forms.put(shapeName, Map.of(
+                    "targetClass", targetClass,
+                    "fields", fields
+                ));
             }
         }
 
