@@ -254,7 +254,25 @@ public class App {
             long inferredTriples = dataModel.size() - beforeInference;
             System.out.println("[infer] Generated " + inferredTriples + " new triples");
 
-            // Return complete data (original + inferred)
+            // CLEANUP: Remove lemma nodes (they were only needed for inference)
+            Resource lemmaClass = SHAPES_GRAPH.createResource(ONT_NS + "Lemma");
+            List<Statement> lemmaStatements = new ArrayList<>();
+            
+            // Collect all statements where subject is a Lemma
+            ResIterator lemmas = dataModel.listSubjectsWithProperty(RDF.type, lemmaClass);
+            while (lemmas.hasNext()) {
+                Resource lemma = lemmas.next();
+                StmtIterator stmts = lemma.listProperties();
+                while (stmts.hasNext()) {
+                    lemmaStatements.add(stmts.next());
+                }
+            }
+            
+            // Remove them
+            dataModel.remove(lemmaStatements);
+            System.out.println("[infer] Removed " + lemmaStatements.size() + " lemma triples");
+
+            // Return complete data (original + inferred, minus lemma nodes)
             StringWriter dataWriter = new StringWriter();
             RDFDataMgr.write(dataWriter, dataModel, RDFFormat.TURTLE);
 
