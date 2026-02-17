@@ -4,6 +4,7 @@
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
+
 ### CLASSES (111) ###
 
 :Absorb a rdfs:Class ;
@@ -418,9 +419,8 @@
 
 :Measurement a rdfs:Class ;
     rdfs:label "Measurement"@en ;
-    :aspect :Proto_State ;
-    :realm :Mental ;
     :semantic_domain :Quantification ;
+    :realm :Mental ;
     rdfs:subClassOf :Situation .
 
 :Membership a rdfs:Class ;
@@ -3912,32 +3912,27 @@ WHERE {
 
 :Measurement_shape a :Situation_shape, sh:NodeShape ;
     rdfs:label "Measurement (shape)"@en ;
-    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
-    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
-    sh:property [ sh:name "container"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :container ] ;
-    sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
+    sh:property [ sh:name "measurer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :measurer ] ;
+    sh:property [ sh:name "unit"@en ; sh:datatype xsd:string ; sh:minCount 1 ; sh:path :unit ] ;
     sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
-    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ]  ;
+    sh:property [ sh:name "quantity"@en ; sh:datatype xsd:string ; sh:path :quantity ] ;
+    sh:property [ sh:name "value"@en ; sh:datatype xsd:string ; sh:minCount 1 ; sh:path :value ] ;
+    sh:property [ sh:name "multiplier"@en ; sh:datatype xsd:string ; sh:minCount 1 ; sh:path :multiplier ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
         PREFIX : <http://example.org/ontology/>
         
         CONSTRUCT {
-            ?evaluator ?opaqueProperty ?affectee .
+            ?this :quantity ?quantityValue .
         }
         WHERE {
             ?this a :Measurement ;
-                  :lemma ?lemma ;
-                  :synset ?synset ;
-                  :evaluator ?evaluator ;
-                  :affectee ?affectee .
+                  :value ?value ;
+                  :multiplier ?multiplier ;
+                  :unit ?unit .
             
-            # Look up the proper 3ps inflection from the lemma node
-            ?lemmaNode :lemma ?lemma ;
-                       :present3sg ?verbForm .
-            
-            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
-            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+            BIND(CONCAT(?value, " ", ?multiplier, " ", ?unit) AS ?quantityValue)
         }
         """ ;
             sh:order 2 ] ;
