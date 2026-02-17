@@ -8,6 +8,7 @@ import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.topbraid.jenax.util.JenaUtil;
+import org.topbraid.shacl.rules.RuleUtil;
 import org.topbraid.shacl.validation.ValidationUtil;
 import org.topbraid.shacl.vocabulary.SH;
 
@@ -19,11 +20,9 @@ import java.util.*;
 public class App {
 
     private static final String ONT_NS = "http://example.org/ontology/";
-    // Load the graph once at startup
     private static final Model SHAPES_GRAPH = loadShapesGraph();
 
     public static void main(String[] args) {
-        // FIXED: Updated CORS configuration for Javalin 6+
         Javalin app = Javalin.create(config -> {
             config.bundledPlugins.enableCors(cors -> {
                 cors.addRule(it -> it.anyHost());
@@ -34,7 +33,8 @@ public class App {
         app.get("/api/stats", App::getStats);
         app.get("/api/lookup", App::lookupVerb);
         app.get("/api/forms", App::getForms);
-        app.post("/api/validate", App::validateGraph);
+        app.post("/api/infer", App::inferGraph);        // NEW: Inference endpoint
+        app.post("/api/validate", App::validateGraph);  // Validation only
 
         System.out.println("Server running on port 8080");
     }
@@ -42,7 +42,6 @@ public class App {
     private static Model loadShapesGraph() {
         Model m = JenaUtil.createMemoryModel();
         try {
-            // Using the standardized filename pushed to origin
             m.read("roles_shacl.ttl");
             System.out.println("[startup] Loaded graph: " + m.size() + " triples.");
         } catch (Exception e) {
@@ -52,10 +51,6 @@ public class App {
         return m;
     }
 
-    /**
-     * LOOKUP VERB
-     * Logic: Input String -> :Lemma (via label) -> :Synset (via :sense) -> :SituationShape (via :evokes)
-     */
     private static void lookupVerb(Context ctx) {
         String query = ctx.queryParam("verb");
         if (query == null || query.isBlank()) {
@@ -66,44 +61,36 @@ public class App {
         String searchStem = query.trim().toLowerCase();
         List<Map<String, Object>> sensesResult = new ArrayList<>();
 
-        // Define Vocabulary
         Property senseProp  = SHAPES_GRAPH.createProperty(ONT_NS + "sense");
         Property evokesProp = SHAPES_GRAPH.createProperty(ONT_NS + "evokes");
         Property glossProp  = SHAPES_GRAPH.createProperty(ONT_NS + "gloss");
         Resource lemmaClass = SHAPES_GRAPH.createResource(ONT_NS + "Lemma");
 
-        // 1. Find the Lemma by matching rdfs:label
-        // Labels look like: "run (verb lemma)" or "run"
         ResIterator lemmas = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, lemmaClass);
         while (lemmas.hasNext()) {
             Resource lemma = lemmas.next();
             if (!lemma.hasProperty(RDFS.label)) continue;
 
             String label = lemma.getProperty(RDFS.label).getString().toLowerCase();
-            // Clean label: "acquire (verb lemma)" -> "acquire"
             String stem = label.contains(" (") ? label.substring(0, label.indexOf(" (")).trim() : label;
 
             if (stem.equals(searchStem)) {
-                // 2. Lemma Found: Iterate its Senses (Synsets)
                 StmtIterator senseStmts = lemma.listProperties(senseProp);
                 while (senseStmts.hasNext()) {
                     Resource synset = senseStmts.next().getResource();
-                    String synsetId = synset.getLocalName(); // e.g., "acquire.v.01"
+                    String synsetId = synset.getLocalName();
 
-                    // Get Gloss
                     String gloss = synset.hasProperty(glossProp)
                             ? synset.getProperty(glossProp).getString()
                             : "No definition available.";
 
-                    // Get Evoked Situations (Shapes)
                     List<String> situations = new ArrayList<>();
                     StmtIterator evokedStmts = synset.listProperties(evokesProp);
                     while (evokedStmts.hasNext()) {
                         Resource shape = evokedStmts.next().getResource();
-                        situations.add(shape.getLocalName()); // e.g., "Transfer_of_Possession_shape"
+                        situations.add(shape.getLocalName());
                     }
 
-                    // Add to results if valid
                     if (!situations.isEmpty()) {
                         sensesResult.add(Map.of(
                                 "id", synsetId,
@@ -112,7 +99,6 @@ public class App {
                         ));
                     }
                 }
-                // Stop after finding the first matching lemma
                 break;
             }
         }
@@ -124,33 +110,26 @@ public class App {
         ));
     }
 
-    /**
-     * GET FORMS
-     * Scans SHACL NodeShapes to build the UI form definitions.
-     */
     private static void getForms(Context ctx) {
         Map<String, Object> forms = new HashMap<>();
 
-        // Iterate all NodeShapes
         ResIterator shapes = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape);
         while (shapes.hasNext()) {
             Resource shape = shapes.next();
             String shapeName = shape.getLocalName();
             List<Map<String, Object>> fields = new ArrayList<>();
 
-            // Iterate sh:property definitions
             StmtIterator props = shape.listProperties(SH.property);
             while (props.hasNext()) {
                 Resource propertyShape = props.next().getResource();
 
-                // Extract SHACL constraints
                 String path = propertyShape.hasProperty(SH.path)
                         ? propertyShape.getPropertyResourceValue(SH.path).getLocalName()
                         : "unknown";
 
                 String name = propertyShape.hasProperty(SH.name)
                         ? propertyShape.getProperty(SH.name).getString()
-                        : path; // Fallback to path if no name
+                        : path;
 
                 boolean required = propertyShape.hasProperty(SH.minCount)
                         && propertyShape.getProperty(SH.minCount).getInt() > 0;
@@ -162,7 +141,6 @@ public class App {
                 ));
             }
             
-            // Only add shapes that have fields
             if (!fields.isEmpty()) {
                 forms.put(shapeName, Map.of("fields", fields));
             }
@@ -171,19 +149,12 @@ public class App {
         ctx.json(Map.of("forms", forms));
     }
 
-    /**
-     * GET STATS
-     * Counts the key classes and traverses the RDFS hierarchy to count
-     * specific roles and modifiers.
-     */
     private static void getStats(Context ctx) {
         long shapeCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).toList().size();
 
-        // 1. Count Roles: recursively find all sub-properties of :proto_role
         Resource protoRoleRoot = SHAPES_GRAPH.getResource(ONT_NS + "proto_role");
         long roleCount = countDescendants(protoRoleRoot);
 
-        // 2. Count Modifiers: recursively find all sub-properties of :modifier
         Resource modifierRoot = SHAPES_GRAPH.getResource(ONT_NS + "modifier");
         long modifierCount = countDescendants(modifierRoot);
 
@@ -203,9 +174,6 @@ public class App {
         ));
     }
 
-    /**
-     * Recursive helper to count all unique sub-properties (descendants) of a given root.
-     */
     private static long countDescendants(Resource root) {
         Set<Resource> descendants = new HashSet<>();
         collectDescendantsRecursive(root, descendants);
@@ -213,25 +181,102 @@ public class App {
     }
 
     private static void collectDescendantsRecursive(Resource parent, Set<Resource> visited) {
-        // Find all subjects where ?s rdfs:subPropertyOf parent
         ResIterator it = SHAPES_GRAPH.listSubjectsWithProperty(RDFS.subPropertyOf, parent);
         while (it.hasNext()) {
             Resource child = it.next();
-            // Prevent cycles and double counting
             if (!visited.contains(child)) {
                 visited.add(child);
-                // Recursively find children of this child
                 collectDescendantsRecursive(child, visited);
             }
         }
     }
 
     /**
-     * VALIDATE GRAPH - OPTIMIZED VERSION
-     * Performs SHACL validation and rule inference on the input Turtle.
-     * 
-     * Only adds the specific lemma nodes needed for the SPARQL rules,
-     * rather than merging the entire shapes graph.
+     * INFER GRAPH - Runs SHACL SPARQL rules to generate opaque properties
+     * This is separate from validation and adds lemma nodes as needed.
+     */
+    private static void inferGraph(Context ctx) {
+        String ttlInput = ctx.body();
+        Model dataModel = JenaUtil.createMemoryModel();
+
+        try {
+            // Load user input
+            dataModel.read(new ByteArrayInputStream(ttlInput.getBytes(StandardCharsets.UTF_8)), null, "TTL");
+            long inputTriples = dataModel.size();
+            System.out.println("[infer] Loaded input: " + inputTriples + " triples");
+
+            // Extract unique lemma strings from input
+            Set<String> lemmasNeeded = new HashSet<>();
+            Property lemmaProp = SHAPES_GRAPH.createProperty(ONT_NS + "lemma");
+            
+            StmtIterator lemmaStmts = dataModel.listStatements(null, lemmaProp, (RDFNode) null);
+            while (lemmaStmts.hasNext()) {
+                Statement stmt = lemmaStmts.next();
+                if (stmt.getObject().isLiteral()) {
+                    lemmasNeeded.add(stmt.getObject().asLiteral().getString());
+                }
+            }
+            
+            System.out.println("[infer] Found " + lemmasNeeded.size() + " unique lemmas: " + lemmasNeeded);
+
+            // Add lemma nodes from SHAPES_GRAPH
+            Property present3sgProp = SHAPES_GRAPH.createProperty(ONT_NS + "present3sg");
+            int lemmaNodesAdded = 0;
+            
+            for (String lemmaStr : lemmasNeeded) {
+                ResIterator lemmaNodes = SHAPES_GRAPH.listSubjectsWithProperty(lemmaProp, lemmaStr);
+                while (lemmaNodes.hasNext()) {
+                    Resource lemmaNode = lemmaNodes.next();
+                    
+                    StmtIterator props = lemmaNode.listProperties();
+                    while (props.hasNext()) {
+                        dataModel.add(props.next());
+                    }
+                    lemmaNodesAdded++;
+                    
+                    if (lemmaNode.hasProperty(present3sgProp)) {
+                        String inflection = lemmaNode.getProperty(present3sgProp).getString();
+                        System.out.println("[infer]   Added: " + lemmaStr + " → " + inflection);
+                    }
+                }
+            }
+            
+            System.out.println("[infer] Added " + lemmaNodesAdded + " lemma nodes");
+            System.out.println("[infer] Data model before inference: " + dataModel.size() + " triples");
+
+            // Run SHACL inference (SPARQL rules)
+            System.out.println("[infer] Executing SHACL rules...");
+            Model inferredModel = RuleUtil.executeRules(dataModel, SHAPES_GRAPH, null, null);
+            long inferredTriples = inferredModel.size() - dataModel.size();
+            System.out.println("[infer] Generated " + inferredTriples + " new triples");
+
+            // Return inferred data
+            StringWriter dataWriter = new StringWriter();
+            RDFDataMgr.write(dataWriter, inferredModel, RDFFormat.TURTLE);
+
+            System.out.println("[infer] Complete. Total: " + inferredModel.size() + " triples");
+
+            ctx.json(Map.of(
+                    "success", true,
+                    "inferred_data", dataWriter.toString(),
+                    "stats", Map.of(
+                            "input_triples", inputTriples,
+                            "lemma_nodes_added", lemmaNodesAdded,
+                            "inferred_triples", inferredTriples,
+                            "total_triples", inferredModel.size()
+                    )
+            ));
+
+        } catch (Exception e) {
+            System.err.println("[infer] Error: " + e.getMessage());
+            e.printStackTrace();
+            ctx.status(400).result("Error during inference: " + e.getMessage());
+        }
+    }
+
+    /**
+     * VALIDATE GRAPH - Runs SHACL validation only (no inference)
+     * Validates the input data against the shapes.
      */
     private static void validateGraph(Context ctx) {
         String ttlInput = ctx.body();
@@ -240,73 +285,27 @@ public class App {
         try {
             // Load user input
             dataModel.read(new ByteArrayInputStream(ttlInput.getBytes(StandardCharsets.UTF_8)), null, "TTL");
+            System.out.println("[validate] Loaded input: " + dataModel.size() + " triples");
 
-            // Extract all unique lemma strings from the input data
-            Set<String> lemmasNeeded = new HashSet<>();
-            Property lemmaProp = SHAPES_GRAPH.createProperty(ONT_NS + "lemma");
+            // Run validation (no inference)
+            System.out.println("[validate] Running SHACL validation...");
+            Resource report = ValidationUtil.validateModel(dataModel, SHAPES_GRAPH, false);
             
-            StmtIterator lemmaStmts = dataModel.listStatements(null, lemmaProp, (RDFNode) null);
-            while (lemmaStmts.hasNext()) {
-                Statement stmt = lemmaStmts.next();
-                if (stmt.getObject().isLiteral()) {
-                    String lemmaStr = stmt.getObject().asLiteral().getString();
-                    lemmasNeeded.add(lemmaStr);
-                }
-            }
-            
-            System.out.println("[validate] Found " + lemmasNeeded.size() + " unique lemmas in input: " + lemmasNeeded);
-
-            // For each needed lemma, fetch the lemma node from SHAPES_GRAPH and add it to dataModel
-            Resource lemmaClass = SHAPES_GRAPH.createResource(ONT_NS + "Lemma");
-            Property present3sgProp = SHAPES_GRAPH.createProperty(ONT_NS + "present3sg");
-            
-            for (String lemmaStr : lemmasNeeded) {
-                // Find lemma node(s) in SHAPES_GRAPH where :lemma = lemmaStr
-                ResIterator lemmaNodes = SHAPES_GRAPH.listSubjectsWithProperty(lemmaProp, lemmaStr);
-                while (lemmaNodes.hasNext()) {
-                    Resource lemmaNode = lemmaNodes.next();
-                    
-                    // Add all properties of this lemma node to dataModel
-                    StmtIterator props = lemmaNode.listProperties();
-                    while (props.hasNext()) {
-                        Statement s = props.next();
-                        dataModel.add(s);
-                    }
-                    
-                    // Log what we added
-                    if (lemmaNode.hasProperty(present3sgProp)) {
-                        String inflection = lemmaNode.getProperty(present3sgProp).getString();
-                        System.out.println("[validate] Added lemma node: " + lemmaStr + " → " + inflection);
-                    }
-                }
-            }
-
-            // Perform Validation with Inference
-            System.out.println("[validate] Running SHACL validation with inference...");
-            Resource report = ValidationUtil.validateModel(dataModel, SHAPES_GRAPH, true);
             StringWriter reportWriter = new StringWriter();
             RDFDataMgr.write(reportWriter, report.getModel(), RDFFormat.TURTLE);
 
-            // Return result
             boolean conforms = report.getProperty(SH.conforms).getBoolean();
-            
-            // Expand data (Inference) - this now includes the inferred opaque property triples
-            StringWriter dataWriter = new StringWriter();
-            RDFDataMgr.write(dataWriter, dataModel, RDFFormat.TURTLE);
-
-            System.out.println("[validate] Validation complete. Conforms: " + conforms);
-            System.out.println("[validate] Data model now has " + dataModel.size() + " triples");
+            System.out.println("[validate] Complete. Conforms: " + conforms);
 
             ctx.json(Map.of(
                     "conforms", conforms,
-                    "report_text", reportWriter.toString(),
-                    "expanded_data", dataWriter.toString()
+                    "report_text", reportWriter.toString()
             ));
 
         } catch (Exception e) {
             System.err.println("[validate] Error: " + e.getMessage());
             e.printStackTrace();
-            ctx.status(400).result("Error processing Turtle: " + e.getMessage());
+            ctx.status(400).result("Error during validation: " + e.getMessage());
         }
     }
 }
