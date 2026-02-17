@@ -226,10 +226,6 @@ public class App {
         }
     }
 
-    /**
-     * VALIDATE GRAPH
-     * Performs SHACL validation and rule inference on the input Turtle.
-     */
     private static void validateGraph(Context ctx) {
         String ttlInput = ctx.body();
         Model dataModel = JenaUtil.createMemoryModel();
@@ -238,7 +234,13 @@ public class App {
             // Load user input
             dataModel.read(new ByteArrayInputStream(ttlInput.getBytes(StandardCharsets.UTF_8)), null, "TTL");
 
-            // Perform Validation
+            // CRITICAL FIX: Add shapes graph to data model
+            // This allows SPARQL rules to find lemma nodes with :present3sg during inference
+            // The rules query: ?lemmaNode :lemma ?lemma ; :present3sg ?verbForm
+            // These lemma nodes are in SHAPES_GRAPH, so we need to merge them
+            dataModel.add(SHAPES_GRAPH);
+
+            // Perform Validation with Inference
             Resource report = ValidationUtil.validateModel(dataModel, SHAPES_GRAPH, true);
             StringWriter reportWriter = new StringWriter();
             RDFDataMgr.write(reportWriter, report.getModel(), RDFFormat.TURTLE);
@@ -246,7 +248,7 @@ public class App {
             // Return result
             boolean conforms = report.getProperty(SH.conforms).getBoolean();
             
-            // Expand data (Inference)
+            // Expand data (Inference) - this now includes the inferred opaque property triples
             StringWriter dataWriter = new StringWriter();
             RDFDataMgr.write(dataWriter, dataModel, RDFFormat.TURTLE);
 
@@ -259,5 +261,6 @@ public class App {
         } catch (Exception e) {
             ctx.status(400).result("Error processing Turtle: " + e.getMessage());
         }
+    }
     }
 }
