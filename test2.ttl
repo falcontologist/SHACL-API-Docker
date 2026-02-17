@@ -3,38 +3,80 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-# Test instances for opaque property inference
+# ============================================================================
+# LEMMA DEFINITIONS (Required for SHACL rule to look up present3sg)
+# ============================================================================
+
+:acquire.v.lemma a :Lemma ;
+    rdfs:label "acquire (verb lemma)" ;
+    :lemma "acquire" ;
+    :present3sg "acquires" ;
+    :pos "Verb" .
+
+:learn.v.lemma a :Lemma ;
+    rdfs:label "learn (verb lemma)" ;
+    :lemma "learn" ;
+    :present3sg "learns" ;
+    :pos "Verb" .
+
+:purchase.v.lemma a :Lemma ;
+    rdfs:label "purchase (verb lemma)" ;
+    :lemma "purchase" ;
+    :present3sg "purchases" ;
+    :pos "Verb" .
+
+:obtain.v.lemma a :Lemma ;
+    rdfs:label "obtain (verb lemma)" ;
+    :lemma "obtain" ;
+    :present3sg "obtains" ;
+    :pos "Verb" .
+
+:absorb.v.lemma a :Lemma ;
+    rdfs:label "absorb (verb lemma)" ;
+    :lemma "absorb" ;
+    :present3sg "absorbs" ;
+    :pos "Verb" .
+
+# ============================================================================
+# TEST INSTANCES - ACQUISITION
+# ============================================================================
+
+# Test 1: Alice acquires programming skill
 :testAcquisition1 a :Acquisition ;
     :lemma "acquire" ;
     :synset "develop or internalize a new ability, skill, or preference" ;
     :acquirer :alice ;
     :acquisition :skill1 .
 
+# Test 2: Bob acquires patience (different synset)
 :testAcquisition2 a :Acquisition ;
     :lemma "acquire" ;
     :synset "take on, display, or exhibit a characteristic" ;
     :acquirer :bob ;
     :acquisition :quality1 .
 
+# Test 3: Charlie acquires house (different synset)
 :testAcquisition3 a :Acquisition ;
     :lemma "acquire" ;
     :synset "become the owner or possessor of something" ;
     :acquirer :charlie ;
     :acquisition :property1 .
 
+# Test 4: Diana learns ancient history (different lemma)
 :testAcquisition4 a :Acquisition ;
     :lemma "learn" ;
     :synset "gain knowledge or understanding of something through study or experience" ;
     :acquirer :diana ;
     :acquisition :knowledge1 .
 
+# Test 5: Eve purchases laptop (different lemma)
 :testAcquisition5 a :Acquisition ;
     :lemma "purchase" ;
     :synset "obtain something by paying for it" ;
     :acquirer :eve ;
     :acquisition :product1 .
 
-# Test instances with same lemma+synset combination (should produce same opaque property)
+# Test 6-7: Same lemma+synset as Test 1 (should produce SAME opaque property)
 :testAcquisition6 a :Acquisition ;
     :lemma "acquire" ;
     :synset "develop or internalize a new ability, skill, or preference" ;
@@ -47,7 +89,60 @@
     :acquirer :grace ;
     :acquisition :skill3 .
 
-# Entities
+# ============================================================================
+# TEST INSTANCES - DETERMINISM TEST (Alphabet/Google)
+# ============================================================================
+
+# Alphabet acquires Wiz
+:acquisitionAlphabetWiz a :Acquisition ;
+    :lemma "acquire" ;
+    :synset "become the owner or possessor of something" ;
+    :acquirer :alphabet ;
+    :acquisition :wiz .
+
+# Google acquires YouTube (same lemma+synset, should produce same opaque IRI)
+:acquisitionGoogleYouTube a :Acquisition ;
+    :lemma "acquire" ;
+    :synset "become the owner or possessor of something" ;
+    :acquirer :google ;
+    :acquisition :youtube .
+
+# ============================================================================
+# NEGATIVE TEST CASES
+# ============================================================================
+
+# Test: Missing lemma and synset (should NOT generate opaque property)
+:testAcquisitionIncomplete a :Acquisition ;
+    :acquirer :hank ;
+    :acquisition :item1 .
+
+# Test: Missing synset (should NOT generate opaque property)
+:testAcquisitionNoSynset a :Acquisition ;
+    :lemma "obtain" ;
+    :acquirer :ian ;
+    :acquisition :item2 .
+
+# ============================================================================
+# TEST INSTANCES - ABSORB (Different Situation Type)
+# ============================================================================
+
+# Test Absorb shape (transformer -> theme)
+:testAbsorb1 a :Absorb ;
+    :lemma "absorb" ;
+    :synset "take in and make part of a whole" ;
+    :transformer :sponge ;
+    :theme :water .
+
+:testAbsorb2 a :Absorb ;
+    :lemma "absorb" ;
+    :synset "assimilate or take in knowledge or information" ;
+    :transformer :student ;
+    :theme :information .
+
+# ============================================================================
+# ENTITIES
+# ============================================================================
+
 :alice a :Entity ;
     rdfs:label "Alice"@en .
 
@@ -68,6 +163,30 @@
 
 :grace a :Entity ;
     rdfs:label "Grace"@en .
+
+:hank a :Entity ;
+    rdfs:label "Hank"@en .
+
+:ian a :Entity ;
+    rdfs:label "Ian"@en .
+
+:alphabet a :Entity ;
+    rdfs:label "Alphabet"@en .
+
+:google a :Entity ;
+    rdfs:label "Google"@en .
+
+:wiz a :Entity ;
+    rdfs:label "Wiz"@en .
+
+:youtube a :Entity ;
+    rdfs:label "YouTube"@en .
+
+:sponge a :Entity ;
+    rdfs:label "Sponge"@en .
+
+:student a :Entity ;
+    rdfs:label "Student"@en .
 
 :skill1 a :Entity ;
     rdfs:label "Programming Skill"@en .
@@ -90,52 +209,14 @@
 :product1 a :Entity ;
     rdfs:label "Laptop"@en .
 
-# Test instance that should NOT generate opaque property (missing lemma/synset)
-:testAcquisitionIncomplete a :Acquisition ;
-    :acquirer :hank ;
-    :acquisition :item1 .
-
-:hank a :Entity ;
-    rdfs:label "Hank"@en .
-
 :item1 a :Entity ;
     rdfs:label "Mystery Item"@en .
-
-# Test instance that should generate simple inference but NOT opaque property
-:testAcquisitionNoSynset a :Acquisition ;
-    :lemma "obtain" ;
-    :acquirer :ian ;
-    :acquisition :item2 .
-
-:ian a :Entity ;
-    rdfs:label "Ian"@en .
 
 :item2 a :Entity ;
     rdfs:label "Item Two"@en .
 
-# Alphabet acquires Wiz test case (for determinism proof)
-:acquisitionAlphabetWiz a :Acquisition ;
-    :lemma "acquire" ;
-    :synset "become the owner or possessor of something" ;
-    :acquirer :alphabet ;
-    :acquisition :wiz .
+:water a :Entity ;
+    rdfs:label "Water"@en .
 
-# Google acquires YouTube test case (same lemma+synset, should produce same opaque IRI)
-:acquisitionGoogleYouTube a :Acquisition ;
-    :lemma "acquire" ;
-    :synset "become the owner or possessor of something" ;
-    :acquirer :google ;
-    :acquisition :youtube .
-
-# New entities for these tests
-:alphabet a :Entity ;
-    rdfs:label "Alphabet"@en .
-
-:wiz a :Entity ;
-    rdfs:label "Wiz"@en .
-
-:google a :Entity ;
-    rdfs:label "Google"@en .
-
-:youtube a :Entity ;
-    rdfs:label "YouTube"@en .
+:information a :Entity ;
+    rdfs:label "Information"@en .
