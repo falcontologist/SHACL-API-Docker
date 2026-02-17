@@ -298,12 +298,7 @@ button:disabled {
 }
 
 .action-bar { 
-  margin-top: 10px;
-}
-
-/* Start hidden, show when there's data */
-.action-bar.hidden {
-  display: none;
+  margin-top: 10px; 
 }
 
 /* The 3-button aligned grid */
