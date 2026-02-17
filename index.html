@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHACL Semantic Roles Demo | Event-Centric Knowledge Graph</title>
+    
+    <!-- SEO / Social Media -->
+    <meta name="description" content="Interactive demo of event-centric knowledge graph with automatic SHACL inference. VerbNet + FrameNet + WordNet integration with opaque IRI generation.">
+    <meta name="author" content="Josh Falconer">
+    
+    <!-- Favicon (simple emoji-based) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>">
+    
+    <!-- Your CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- D3.js for visualization -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <!-- Loading indicator (hidden once page loads) -->
+    <div id="page-loader" class="page-loader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <p>Loading ontology...</p>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <header>
+            <div class="header-main">
+                <h1>Ontology Template Generator & Visualizer</h1>
+                <div class="meta">
+                    <span class="badge">TopBraid SHACL API + D3</span>
+                    <span class="source-link">Source: <code>roles_shacl.ttl</code></span>
+                </div>
+            </div>
+            <div class="project-summary-mini">
+                Instance Creation | Template Generation | SHACL Inference | SHACL Validation
+            </div>
+        </header>
+
+        <div class="split-view">
+            <div class="left-panel">
+                <div class="status-dashboard">
+                    <div class="api-row">
+                        <span class="label">API Status</span>
+                        <div class="status-indicator">
+                            <span id="statusDot" class="dot-indicator"></span>
+                            <span id="statusAPI">Connecting...</span>
+                        </div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-item"><strong id="countShapes">--</strong><small>Shapes</small></div>
+                        <div class="stat-item"><strong id="countRoles">--</strong><small>Roles</small></div>
+                        <div class="stat-item"><strong id="countRules">--</strong><small>Rules</small></div>
+                        <div class="stat-item"><strong id="countLemmas">--</strong><small>Lemmas</small></div>
+                        <div class="stat-item"><strong id="countSenses">--</strong><small>Synsets</small></div>
+                    </div>
+                </div>
+
+                <section class="section" id="step1">
+                    <label>1. Enter Verb Stem</label>
+                    <div class="input-group">
+                        <input type="text" id="verbInput" placeholder="e.g. run, carry, give..." autocomplete="off" aria-label="Verb stem input">
+                        <button id="lookupBtn" class="btn-primary">Find</button>
+                    </div>
+                    <div id="verbStatus" class="status-text"></div>
+                </section>
+
+                <section class="section hidden" id="step2">
+                    <label>2. Select Meaning</label>
+                    <select id="senseSelect" aria-label="Select word sense"></select>
+                </section>
+
+                <section class="section hidden" id="step3">
+                    <label>3. Select Situation</label>
+                    <select id="situationSelect" aria-label="Select situation type"></select>
+                    <div id="domainHint" class="hint-text"></div>
+                </section>
+
+                <section class="section hidden" id="stepForm">
+                    <div class="label-row">
+                        <label>4. Role Values</label>
+                        <span class="required-note">* required</span>
+                    </div>
+                    <div class="form-container" id="dynamicForm"></div>
+                    
+                    <div class="action-bar">
+                        <div class="action-grid">
+                            <button id="addEntryBtn" class="btn-success">Add Entry</button>
+                            <button id="inferBtn" class="btn-infer">Run Inference</button>
+                            <button id="validateBtn" class="btn-validate">Run Validation</button>
+                        </div>
+                        <div class="utility-row">
+                            <button id="templateBtn" class="btn-secondary small">Download CSV</button>
+                            <button id="cancelBtn" class="btn-text">Reset Form</button>
+                        </div>
+                    </div>
+
+                    <div id="validationReport" class="report-box hidden">
+                        <div class="report-header">SHACL Validation Report</div>
+                        <pre id="reportContent"></pre>
+                    </div>
+                </section>
+
+                <section class="section output-section">
+                    <div class="label-row">
+                        <label>Turtle Output</label>
+                        <div class="action-group">
+                            <button id="newGraphBtn" class="btn-secondary small">Clear</button>
+                            <button id="downloadBtn" class="btn-secondary small">Save .ttl</button>
+                        </div>
+                    </div>
+                    <textarea id="ttlInput" spellcheck="false" aria-label="Turtle RDF output"></textarea>
+                </section>
+            </div> 
+
+            <div class="right-panel">
+                <div id="graph-container"></div>
+                <div class="graph-overlay">
+                    <div class="legend">
+                        <div><span class="dot class"></span> Class</div>
+                        <div><span class="dot instance"></span> Instance</div>
+                        <div><span class="dot literal"></span> Literal</div>
+                        <hr>
+                        <div><div class="legend-line"></div> Asserted</div>
+                        <div><div class="legend-line dashed"></div> Inferred</div>
+                    </div>
+                    <div class="zoom-hint">Scroll to Zoom • Drag Nodes</div>
+                </div>
+            </div> 
+        </div> 
+    </div>
+
+    <!-- Footer (optional, for professional touch) -->
+    <footer class="app-footer">
+        <p>
+            <a href="https://github.com/yourusername/shacl-demo" target="_blank" rel="noopener">View Source on GitHub</a> | 
+            <a href="https://shacl-api-docker.onrender.com/api/status" target="_blank" rel="noopener">API Status</a>
+        </p>
+    </footer>
+    
+    <!-- Your JavaScript -->
+    <script src="js/app.js"></script>
+
+    <!-- Hide loader once everything is ready -->
+    <script>
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const loader = document.getElementById('page-loader');
+                if (loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.style.display = 'none', 300);
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>
