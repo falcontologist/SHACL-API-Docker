@@ -33,15 +33,16 @@ public class App {
         // API Endpoints
         app.get("/api/stats", App::getStats);
         app.get("/api/lookup", App::lookupVerb);
-        app.get("/api/forms", App::getForms);       // UPDATED: Returns targetClass
-        app.post("/api/infer", App::inferGraph);    // UPDATED: Merges inference
+        app.get("/api/forms", App::getForms);
+        app.post("/api/infer", App::inferGraph);
         app.post("/api/validate", App::validateGraph);
     }
 
+    // --- 1. RESTORED LOADING LOGIC (From your working commit) ---
     private static Model loadShapesGraph() {
         try {
             Model m = JenaUtil.createMemoryModel();
-            // Load the main ontology file
+            // This was the specific line from your working version
             InputStream is = App.class.getResourceAsStream("/roles_shacl.ttl");
             if (is == null) throw new RuntimeException("roles_shacl.ttl not found in resources");
             m.read(is, null, "TTL");
@@ -55,10 +56,8 @@ public class App {
 
     private static void getStats(Context ctx) {
         long shapes = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).toList().size();
-        // Count roles (PropertyShapes)
         long roles = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.PropertyShape).toList().size();
         
-        // Custom counts based on your ontology structure
         long lemmas = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, 
                 SHAPES_GRAPH.createResource(ONT_NS + "Lemma")).toList().size();
         long synsets = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, 
@@ -69,13 +68,10 @@ public class App {
                 "roles", roles,
                 "lemmas", lemmas,
                 "senses", synsets,
-                "rules", 0 // Placeholder or calculate if needed
+                "rules", 0 // Simplification as per original
         ));
     }
 
-    /**
-     * LOOKUP VERB - Finds Lemma and Senses
-     */
     private static void lookupVerb(Context ctx) {
         String verb = ctx.queryParam("verb");
         if (verb == null) {
@@ -83,7 +79,6 @@ public class App {
             return;
         }
 
-        // 1. Find the Lemma
         ResIterator lemmaIter = SHAPES_GRAPH.listSubjectsWithProperty(
                 SHAPES_GRAPH.createProperty(ONT_NS + "lemma"), verb);
         
@@ -95,7 +90,6 @@ public class App {
         Resource lemmaRes = lemmaIter.next();
         List<Map<String, Object>> senses = new ArrayList<>();
 
-        // 2. Find Senses linked to this Lemma
         ResIterator senseIter = SHAPES_GRAPH.listSubjectsWithProperty(
                 SHAPES_GRAPH.createProperty(ONT_NS + "word"), lemmaRes);
 
@@ -106,7 +100,6 @@ public class App {
                 gloss = senseRes.getProperty(SHAPES_GRAPH.createProperty(ONT_NS + "gloss")).getString();
             }
 
-            // Find valid situations (Shapes) for this sense
             List<String> validSituations = new ArrayList<>();
             StmtIterator sitIter = senseRes.listProperties(SHAPES_GRAPH.createProperty(ONT_NS + "valid_situation"));
             while (sitIter.hasNext()) {
@@ -127,10 +120,6 @@ public class App {
         ));
     }
 
-    /**
-     * GET FORMS - Generates UI config from SHACL
-     * FIX: Now extracts sh:targetClass to send to frontend
-     */
     private static void getForms(Context ctx) {
         Map<String, Object> forms = new HashMap<>();
 
@@ -140,9 +129,8 @@ public class App {
             String shapeName = shape.getLocalName();
             if (shapeName == null) continue;
 
-            // 1. Extract the Target Class (The SHACL Way)
-            // If the shape defines sh:targetClass, use it. 
-            // Otherwise default to the shapeName (fallback).
+            // Added back the targetClass logic because the FRONTEND relies on it now
+            // to fix the "Shape vs Class" mismatch.
             String targetClass = shapeName;
             if (shape.hasProperty(SH.targetClass)) {
                 targetClass = shape.getPropertyResourceValue(SH.targetClass).getLocalName();
@@ -172,7 +160,6 @@ public class App {
                 ));
             }
             
-            // Only include shapes that have fields defined
             if (!fields.isEmpty()) {
                 forms.put(shapeName, Map.of(
                     "targetClass", targetClass,
@@ -184,23 +171,17 @@ public class App {
         ctx.json(Map.of("forms", forms));
     }
 
-    /**
-     * INFER GRAPH - Runs SHACL SPARQL rules
-     * FIX: Merges inference results back into the original data model so the graph persists.
-     */
+    // --- 2. THE CRITICAL FIX FOR "DISAPPEARING GRAPH" ---
     private static void inferGraph(Context ctx) {
         String ttlInput = ctx.body();
         Model dataModel = JenaUtil.createMemoryModel();
 
         try {
-            // 1. Load user input
             dataModel.read(new ByteArrayInputStream(ttlInput.getBytes(StandardCharsets.UTF_8)), null, "TTL");
             long originalSize = dataModel.size();
             System.out.println("[infer] Loaded input: " + originalSize + " triples");
 
-            // 2. Dictionary Logic: Find Lemma nodes and inject them
-            // The frontend sends :lemma "verb". We need to find the Ontology Lemma node 
-            // and add its properties (like :present3sg) to the data model so rules can read them.
+            // Dictionary Injection (Required for rules to fire)
             Set<String> lemmasNeeded = new HashSet<>();
             Property lemmaProp = SHAPES_GRAPH.createProperty(ONT_NS + "lemma");
             
@@ -217,7 +198,6 @@ public class App {
                 ResIterator lemmaNodes = SHAPES_GRAPH.listSubjectsWithProperty(lemmaProp, lemmaStr);
                 while (lemmaNodes.hasNext()) {
                     Resource lemmaNode = lemmaNodes.next();
-                    // Copy all properties of the Lemma node (e.g., :present3sg) into dataModel
                     StmtIterator props = lemmaNode.listProperties();
                     while (props.hasNext()) {
                         dataModel.add(props.next());
@@ -226,19 +206,15 @@ public class App {
                 }
             }
 
-            // 3. Run SHACL inference
-            // executeRules returns ONLY the new inferred triples (Deductions Model)
             System.out.println("[infer] Executing SHACL rules...");
             Model inferredModel = RuleUtil.executeRules(dataModel, SHAPES_GRAPH, null, null);
             long newInferredTriples = inferredModel.size(); 
             
-            // 4. CRITICAL FIX: Merge inferences back into the main data model
+            // MERGE: This keeps your graph from disappearing
             dataModel.add(inferredModel);
 
             System.out.println("[infer] Generated " + newInferredTriples + " new triples");
-            System.out.println("[infer] Complete. Total: " + dataModel.size() + " triples");
 
-            // 5. Return the merged graph
             StringWriter dataWriter = new StringWriter();
             RDFDataMgr.write(dataWriter, dataModel, RDFFormat.TURTLE);
 
@@ -260,24 +236,19 @@ public class App {
         }
     }
 
-    /**
-     * VALIDATE GRAPH - Runs SHACL validation only (no inference)
-     */
     private static void validateGraph(Context ctx) {
         String ttlInput = ctx.body();
         Model dataModel = JenaUtil.createMemoryModel();
 
         try {
             dataModel.read(new ByteArrayInputStream(ttlInput.getBytes(StandardCharsets.UTF_8)), null, "TTL");
-            System.out.println("[validate] Loaded input: " + dataModel.size() + " triples");
-
+            
             Resource report = ValidationUtil.validateModel(dataModel, SHAPES_GRAPH, false);
             
             StringWriter reportWriter = new StringWriter();
             RDFDataMgr.write(reportWriter, report.getModel(), RDFFormat.TURTLE);
 
             boolean conforms = report.getProperty(SH.conforms).getBoolean();
-            System.out.println("[validate] Complete. Conforms: " + conforms);
 
             ctx.json(Map.of(
                     "conforms", conforms,
