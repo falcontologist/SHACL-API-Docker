@@ -80,6 +80,7 @@ function init() {
   setupEventListeners();
   setupTTLArea();
   updateGraph();
+  updateActionButtonsVisibility();  // Check if buttons should be visible
   fetchStats();
   window.addEventListener('resize', debounce(handleResize, 250));
   console.log("✓ Application initialized");
@@ -129,7 +130,43 @@ function setupTTLArea() {
   const ttlInput = getElement('ttlInput');
   if (ttlInput) {
     ttlInput.value = PREFIXES;
-    ttlInput.addEventListener('input', debounce(updateGraph, 300));
+    ttlInput.addEventListener('input', () => {
+      debounce(updateGraph, 300)();
+      updateActionButtonsVisibility();
+    });
+  }
+}
+
+// Check if TTL has real data (not just prefixes)
+function hasRealTTLData() {
+  const ttlInput = getElement('ttlInput');
+  if (!ttlInput) return false;
+  
+  const content = ttlInput.value.trim();
+  
+  // Remove prefix lines
+  const lines = content.split('\n').filter(line => {
+    const trimmed = line.trim();
+    return trimmed && 
+           !trimmed.startsWith('@prefix') && 
+           !trimmed.startsWith('#');
+  });
+  
+  // Check if there's any actual data (not just empty lines)
+  return lines.length > 0 && lines.some(line => line.includes('a :') || line.includes('rdf:type'));
+}
+
+// Show/hide action buttons based on TTL content
+function updateActionButtonsVisibility() {
+  const hasData = hasRealTTLData();
+  const actionBar = getElement('actionBar');
+  
+  if (actionBar) {
+    if (hasData) {
+      actionBar.classList.remove('hidden');
+    } else {
+      actionBar.classList.add('hidden');
+    }
   }
 }
 
@@ -482,6 +519,7 @@ async function addEntry() {
   ttlArea.value += newData;
   
   updateGraph();
+  updateActionButtonsVisibility();  // Show inference/validation buttons
   showSuccess('addEntryBtn', "✓ Added");
 }
 
@@ -1014,6 +1052,7 @@ function handleNewGraph() {
   if (ttlInput) {
     ttlInput.value = PREFIXES;
     updateGraph();
+    updateActionButtonsVisibility();  // Hide buttons when clearing
   }
   resetUI();
 }
