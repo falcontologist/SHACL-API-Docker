@@ -262,5 +262,4 @@ public class App {
             ctx.status(400).result("Error processing Turtle: " + e.getMessage());
         }
     }
-    }
 }
