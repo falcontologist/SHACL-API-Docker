@@ -13,7 +13,6 @@ import org.topbraid.shacl.validation.ValidationUtil;
 import org.topbraid.shacl.vocabulary.SH;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -34,89 +33,80 @@ public class App {
         app.get("/api/stats", App::getStats);
         app.get("/api/lookup", App::lookupVerb);
         app.get("/api/forms", App::getForms);
-        app.post("/api/infer", App::inferGraph);
-        app.post("/api/validate", App::validateGraph);
+        app.post("/api/infer", App::inferGraph);        // NEW: Inference endpoint
+        app.post("/api/validate", App::validateGraph);  // Validation only
+
+        System.out.println("Server running on port 8080");
     }
 
-    // --- 1. RESTORED LOADING LOGIC (From your working commit) ---
     private static Model loadShapesGraph() {
+        Model m = JenaUtil.createMemoryModel();
         try {
-            Model m = JenaUtil.createMemoryModel();
-            // This was the specific line from your working version
-            InputStream is = App.class.getResourceAsStream("/roles_shacl.ttl");
-            if (is == null) throw new RuntimeException("roles_shacl.ttl not found in resources");
-            m.read(is, null, "TTL");
-            System.out.println("Loaded SHACL Shapes Graph: " + m.size() + " triples");
-            return m;
+            m.read("roles_shacl.ttl");
+            System.out.println("[startup] Loaded graph: " + m.size() + " triples.");
         } catch (Exception e) {
+            System.err.println("[startup] FAILED to load graph: " + e.getMessage());
             e.printStackTrace();
-            return JenaUtil.createMemoryModel();
         }
-    }
-
-    private static void getStats(Context ctx) {
-        long shapes = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).toList().size();
-        long roles = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.PropertyShape).toList().size();
-        
-        long lemmas = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, 
-                SHAPES_GRAPH.createResource(ONT_NS + "Lemma")).toList().size();
-        long synsets = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, 
-                SHAPES_GRAPH.createResource(ONT_NS + "Synset")).toList().size();
-
-        ctx.json(Map.of(
-                "shapes", shapes,
-                "roles", roles,
-                "lemmas", lemmas,
-                "senses", synsets,
-                "rules", 0 // Simplification as per original
-        ));
+        return m;
     }
 
     private static void lookupVerb(Context ctx) {
-        String verb = ctx.queryParam("verb");
-        if (verb == null) {
-            ctx.status(400).result("Missing verb parameter");
-            return;
-        }
-
-        ResIterator lemmaIter = SHAPES_GRAPH.listSubjectsWithProperty(
-                SHAPES_GRAPH.createProperty(ONT_NS + "lemma"), verb);
-        
-        if (!lemmaIter.hasNext()) {
+        String query = ctx.queryParam("verb");
+        if (query == null || query.isBlank()) {
             ctx.json(Map.of("found", false));
             return;
         }
 
-        Resource lemmaRes = lemmaIter.next();
-        List<Map<String, Object>> senses = new ArrayList<>();
+        String searchStem = query.trim().toLowerCase();
+        List<Map<String, Object>> sensesResult = new ArrayList<>();
 
-        ResIterator senseIter = SHAPES_GRAPH.listSubjectsWithProperty(
-                SHAPES_GRAPH.createProperty(ONT_NS + "word"), lemmaRes);
+        Property senseProp  = SHAPES_GRAPH.createProperty(ONT_NS + "sense");
+        Property evokesProp = SHAPES_GRAPH.createProperty(ONT_NS + "evokes");
+        Property glossProp  = SHAPES_GRAPH.createProperty(ONT_NS + "gloss");
+        Resource lemmaClass = SHAPES_GRAPH.createResource(ONT_NS + "Lemma");
 
-        while (senseIter.hasNext()) {
-            Resource senseRes = senseIter.next();
-            String gloss = "";
-            if (senseRes.hasProperty(SHAPES_GRAPH.createProperty(ONT_NS + "gloss"))) {
-                gloss = senseRes.getProperty(SHAPES_GRAPH.createProperty(ONT_NS + "gloss")).getString();
+        ResIterator lemmas = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, lemmaClass);
+        while (lemmas.hasNext()) {
+            Resource lemma = lemmas.next();
+            if (!lemma.hasProperty(RDFS.label)) continue;
+
+            String label = lemma.getProperty(RDFS.label).getString().toLowerCase();
+            String stem = label.contains(" (") ? label.substring(0, label.indexOf(" (")).trim() : label;
+
+            if (stem.equals(searchStem)) {
+                StmtIterator senseStmts = lemma.listProperties(senseProp);
+                while (senseStmts.hasNext()) {
+                    Resource synset = senseStmts.next().getResource();
+                    String synsetId = synset.getLocalName();
+
+                    String gloss = synset.hasProperty(glossProp)
+                            ? synset.getProperty(glossProp).getString()
+                            : "No definition available.";
+
+                    List<String> situations = new ArrayList<>();
+                    StmtIterator evokedStmts = synset.listProperties(evokesProp);
+                    while (evokedStmts.hasNext()) {
+                        Resource shape = evokedStmts.next().getResource();
+                        situations.add(shape.getLocalName());
+                    }
+
+                    if (!situations.isEmpty()) {
+                        sensesResult.add(Map.of(
+                                "id", synsetId,
+                                "gloss", gloss,
+                                "situations", situations
+                        ));
+                    }
+                }
+                break;
             }
-
-            List<String> validSituations = new ArrayList<>();
-            StmtIterator sitIter = senseRes.listProperties(SHAPES_GRAPH.createProperty(ONT_NS + "valid_situation"));
-            while (sitIter.hasNext()) {
-                validSituations.add(sitIter.next().getResource().getLocalName());
-            }
-
-            senses.add(Map.of(
-                    "id", senseRes.getLocalName(),
-                    "gloss", gloss,
-                    "situations", validSituations
-            ));
         }
 
         ctx.json(Map.of(
-                "found", true,
-                "lemma", lemmaRes.getLocalName(),
-                "senses", senses
+                "found", !sensesResult.isEmpty(),
+                "lemma", searchStem,
+                "senses", sensesResult
         ));
     }
 
@@ -127,18 +117,9 @@ public class App {
         while (shapes.hasNext()) {
             Resource shape = shapes.next();
             String shapeName = shape.getLocalName();
-            if (shapeName == null) continue;
-
-            // Added back the targetClass logic because the FRONTEND relies on it now
-            // to fix the "Shape vs Class" mismatch.
-            String targetClass = shapeName;
-            if (shape.hasProperty(SH.targetClass)) {
-                targetClass = shape.getPropertyResourceValue(SH.targetClass).getLocalName();
-            }
-
             List<Map<String, Object>> fields = new ArrayList<>();
+
             StmtIterator props = shape.listProperties(SH.property);
-            
             while (props.hasNext()) {
                 Resource propertyShape = props.next().getResource();
 
@@ -161,27 +142,70 @@ public class App {
             }
             
             if (!fields.isEmpty()) {
-                forms.put(shapeName, Map.of(
-                    "targetClass", targetClass,
-                    "fields", fields
-                ));
+                forms.put(shapeName, Map.of("fields", fields));
             }
         }
 
         ctx.json(Map.of("forms", forms));
     }
 
-    // --- 2. THE CRITICAL FIX FOR "DISAPPEARING GRAPH" ---
+    private static void getStats(Context ctx) {
+        long shapeCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.NodeShape).toList().size();
+
+        Resource protoRoleRoot = SHAPES_GRAPH.getResource(ONT_NS + "proto_role");
+        long roleCount = countDescendants(protoRoleRoot);
+
+        Resource modifierRoot = SHAPES_GRAPH.getResource(ONT_NS + "modifier");
+        long modifierCount = countDescendants(modifierRoot);
+
+        long ruleCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, SH.SPARQLRule).toList().size();
+        long lemmaCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, 
+                SHAPES_GRAPH.createResource(ONT_NS + "Lemma")).toList().size();
+        long senseCount = SHAPES_GRAPH.listSubjectsWithProperty(RDF.type, 
+                SHAPES_GRAPH.createResource(ONT_NS + "Synset")).toList().size();
+
+        ctx.json(Map.of(
+                "shapes", shapeCount,
+                "roles", roleCount,
+                "modifiers", modifierCount,
+                "rules", ruleCount,
+                "lemmas", lemmaCount,
+                "senses", senseCount
+        ));
+    }
+
+    private static long countDescendants(Resource root) {
+        Set<Resource> descendants = new HashSet<>();
+        collectDescendantsRecursive(root, descendants);
+        return descendants.size();
+    }
+
+    private static void collectDescendantsRecursive(Resource parent, Set<Resource> visited) {
+        ResIterator it = SHAPES_GRAPH.listSubjectsWithProperty(RDFS.subPropertyOf, parent);
+        while (it.hasNext()) {
+            Resource child = it.next();
+            if (!visited.contains(child)) {
+                visited.add(child);
+                collectDescendantsRecursive(child, visited);
+            }
+        }
+    }
+
+    /**
+     * INFER GRAPH - Runs SHACL SPARQL rules to generate opaque properties
+     * This is separate from validation and adds lemma nodes as needed.
+     */
     private static void inferGraph(Context ctx) {
         String ttlInput = ctx.body();
         Model dataModel = JenaUtil.createMemoryModel();
 
         try {
+            // Load user input
             dataModel.read(new ByteArrayInputStream(ttlInput.getBytes(StandardCharsets.UTF_8)), null, "TTL");
-            long originalSize = dataModel.size();
-            System.out.println("[infer] Loaded input: " + originalSize + " triples");
+            long inputTriples = dataModel.size();
+            System.out.println("[infer] Loaded input: " + inputTriples + " triples");
 
-            // Dictionary Injection (Required for rules to fire)
+            // Extract unique lemma strings from input
             Set<String> lemmasNeeded = new HashSet<>();
             Property lemmaProp = SHAPES_GRAPH.createProperty(ONT_NS + "lemma");
             
@@ -193,38 +217,56 @@ public class App {
                 }
             }
             
+            System.out.println("[infer] Found " + lemmasNeeded.size() + " unique lemmas: " + lemmasNeeded);
+
+            // Add lemma nodes from SHAPES_GRAPH
+            Property present3sgProp = SHAPES_GRAPH.createProperty(ONT_NS + "present3sg");
             int lemmaNodesAdded = 0;
+            
             for (String lemmaStr : lemmasNeeded) {
                 ResIterator lemmaNodes = SHAPES_GRAPH.listSubjectsWithProperty(lemmaProp, lemmaStr);
                 while (lemmaNodes.hasNext()) {
                     Resource lemmaNode = lemmaNodes.next();
+                    
                     StmtIterator props = lemmaNode.listProperties();
                     while (props.hasNext()) {
                         dataModel.add(props.next());
                     }
                     lemmaNodesAdded++;
+                    
+                    if (lemmaNode.hasProperty(present3sgProp)) {
+                        String inflection = lemmaNode.getProperty(present3sgProp).getString();
+                        System.out.println("[infer]   Added: " + lemmaStr + " → " + inflection);
+                    }
                 }
             }
-
-            System.out.println("[infer] Executing SHACL rules...");
-            Model inferredModel = RuleUtil.executeRules(dataModel, SHAPES_GRAPH, null, null);
-            long newInferredTriples = inferredModel.size(); 
             
-            // MERGE: This keeps your graph from disappearing
-            dataModel.add(inferredModel);
+            System.out.println("[infer] Added " + lemmaNodesAdded + " lemma nodes");
+            System.out.println("[infer] Data model before inference: " + dataModel.size() + " triples");
 
-            System.out.println("[infer] Generated " + newInferredTriples + " new triples");
+            // Run SHACL inference (SPARQL rules)
+            System.out.println("[infer] Executing SHACL rules...");
+            long beforeInference = dataModel.size();
+            Model newTriples = RuleUtil.executeRules(dataModel, SHAPES_GRAPH, null, null);
+            
+            // Merge the new triples into the original model
+            dataModel.add(newTriples);
+            long inferredTriples = dataModel.size() - beforeInference;
+            System.out.println("[infer] Generated " + inferredTriples + " new triples");
 
+            // Return complete data (original + inferred)
             StringWriter dataWriter = new StringWriter();
             RDFDataMgr.write(dataWriter, dataModel, RDFFormat.TURTLE);
+
+            System.out.println("[infer] Complete. Total: " + dataModel.size() + " triples");
 
             ctx.json(Map.of(
                     "success", true,
                     "inferred_data", dataWriter.toString(),
                     "stats", Map.of(
-                            "input_triples", originalSize,
+                            "input_triples", inputTriples,
                             "lemma_nodes_added", lemmaNodesAdded,
-                            "inferred_triples", newInferredTriples,
+                            "inferred_triples", inferredTriples,
                             "total_triples", dataModel.size()
                     )
             ));
@@ -236,19 +278,28 @@ public class App {
         }
     }
 
+    /**
+     * VALIDATE GRAPH - Runs SHACL validation only (no inference)
+     * Validates the input data against the shapes.
+     */
     private static void validateGraph(Context ctx) {
         String ttlInput = ctx.body();
         Model dataModel = JenaUtil.createMemoryModel();
 
         try {
+            // Load user input
             dataModel.read(new ByteArrayInputStream(ttlInput.getBytes(StandardCharsets.UTF_8)), null, "TTL");
-            
+            System.out.println("[validate] Loaded input: " + dataModel.size() + " triples");
+
+            // Run validation (no inference)
+            System.out.println("[validate] Running SHACL validation...");
             Resource report = ValidationUtil.validateModel(dataModel, SHAPES_GRAPH, false);
             
             StringWriter reportWriter = new StringWriter();
             RDFDataMgr.write(reportWriter, report.getModel(), RDFFormat.TURTLE);
 
             boolean conforms = report.getProperty(SH.conforms).getBoolean();
+            System.out.println("[validate] Complete. Conforms: " + conforms);
 
             ctx.json(Map.of(
                     "conforms", conforms,
