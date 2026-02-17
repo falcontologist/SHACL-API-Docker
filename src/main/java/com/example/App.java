@@ -226,6 +226,13 @@ public class App {
         }
     }
 
+    /**
+     * VALIDATE GRAPH - OPTIMIZED VERSION
+     * Performs SHACL validation and rule inference on the input Turtle.
+     * 
+     * Only adds the specific lemma nodes needed for the SPARQL rules,
+     * rather than merging the entire shapes graph.
+     */
     private static void validateGraph(Context ctx) {
         String ttlInput = ctx.body();
         Model dataModel = JenaUtil.createMemoryModel();
@@ -234,13 +241,48 @@ public class App {
             // Load user input
             dataModel.read(new ByteArrayInputStream(ttlInput.getBytes(StandardCharsets.UTF_8)), null, "TTL");
 
-            // CRITICAL FIX: Add shapes graph to data model
-            // This allows SPARQL rules to find lemma nodes with :present3sg during inference
-            // The rules query: ?lemmaNode :lemma ?lemma ; :present3sg ?verbForm
-            // These lemma nodes are in SHAPES_GRAPH, so we need to merge them
-            dataModel.add(SHAPES_GRAPH);
+            // Extract all unique lemma strings from the input data
+            Set<String> lemmasNeeded = new HashSet<>();
+            Property lemmaProp = SHAPES_GRAPH.createProperty(ONT_NS + "lemma");
+            
+            StmtIterator lemmaStmts = dataModel.listStatements(null, lemmaProp, (RDFNode) null);
+            while (lemmaStmts.hasNext()) {
+                Statement stmt = lemmaStmts.next();
+                if (stmt.getObject().isLiteral()) {
+                    String lemmaStr = stmt.getObject().asLiteral().getString();
+                    lemmasNeeded.add(lemmaStr);
+                }
+            }
+            
+            System.out.println("[validate] Found " + lemmasNeeded.size() + " unique lemmas in input: " + lemmasNeeded);
+
+            // For each needed lemma, fetch the lemma node from SHAPES_GRAPH and add it to dataModel
+            Resource lemmaClass = SHAPES_GRAPH.createResource(ONT_NS + "Lemma");
+            Property present3sgProp = SHAPES_GRAPH.createProperty(ONT_NS + "present3sg");
+            
+            for (String lemmaStr : lemmasNeeded) {
+                // Find lemma node(s) in SHAPES_GRAPH where :lemma = lemmaStr
+                ResIterator lemmaNodes = SHAPES_GRAPH.listSubjectsWithProperty(lemmaProp, lemmaStr);
+                while (lemmaNodes.hasNext()) {
+                    Resource lemmaNode = lemmaNodes.next();
+                    
+                    // Add all properties of this lemma node to dataModel
+                    StmtIterator props = lemmaNode.listProperties();
+                    while (props.hasNext()) {
+                        Statement s = props.next();
+                        dataModel.add(s);
+                    }
+                    
+                    // Log what we added
+                    if (lemmaNode.hasProperty(present3sgProp)) {
+                        String inflection = lemmaNode.getProperty(present3sgProp).getString();
+                        System.out.println("[validate] Added lemma node: " + lemmaStr + " → " + inflection);
+                    }
+                }
+            }
 
             // Perform Validation with Inference
+            System.out.println("[validate] Running SHACL validation with inference...");
             Resource report = ValidationUtil.validateModel(dataModel, SHAPES_GRAPH, true);
             StringWriter reportWriter = new StringWriter();
             RDFDataMgr.write(reportWriter, report.getModel(), RDFFormat.TURTLE);
@@ -252,6 +294,9 @@ public class App {
             StringWriter dataWriter = new StringWriter();
             RDFDataMgr.write(dataWriter, dataModel, RDFFormat.TURTLE);
 
+            System.out.println("[validate] Validation complete. Conforms: " + conforms);
+            System.out.println("[validate] Data model now has " + dataModel.size() + " triples");
+
             ctx.json(Map.of(
                     "conforms", conforms,
                     "report_text", reportWriter.toString(),
@@ -259,6 +304,8 @@ public class App {
             ));
 
         } catch (Exception e) {
+            System.err.println("[validate] Error: " + e.getMessage());
+            e.printStackTrace();
             ctx.status(400).result("Error processing Turtle: " + e.getMessage());
         }
     }
