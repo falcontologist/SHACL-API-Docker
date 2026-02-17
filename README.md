@@ -21,4 +21,4 @@ Backend API: https://shacl-api-docker.onrender.com
 
 - Frontend: Vanilla JavaScript, D3.js
 - Backend: Java, TopBraid SHACL API
-- Ontology: VerbNet, FrameNet, WordNet, Croftian Constructions
+- Ontology: VerbNet, FrameNet, WordNet, Croftian Constructions# Demo
