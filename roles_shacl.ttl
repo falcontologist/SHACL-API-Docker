@@ -3122,14 +3122,14 @@ WHERE {
         PREFIX : <http://example.org/ontology/>
         
         CONSTRUCT {
-            ?transactor ?opaqueProperty ?affectee .
+            ?transactor ?opaqueProperty ?item .
         }
         WHERE {
             ?this a :Dynamic_Possession ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :transactor ?transactor ;
-                  :affectee ?affectee .
+                  :item ?item .
             
             # Look up the proper 3ps inflection from the lemma node
             ?lemmaNode :lemma ?lemma ;
@@ -3716,14 +3716,14 @@ WHERE {
         PREFIX : <http://example.org/ontology/>
         
         CONSTRUCT {
-            ?communicator ?opaqueProperty ?affectee .
+            ?communicator ?opaqueProperty ?topic .
         }
         WHERE {
             ?this a :Joint_Statement ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :communicator ?communicator ;
-                  :affectee ?affectee .
+                  :topic ?topic .
             
             # Look up the proper 3ps inflection from the lemma node
             ?lemmaNode :lemma ?lemma ;
@@ -4406,14 +4406,14 @@ WHERE {
         PREFIX : <http://example.org/ontology/>
         
         CONSTRUCT {
-            ?communicator ?opaqueProperty ?affectee .
+            ?communicator ?opaqueProperty ?message .
         }
         WHERE {
             ?this a :Statement ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :communicator ?communicator ;
-                  :affectee ?affectee .
+                  :message ?message .
             
             # Look up the proper 3ps inflection from the lemma node
             ?lemmaNode :lemma ?lemma ;
