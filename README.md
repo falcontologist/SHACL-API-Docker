@@ -87,7 +87,7 @@ Update `CONFIG.API_BASE_URL` in `js/app.js` to point to `http://localhost:8080/a
 ## Repo Structure
 
 ```
-/
+|
 ├── manifest.ttl         # Federated ontology entry point
 ├── conceptual.ttl       # Classes and properties
 ├── structural.ttl       # SHACL shapes and inference rules
