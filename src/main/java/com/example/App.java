@@ -55,12 +55,10 @@ public class App {
             System.out.println("[startup] Loading manifest from: " + MANIFEST_URL);
             Model manifest = fetchTTL(MANIFEST_URL);
 
-            // Read partitions ordered by :loadOrder
             Property loadOrderProp  = manifest.createProperty(MANIFEST_NS + "loadOrder");
             Property sourceFileProp = manifest.createProperty(MANIFEST_NS + "sourceFile");
             Resource partitionClass = manifest.createResource(MANIFEST_NS + "OntologyPartition");
 
-            // Collect partitions with their load order
             List<Map.Entry<Integer, String>> partitions = new ArrayList<>();
             ResIterator it = manifest.listSubjectsWithProperty(RDF.type, partitionClass);
             while (it.hasNext()) {
@@ -71,17 +69,27 @@ public class App {
                 String file = partition.getProperty(sourceFileProp).getString();
                 partitions.add(Map.entry(order, file));
             }
-
-            // Sort by load order
             partitions.sort(Comparator.comparingInt(Map.Entry::getKey));
 
-            // Base URL: strip manifest filename to get directory
-            String baseUrl = MANIFEST_URL.substring(0, MANIFEST_URL.lastIndexOf('/') + 1);
+            String baseUrl  = MANIFEST_URL.substring(0, MANIFEST_URL.lastIndexOf('/') + 1);
+            String basePath = System.getProperty("user.dir") + "/";
 
             for (Map.Entry<Integer, String> entry : partitions) {
-                String partitionUrl = baseUrl + entry.getValue();
-                System.out.println("[startup] Loading partition (order=" + entry.getKey() + "): " + partitionUrl);
-                Model partitionModel = fetchTTL(partitionUrl);
+                String file = entry.getValue();
+                Model partitionModel = JenaUtil.createMemoryModel();
+
+                if (file.equals("lexical.ttl")) {
+                    // Cached in Docker image — fast local read
+                    String localPath = basePath + file;
+                    System.out.println("[startup] Loading cached partition (order=" + entry.getKey() + "): " + localPath);
+                    partitionModel.read(localPath);
+                } else {
+                    // Fetch live from GitHub — picks up changes on every redeploy
+                    String partitionUrl = baseUrl + file;
+                    System.out.println("[startup] Loading live partition (order=" + entry.getKey() + "): " + partitionUrl);
+                    partitionModel = fetchTTL(partitionUrl);
+                }
+
                 merged.add(partitionModel);
                 System.out.println("[startup]   -> " + partitionModel.size() + " triples (running total: " + merged.size() + ")");
             }
@@ -91,7 +99,6 @@ public class App {
         } catch (Exception e) {
             System.err.println("[startup] FAILED to load from manifest: " + e.getMessage());
             e.printStackTrace();
-            // Fallback to local file if manifest loading fails
             System.err.println("[startup] Falling back to local roles_shacl.ttl...");
             try {
                 merged.read("roles_shacl.ttl");
@@ -341,8 +348,13 @@ public class App {
             System.out.println("[infer] Removed " + lemmaStatements.size() + " lemma triples");
 
             // Return complete data (original + inferred, minus lemma nodes)
+            // Register prefixes so output uses compact notation, not full URIs
+            dataModel.setNsPrefix("",    "http://example.org/ontology/");
+            dataModel.setNsPrefix("temp","http://example.org/temp/");
+            dataModel.setNsPrefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+            dataModel.setNsPrefix("rdfs","http://www.w3.org/2000/01/rdf-schema#");
             StringWriter dataWriter = new StringWriter();
-            RDFDataMgr.write(dataWriter, dataModel, RDFFormat.TURTLE);
+            RDFDataMgr.write(dataWriter, dataModel, RDFFormat.TURTLE_PRETTY);
 
             System.out.println("[infer] Complete. Total: " + dataModel.size() + " triples");
 
