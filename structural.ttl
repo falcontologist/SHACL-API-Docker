@@ -1,0 +1,2738 @@
+@prefix :    <http://example.org/ontology/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh:  <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+### STRUCTURAL PARTITION ###
+### SHACL Shapes, Rules, Inference, Metadata ###
+
+### SHAPES (112) ###
+
+:Absorb_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Absorb (shape)"@en ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "catalyst"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :catalyst ] ;
+    sh:property [ sh:name "initial"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :initial ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "material"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :material ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "product"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :product ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "transformer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transformer ] ;
+    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transformer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Absorb ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transformer ?transformer ;
+                  :theme ?theme .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Absorb .
+
+:Acquisition_Opaque_IRI_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Acquisition Opaque IRI (shape)"@en ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?acquirer ?opaqueProperty ?acquired .
+        }
+        WHERE {
+            ?this a :Acquisition ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :acquirer ?acquirer ;
+                  :acquisition ?acquired .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), "acquires_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Acquisition .
+
+:Acquisition_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Acquisition (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
+            sh:name "acquirer"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :acquirer ],
+        [ sh:minCount 1 ;
+            sh:name "acquisition"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :acquisition ],
+        [ sh:name "asset"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :asset ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?acquirer ?opaqueProperty ?acquisition .
+        }
+        WHERE {
+            ?this a :Acquisition ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :acquirer ?acquirer ;
+                  :acquisition ?acquisition .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Acquisition .
+
+:Action_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Action (shape)"@en ;
+    sh:property [ sh:name "action"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :action ] ;
+    sh:property [ sh:name "actor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :actor ] ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?actor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Action ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :actor ?actor ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Action .
+
+:Advising_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Advising (shape)"@en ;
+    sh:property [ sh:name "advice"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :advice ],
+        [ sh:minCount 1 ;
+            sh:name "adviser"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :adviser ],
+        [ sh:name "topic"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :topic ],
+        [ sh:name "industry"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :industry ],
+        [ sh:minCount 1 ;
+            sh:name "advisee"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :advisee ] ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+PREFIX : <http://example.org/ontology/>
+CONSTRUCT {
+    ?s :advises ?o .
+}
+WHERE {
+    $this :adviser ?s .
+    $this :advisee ?o .
+}
+""" ] ;
+    sh:targetClass :Advising .
+
+:Affect_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Affect (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "affecter"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affecter ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?affecter ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Affect ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :affecter ?affecter ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Affect .
+
+:Affiliation_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Affiliation (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "affiliator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affiliator ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "institution"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :institution ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "participant"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :participant ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "role"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :role ] ;
+    sh:property [ sh:name "task"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :task ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?affiliator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Affiliation ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :affiliator ?affiliator ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Affiliation .
+
+:Announcement_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Announcement (shape)"@en ;
+    sh:property [ sh:name "manner"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :manner ],
+        [ sh:name "addressee"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :addressee ],
+        [ sh:minCount 1 ;
+            sh:name "announcement"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :announcement ],
+        [ sh:minCount 1 ;
+            sh:name "announcer"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :announcer ],
+        [ sh:name "topic"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :topic ],
+        [ sh:name "characterization"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :characterization ],
+        [ sh:name "signal"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :signal ] ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+PREFIX : <http://example.org/ontology/>
+CONSTRUCT {
+    ?s :announces ?o .
+}
+WHERE {
+    $this :announcer ?s .
+    $this :announcement ?o .
+}
+""" ] ;
+    sh:targetClass :Announcement .
+
+:Association_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Association (shape)"@en ;
+    sh:property [ sh:name "analogue"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :analogue ] ;
+    sh:property [ sh:name "associator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :associator ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "basis"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :basis ] ;
+    sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
+    sh:property [ sh:name "requirement"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :requirement ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?associator ?opaqueProperty ?analogue .
+        }
+        WHERE {
+            ?this a :Association ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :associator ?associator ;
+                  :analogue ?analogue .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Association .
+
+:Attack_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Attack (shape)"@en ;
+    sh:property [ sh:name "action"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :action ] ;
+    sh:property [ sh:name "actor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :actor ] ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?actor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Attack ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :actor ?actor ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Attack .
+
+:Attend_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Attend (shape)"@en ;
+    sh:property [ sh:name "attender"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attender ] ;
+    sh:property [ sh:name "focus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :focus ] ;
+    sh:targetClass :Attend .
+
+:Attitude_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Attitude (shape)"@en ;
+    sh:property [ sh:name "polarity"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :polarity ],
+        [ sh:name "attitude"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :attitude ],
+        [ sh:minCount 1 ;
+            sh:name "proposition"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :proposition ],
+        [ sh:name "certainty"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :certainty ],
+        [ sh:minCount 1 ;
+            sh:name "adherent"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :adherent ],
+        [ sh:name "modality"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :modality ] ;
+    sh:targetClass :Attitude .
+
+:Authority_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Authority (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
+            sh:name "ruler"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :ruler ],
+        [ sh:minCount 1 ;
+            sh:name "jurisdiction"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :jurisdiction ] ;
+    sh:targetClass :Authority .
+
+:Base_and_Deduce_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Base and Deduce (shape)"@en ;
+    sh:property [ sh:name "analogue"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :analogue ] ;
+    sh:property [ sh:name "associator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :associator ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "basis"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :basis ] ;
+    sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
+    sh:property [ sh:name "requirement"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :requirement ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?associator ?opaqueProperty ?analogue .
+        }
+        WHERE {
+            ?this a :Base_and_Deduce ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :associator ?associator ;
+                  :analogue ?analogue .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Base_and_Deduce .
+
+:Basic_Change_of_State_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Basic Change of State (shape)"@en ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "catalyst"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :catalyst ] ;
+    sh:property [ sh:name "initial"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :initial ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "material"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :material ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "product"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :product ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "transformer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transformer ] ;
+    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transformer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Basic_Change_of_State ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transformer ?transformer ;
+                  :theme ?theme .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Basic_Change_of_State .
+
+:Basic_Force_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Basic Force (shape)"@en ;
+    sh:property [ sh:name "agonist"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :agonist ] ;
+    sh:property [ sh:name "antagonist"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :antagonist ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "means"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :means ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
+    sh:property [ sh:name "purpose"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :purpose ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?antagonist ?opaqueProperty ?agonist .
+        }
+        WHERE {
+            ?this a :Basic_Force ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :antagonist ?antagonist ;
+                  :agonist ?agonist .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Basic_Force .
+
+:Basic_Incremental_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Basic Incremental (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "carrier"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :carrier ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "mover"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :mover ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?mover ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Basic_Incremental ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :mover ?mover ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Basic_Incremental .
+
+:Basic_Motion_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Basic Motion (shape)"@en ;
+    sh:property [ sh:name "conveyance"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :conveyance ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "mover"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :mover ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?mover ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Basic_Motion ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :mover ?mover ;
+                  :theme ?theme .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Basic_Motion .
+
+:Being_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Being (shape)"@en ;
+    sh:property [ sh:name "being"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :being ] ;
+    sh:property [ sh:name "experiencer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :experiencer ] ;
+    sh:property [ sh:name "location"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :location ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
+    sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:targetClass :Being .
+
+:Buy_and_Sell_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Buy and Sell (shape)"@en .
+
+:Capacity_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Capacity (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "container"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :container ] ;
+    sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
+    sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
+    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ] ;
+    sh:targetClass :Capacity .
+
+:Carry_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Carry (shape)"@en ;
+    sh:property [ sh:name "carrier"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :carrier ] ;
+    sh:property [ sh:name "conveyance"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :conveyance ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:targetClass :Carry .
+
+:Causation_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Causation (shape)"@en ;
+    sh:property [ sh:name "cause"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :cause ] ;
+    sh:property [ sh:name "effect"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :effect ] ;
+    sh:targetClass :Causation .
+
+:Causative_Change_of_State_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Causative Change of State (shape)"@en ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "catalyst"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :catalyst ] ;
+    sh:property [ sh:name "initial"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :initial ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "material"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :material ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "product"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :product ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "transformer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transformer ] ;
+    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transformer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Causative_Change_of_State ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transformer ?transformer ;
+                  :theme ?theme .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Causative_Change_of_State .
+
+:Causative_Creation_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Causative Creation (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "asset"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :asset ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "location"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :location ] ;
+    sh:property [ sh:name "maker"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :maker ] ;
+    sh:property [ sh:name "material"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :material ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "product"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :product ] ;
+    sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?maker ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Causative_Creation ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :maker ?maker ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Causative_Creation .
+
+:Causative_Incremental_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Causative Incremental (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "carrier"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :carrier ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "mover"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :mover ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?mover ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Causative_Incremental ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :mover ?mover ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Causative_Incremental .
+
+:Cause_Membership_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Cause Membership (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "affiliator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affiliator ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "institution"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :institution ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "participant"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :participant ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "role"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :role ] ;
+    sh:property [ sh:name "task"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :task ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?affiliator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Cause_Membership ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :affiliator ?affiliator ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Cause_Membership .
+
+:Cause_Role_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Cause Role (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "affiliator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affiliator ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "institution"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :institution ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "participant"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :participant ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "role"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :role ] ;
+    sh:property [ sh:name "task"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :task ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?affiliator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Cause_Role ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :affiliator ?affiliator ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Cause_Role .
+
+:Cause_and_Effect_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Cause and Effect (shape)"@en ;
+    sh:property [ sh:name "cause"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :cause ] ;
+    sh:property [ sh:name "effect"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :effect ] ;
+    sh:targetClass :Cause_and_Effect .
+
+:Cognition_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Cognition (shape)"@en ;
+    sh:property [ sh:name "cognizer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :cognizer ] ;
+    sh:property [ sh:name "source"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :source ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:targetClass :Cognition .
+
+:Collective_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Collective (shape)"@en ;
+    sh:property [ sh:name "interaction"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :interaction ] ;
+    sh:property [ sh:name "interactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :interactor ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:targetClass :Collective .
+
+:Commercial_Transaction_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Commercial Transaction (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "asset"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :asset ] ;
+    sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
+    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Commercial_Transaction ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Commercial_Transaction .
+
+:Communicate_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Communicate (shape)"@en ;
+    sh:property [ sh:name "addressee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :addressee ] ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "characterization"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :characterization ] ;
+    sh:property [ sh:name "communicator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :communicator ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "medium"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :medium ] ;
+    sh:property [ sh:name "message"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :message ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?communicator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Communicate ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :communicator ?communicator ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Communicate .
+
+:Communication_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Communication (shape)"@en ;
+    sh:property [ sh:name "addressee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :addressee ] ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "characterization"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :characterization ] ;
+    sh:property [ sh:name "communicator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :communicator ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "medium"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :medium ] ;
+    sh:property [ sh:name "message"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :message ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?communicator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Communication ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :communicator ?communicator ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Communication .
+
+:Compare_and_Contrast_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Compare and Contrast (shape)"@en ;
+    sh:property [ sh:name "analogue"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :analogue ] ;
+    sh:property [ sh:name "associator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :associator ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "basis"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :basis ] ;
+    sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
+    sh:property [ sh:name "requirement"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :requirement ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?associator ?opaqueProperty ?analogue .
+        }
+        WHERE {
+            ?this a :Compare_and_Contrast ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :associator ?associator ;
+                  :analogue ?analogue .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Compare_and_Contrast .
+
+:Concealment_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Concealment (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "carrier"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :carrier ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "mover"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :mover ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?mover ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Concealment ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :mover ?mover ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Concealment .
+
+:Constrain_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Constrain (shape)"@en ;
+    sh:property [ sh:name "agonist"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :agonist ] ;
+    sh:property [ sh:name "antagonist"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :antagonist ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "means"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :means ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
+    sh:property [ sh:name "purpose"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :purpose ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?antagonist ?opaqueProperty ?agonist .
+        }
+        WHERE {
+            ?this a :Constrain ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :antagonist ?antagonist ;
+                  :agonist ?agonist .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Constrain .
+
+:Continuation_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Continuation (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
+            sh:name "entity"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :entity ],
+        [ sh:name "state"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :state ] ;
+    sh:targetClass :Continuation .
+
+:Control_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Control (shape)"@en ;
+    sh:property [ sh:name "controller"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :controller ] ;
+    sh:property [ sh:name "regulation"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :regulation ] ;
+    sh:property [ sh:name "subordinate"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :subordinate ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?controller ?opaqueProperty ?subordinate .
+        }
+        WHERE {
+            ?this a :Control ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :controller ?controller ;
+                  :subordinate ?subordinate .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Control .
+
+:Conversion_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Conversion (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "container"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :container ] ;
+    sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
+    sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
+    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?evaluator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Conversion ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :evaluator ?evaluator ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Conversion .
+
+:Correlate_and_Differ_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Correlate and Differ (shape)"@en .
+
+:Counting_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Counting (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "container"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :container ] ;
+    sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
+    sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
+    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ] ;
+    sh:targetClass :Counting .
+
+:Creation_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Creation (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "asset"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :asset ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "location"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :location ] ;
+    sh:property [ sh:name "maker"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :maker ] ;
+    sh:property [ sh:name "material"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :material ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "product"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :product ] ;
+    sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?maker ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Creation ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :maker ?maker ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Creation .
+
+:Defend_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Defend (shape)"@en ;
+    sh:property [ sh:name "action"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :action ] ;
+    sh:property [ sh:name "actor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :actor ] ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?actor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Defend ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :actor ?actor ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Defend .
+
+:Desire_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Desire (shape)"@en ;
+    sh:property [ sh:name "wish"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :wish ] ;
+    sh:property [ sh:name "wisher"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :wisher ] ;
+    sh:targetClass :Desire .
+
+:Dynamic_Possession_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Dynamic Possession (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "asset"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :asset ] ;
+    sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
+    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?item .
+        }
+        WHERE {
+            ?this a :Dynamic_Possession ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :item ?item .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Dynamic_Possession .
+
+:Emission_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Emission (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "asset"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :asset ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "location"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :location ] ;
+    sh:property [ sh:name "maker"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :maker ] ;
+    sh:property [ sh:name "material"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :material ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "product"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :product ] ;
+    sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?maker ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Emission ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :maker ?maker ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Emission .
+
+:Enforcement_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Enforcement (shape)"@en .
+
+:Evaluation_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Evaluation (shape)"@en ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "characterization"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :characterization ] ;
+    sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
+    sh:property [ sh:name "phenomenon"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :phenomenon ] ;
+    sh:property [ sh:name "situation"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :situation ] ;
+    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ] ;
+    sh:targetClass :Evaluation .
+
+:Exchange_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Exchange (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "asset"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :asset ] ;
+    sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
+    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Exchange ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Exchange .
+
+:Execution_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Execution (shape)"@en ;
+    sh:property [ sh:name "pe"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :phase ],
+        [ sh:name "modulation"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :modulation ],
+        [ sh:name "executor"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :executor ],
+        [ sh:name "task"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :task ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?executor ?opaqueProperty ?task .
+        }
+        WHERE {
+            ?this a :Execution ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :executor ?executor ;
+                  :task ?task .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Execution .
+
+:Existence_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Existence (shape)"@en ;
+    sh:property [ sh:name "being"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :being ] ;
+    sh:property [ sh:name "experiencer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :experiencer ] ;
+    sh:property [ sh:name "location"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :location ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
+    sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:targetClass :Existence .
+
+:Experience_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Experience (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
+            sh:name "experiencer"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :experiencer ],
+        [ sh:minCount 1 ;
+            sh:name "stimulus"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :stimulus ] ;
+    sh:targetClass :Experience .
+
+:Feeding_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Feeding (shape)"@en ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "catalyst"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :catalyst ] ;
+    sh:property [ sh:name "initial"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :initial ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "material"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :material ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "product"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :product ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "transformer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transformer ] ;
+    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transformer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Feeding ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transformer ?transformer ;
+                  :theme ?theme .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Feeding .
+
+:Feel_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Feel (shape)"@en ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "characterization"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :characterization ] ;
+    sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
+    sh:property [ sh:name "phenomenon"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :phenomenon ] ;
+    sh:property [ sh:name "situation"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :situation ] ;
+    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?evaluator ?opaqueProperty ?phenomenon .
+        }
+        WHERE {
+            ?this a :Feel ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :evaluator ?evaluator ;
+                  :phenomenon ?phenomenon .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Feel .
+
+:Force_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Force (shape)"@en ;
+    sh:property [ sh:name "agonist"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :agonist ] ;
+    sh:property [ sh:name "antagonist"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :antagonist ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "means"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :means ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
+    sh:property [ sh:name "purpose"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :purpose ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?antagonist ?opaqueProperty ?agonist .
+        }
+        WHERE {
+            ?this a :Force ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :antagonist ?antagonist ;
+                  :agonist ?agonist .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Force .
+
+:Form_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Form (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "asset"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :asset ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "location"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :location ] ;
+    sh:property [ sh:name "maker"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :maker ] ;
+    sh:property [ sh:name "material"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :material ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "product"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :product ] ;
+    sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?maker ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Form ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :maker ?maker ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Form .
+
+:Future_Having_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Future Having (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "asset"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :asset ] ;
+    sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
+    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Future_Having ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Future_Having .
+
+:Governance_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Governance (shape)"@en ;
+    sh:property [ sh:name "rule"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :rule ],
+        [ sh:minCount 1 ;
+            sh:name "subordinate"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :subordinate ] ;
+    sh:targetClass :Governance .
+
+:Hurt_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Hurt (shape)"@en ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "catalyst"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :catalyst ] ;
+    sh:property [ sh:name "initial"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :initial ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "material"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :material ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "product"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :product ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "transformer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transformer ] ;
+    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transformer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Hurt ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transformer ?transformer ;
+                  :theme ?theme .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Hurt .
+
+:Image_Creation_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Image Creation (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "asset"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :asset ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "location"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :location ] ;
+    sh:property [ sh:name "maker"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :maker ] ;
+    sh:property [ sh:name "material"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :material ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "product"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :product ] ;
+    sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?maker ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Image_Creation ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :maker ?maker ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Image_Creation .
+
+:Incremental_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Incremental (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "carrier"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :carrier ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "mover"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :mover ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?mover ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Incremental ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :mover ?mover ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Incremental .
+
+:Inducive_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Inducive (shape)"@en ;
+    sh:property [ sh:name "action"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :action ] ;
+    sh:property [ sh:name "actor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :actor ] ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?actor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Inducive ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :actor ?actor ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Inducive .
+
+:Information_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Information (shape)"@en ;
+    sh:property [ sh:name "source"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :source ],
+        [ sh:minCount 1 ;
+            sh:name "content"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :content ] ;
+    sh:targetClass :Information .
+
+:Ingestion_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Ingestion (shape)"@en ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "catalyst"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :catalyst ] ;
+    sh:property [ sh:name "initial"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :initial ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "material"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :material ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "product"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :product ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "transformer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transformer ] ;
+    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transformer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Ingestion ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transformer ?transformer ;
+                  :theme ?theme .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Ingestion .
+
+:Intend_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Intend (shape)"@en ;
+    sh:property [ sh:name "characterization"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :characterization ] ;
+    sh:property [ sh:name "intender"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :intender ] ;
+    sh:property [ sh:name "intent"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :intent ] ;
+    sh:property [ sh:name "location"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :location ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:targetClass :Intend .
+
+:Interaction_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Interaction (shape)"@en ;
+    sh:property [ sh:name "interaction"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :interaction ] ;
+    sh:property [ sh:name "interactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :interactor ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:targetClass :Interaction .
+
+:Joint_Statement_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Joint Statement (shape)"@en ;
+    sh:property [ sh:name "addressee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :addressee ] ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "characterization"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :characterization ] ;
+    sh:property [ sh:name "communicator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :communicator ] ;
+    sh:property [ sh:name "communicator 2"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :communicator ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "medium"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :medium ] ;
+    sh:property [ sh:name "message"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :message ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?communicator ?opaqueProperty ?topic .
+        }
+        WHERE {
+            ?this a :Joint_Statement ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :communicator ?communicator ;
+                  :topic ?topic .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Joint_Statement .
+
+:Judge_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Judge (shape)"@en ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "characterization"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :characterization ] ;
+    sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
+    sh:property [ sh:name "phenomenon"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :phenomenon ] ;
+    sh:property [ sh:name "situation"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :situation ] ;
+    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?evaluator ?opaqueProperty ?phenomenon .
+        }
+        WHERE {
+            ?this a :Judge ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :evaluator ?evaluator ;
+                  :phenomenon ?phenomenon .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Judge .
+
+:Kinship_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Kinship (shape)"@en ;
+    sh:property [ sh:name "relation"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :relation ],
+        [ sh:minCount 1 ;
+            sh:name "relative"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :relative ] ;
+    sh:targetClass :Kinship .
+
+:Know_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Know (shape)"@en ;
+    sh:property [ sh:name "cognizer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :cognizer ] ;
+    sh:property [ sh:name "source"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :source ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:targetClass :Know .
+
+:Knowledge_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Knowledge (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
+            sh:name "knower"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :knower ],
+        [ sh:minCount 1 ;
+            sh:name "knowledge"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :knowledge ] ;
+    sh:targetClass :Knowledge .
+
+:Learn_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Learn (shape)"@en ;
+    sh:property [ sh:name "cognizer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :cognizer ] ;
+    sh:property [ sh:name "source"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :source ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:targetClass :Learn .
+
+:Liken_and_Differentiate_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Liken and Differentiate (shape)"@en ;
+    sh:property [ sh:name "analogue"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :analogue ] ;
+    sh:property [ sh:name "associator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :associator ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "basis"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :basis ] ;
+    sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
+    sh:property [ sh:name "requirement"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :requirement ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?associator ?opaqueProperty ?analogue .
+        }
+        WHERE {
+            ?this a :Liken_and_Differentiate ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :associator ?associator ;
+                  :analogue ?analogue .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Liken_and_Differentiate .
+
+:Limitation_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Limitation (shape)"@en .
+
+:Location_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Location (shape)"@en ;
+    sh:property [ sh:name "landmark"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :landmark ] ;
+    sh:property [ sh:name "trajector"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajector ] ;
+    sh:targetClass :Location .
+
+:Long_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Long (shape)"@en ;
+    sh:property [ sh:name "characterization"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :characterization ] ;
+    sh:property [ sh:name "intender"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :intender ] ;
+    sh:property [ sh:name "intent"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :intent ] ;
+    sh:property [ sh:name "location"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :location ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:targetClass :Long .
+
+:Look_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Look (shape)"@en ;
+    sh:property [ sh:name "experiencer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :experiencer ] ;
+    sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
+    sh:targetClass :Look .
+
+:Manipulate_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Manipulate (shape)"@en ;
+    sh:property [ sh:name "agonist"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :agonist ] ;
+    sh:property [ sh:name "antagonist"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :antagonist ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "means"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :means ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
+    sh:property [ sh:name "purpose"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :purpose ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?antagonist ?opaqueProperty ?agonist .
+        }
+        WHERE {
+            ?this a :Manipulate ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :antagonist ?antagonist ;
+                  :agonist ?agonist .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Manipulate .
+
+:Measurement_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Measurement (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "container"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :container ] ;
+    sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
+    sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
+    sh:property [ sh:name "multiplier"@en ; sh:path :multiplier ] ;
+    sh:property [ sh:name "unit"@en ; sh:path :unit ] ;
+    sh:property [ sh:name "value"@en ; sh:path :value ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?item ?opaqueProperty ?value .
+        }
+        WHERE {
+            ?this a :Measurement ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :item ?item ;
+                  :value ?value .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Measurement .
+
+:Membership_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Membership (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "institution"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :institution ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "participant"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :participant ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "role"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :role ] ;
+    sh:property [ sh:name "task"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :task ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:targetClass :Membership .
+
+:Memory_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Memory (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
+            sh:name "witness"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :witness ],
+        [ sh:minCount 1 ;
+            sh:name "impression"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :impression ] ;
+    sh:targetClass :Memory .
+
+:Motion_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Motion (shape)"@en ;
+    sh:property [ sh:name "conveyance"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :conveyance ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "mover"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :mover ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?mover ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Motion ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :mover ?mover ;
+                  :theme ?theme .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Motion .
+
+:Occurrence_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Occurrence (shape)"@en ;
+    sh:property [ sh:minCount 1 ;
+            sh:name "situation"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :situation ],
+        [ sh:name "order"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :order ],
+        [ sh:name "manner"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :manner ],
+        [ sh:name "time"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :time ] ;
+    sh:targetClass :Occurrence .
+
+:Participation_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Participation (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "institution"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :institution ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "participant"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :participant ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "role"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :role ] ;
+    sh:property [ sh:name "task"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :task ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:targetClass :Participation .
+
+:Pay_and_Charge_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Pay and Charge (shape)"@en .
+
+:Perception_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Perception (shape)"@en ;
+    sh:property [ sh:name "experiencer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :experiencer ] ;
+    sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
+    sh:targetClass :Perception .
+
+:Physical_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Physical (shape)"@en ;
+    sh:targetClass :Physical .
+
+:Pick_Up_and_Drop_Off_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Pick Up and Drop Off (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "carrier"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :carrier ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "mover"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :mover ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?mover ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Pick_Up_and_Drop_Off ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :mover ?mover ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Pick_Up_and_Drop_Off .
+
+:Possession_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Possession (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "asset"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :asset ] ;
+    sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
+    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Possession ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Possession .
+
+:Pursuit_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Pursuit (shape)"@en ;
+    sh:property [ sh:name "conveyance"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :conveyance ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
+    sh:property [ sh:name "pursuer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :pursuer ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?pursuer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Pursuit ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :pursuer ?pursuer ;
+                  :theme ?theme .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Pursuit .
+
+:Quantification_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Quantification (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "container"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :container ] ;
+    sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
+    sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
+    sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?evaluator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Quantification ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :evaluator ?evaluator ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Quantification .
+
+:Reciprocal_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Reciprocal (shape)"@en ;
+    sh:property [ sh:name "interaction"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :interaction ] ;
+    sh:property [ sh:name "interactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :interactor ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:targetClass :Reciprocal .
+
+:Replace_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Replace (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "asset"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :asset ] ;
+    sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
+    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Replace ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Replace .
+
+:Request_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Request (shape)"@en ;
+    sh:property [ sh:name "addressee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :addressee ] ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "characterization"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :characterization ] ;
+    sh:property [ sh:name "communicator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :communicator ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "medium"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :medium ] ;
+    sh:property [ sh:name "message"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :message ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?communicator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Request ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :communicator ?communicator ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Request .
+
+:Require_and_Satisfy_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Require and Satisfy (shape)"@en ;
+    sh:property [ sh:name "analogue"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :analogue ] ;
+    sh:property [ sh:name "associator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :associator ] ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "basis"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :basis ] ;
+    sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
+    sh:property [ sh:name "requirement"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :requirement ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?associator ?opaqueProperty ?analogue .
+        }
+        WHERE {
+            ?this a :Require_and_Satisfy ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :associator ?associator ;
+                  :analogue ?analogue .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Require_and_Satisfy .
+
+:Response_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Response (shape)"@en ;
+    sh:property [ sh:name "addressee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :addressee ] ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "characterization"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :characterization ] ;
+    sh:property [ sh:name "communicator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :communicator ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "medium"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :medium ] ;
+    sh:property [ sh:name "message"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :message ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?communicator ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Response ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :communicator ?communicator ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Response .
+
+:Role_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Role (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "institution"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :institution ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "participant"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :participant ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "role"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :role ] ;
+    sh:property [ sh:name "task"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :task ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:targetClass :Role .
+
+:Search_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Search (shape)"@en ;
+    sh:property [ sh:name "characterization"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :characterization ] ;
+    sh:property [ sh:name "intender"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :intender ] ;
+    sh:property [ sh:name "intent"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :intent ] ;
+    sh:property [ sh:name "location"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :location ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:targetClass :Search .
+
+:Send_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Send (shape)"@en ;
+    sh:property [ sh:name "conveyance"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :conveyance ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "sender"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :sender ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:targetClass :Send .
+
+:Sense_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Sense (shape)"@en ;
+    sh:property [ sh:name "experiencer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :experiencer ] ;
+    sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
+    sh:targetClass :Sense .
+
+:Situation_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Situation (shape)"@en .
+
+:Social_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Social (shape)"@en ;
+    sh:targetClass :Social .
+
+:Statement_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Statement (shape)"@en ;
+    sh:property [ sh:name "addressee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :addressee ] ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "characterization"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :characterization ] ;
+    sh:property [ sh:name "communicator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :communicator ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "medium"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :medium ] ;
+    sh:property [ sh:name "message"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :message ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?communicator ?opaqueProperty ?message .
+        }
+        WHERE {
+            ?this a :Statement ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :communicator ?communicator ;
+                  :message ?message .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Statement .
+
+:Static_Possession_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Static Possession (shape)"@en ;
+    sh:property [ sh:name "possession"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :possession ] ;
+    sh:property [ sh:name "possessor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :possessor ] ;
+    sh:targetClass :Static_Possession .
+
+:Throw_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Throw (shape)"@en ;
+    sh:property [ sh:name "conveyance"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :conveyance ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "thrower"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :thrower ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:targetClass :Throw .
+
+:Transaction_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Transaction (shape)"@en ;
+    sh:property [ sh:name "recipient"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :recipient ],
+        [ sh:name "transactor"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :transactor ],
+        [ sh:name "item"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :item ],
+        [ sh:name "asset"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:path :asset ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?item .
+        }
+        WHERE {
+            ?this a :Transaction ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :item ?item .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Transaction .
+
+:Transfer_of_Possession_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Transfer of Possession (shape)"@en ;
+    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
+    sh:property [ sh:name "asset"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :asset ] ;
+    sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
+    sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transactor ?opaqueProperty ?affectee .
+        }
+        WHERE {
+            ?this a :Transfer_of_Possession ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transactor ?transactor ;
+                  :affectee ?affectee .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Transfer_of_Possession .
+
+:Transformation_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Transformation (shape)"@en ;
+    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
+    sh:property [ sh:name "catalyst"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :catalyst ] ;
+    sh:property [ sh:name "initial"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :initial ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "material"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :material ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "product"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :product ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "transformer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transformer ] ;
+    sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?transformer ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Transformation ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :transformer ?transformer ;
+                  :theme ?theme .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Transformation .
+
+:Vehicular_Motion_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Vehicular Motion (shape)"@en ;
+    sh:property [ sh:name "conveyance"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :conveyance ] ;
+    sh:property [ sh:name "destination"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :destination ] ;
+    sh:property [ sh:name "driver"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :driver ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "position"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :position ] ;
+    sh:property [ sh:name "result"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :result ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <http://example.org/ontology/>
+        
+        CONSTRUCT {
+            ?driver ?opaqueProperty ?theme .
+        }
+        WHERE {
+            ?this a :Vehicular_Motion ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :driver ?driver ;
+                  :theme ?theme .
+            
+            # Look up the proper 3ps inflection from the lemma node
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :Vehicular_Motion .
+
+:Volition_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Volition (shape)"@en ;
+    sh:property [ sh:name "characterization"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :characterization ] ;
+    sh:property [ sh:name "intender"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :intender ] ;
+    sh:property [ sh:name "intent"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :intent ] ;
+    sh:property [ sh:name "location"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :location ] ;
+    sh:property [ sh:name "origin"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :origin ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:targetClass :Volition .
+
+:Weather_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Weather (shape)"@en ;
+    sh:property [ sh:name "being"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :being ] ;
+    sh:property [ sh:name "experiencer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :experiencer ] ;
+    sh:property [ sh:name "location"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :location ] ;
+    sh:property [ sh:name "manner"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :manner ] ;
+    sh:property [ sh:name "recipient"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :recipient ] ;
+    sh:property [ sh:name "stimulus"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :stimulus ] ;
+    sh:property [ sh:name "theme"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :theme ] ;
+    sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ] ;
+    sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
+    sh:targetClass :Weather .
+
+### MISC (12) ###
+
+:Acquisition_Inference_Rule a sh:NodeShape ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+            PREFIX : <http://example.org/ontology/>
+            CONSTRUCT { ?agent :acquires ?target . }
+            WHERE {
+                $this :acquirer ?agent .
+                $this :acquisition ?target .
+            }
+        """ ;
+            sh:order 1 ;
+            sh:prefixes :Ontology_Prefixes ] ;
+    sh:targetClass :Acquisition .
+
+:Ontology_Prefixes sh:declare [ sh:namespace "http://example.org/ontology/"^^xsd:anyURI ;
+            sh:prefix "" ],
+        [ sh:namespace "http://www.w3.org/1999/02/22-rdf-syntax-ns#"^^xsd:anyURI ;
+            sh:prefix "rdf" ],
+        [ sh:namespace "http://www.w3.org/2000/01/rdf-schema#"^^xsd:anyURI ;
+            sh:prefix "rdfs" ],
+        [ sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ;
+            sh:prefix "xsd" ] .
+
+:Physical a :Realm ;
+    rdfs:label "Physical"@en .
+
+:Social a :Realm ;
+    rdfs:label "Social"@en .
+
+:Mental a :Realm ;
+    rdfs:label "Mental"@en .
+
+:Proto_State a :Aspect ;
+    rdfs:label "Proto-State"@en .
+
+:Proto_Change a :Aspect ;
+    rdfs:label "Proto-Change"@en .
+
+:Typical a :Usage ;
+    rdfs:label "Typical"@en .
+
+:Optional a :Usage ;
+    rdfs:label "Optional"@en .
+
+:VN_Class rdfs:label "VerbNet Class" .
+
+:Lemma rdfs:label "Lemma" .
+
+:Synset rdfs:label "Synset" .
