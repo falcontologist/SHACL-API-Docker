@@ -14,5 +14,10 @@ COPY --from=build /app/target/shacl-service-1.0-SNAPSHOT-jar-with-dependencies.j
 COPY roles_shacl.ttl .
 COPY test2.ttl .
 
-EXPOSE 8000
+# Cache lexical partition at build time — large file, changes infrequently
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && curl -f -o /app/lexical.ttl https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/main/lexical.ttl \
+    && apt-get purge -y curl && rm -rf /var/lib/apt/lists/*
+
+EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
