@@ -62,7 +62,7 @@ Split into three federated partitions loaded via `manifest.ttl`:
 - **Frontend:** Vanilla JS, D3.js v7
 - **Backend:** Java 17, Javalin 6, TopBraid SHACL API, Apache Jena
 - **Deployment:** GitHub Pages (frontend), Render (backend), Docker
-- **Ontology format:** Turtle RDF, SHACL, SPARQL
+- **Semantic stack:** Turtle RDF, SHACL, SPARQL
 
 ---
 
