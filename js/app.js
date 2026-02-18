@@ -144,7 +144,7 @@ async function fetchStats() {
 
   try {
     // Fetch stats
-    const statsResp = await fetch(`${API_BASE_URL}/stats?manifest=${encodeURIComponent(ONTOLOGY_MANIFEST)}`);
+    const statsResp = await fetch(`${CONFIG.API_BASE_URL}/stats`);
     if (!statsResp.ok) throw new Error(`Stats endpoint returned ${statsResp.status}`);
     
     const stats = await statsResp.json();
@@ -159,7 +159,7 @@ async function fetchStats() {
     });
 
     // Fetch form definitions
-    const formResp = await fetch(`${API_BASE_URL}/forms?manifest=${encodeURIComponent(ONTOLOGY_MANIFEST)}`);
+    const formResp = await fetch(`${CONFIG.API_BASE_URL}/forms`);
     if (formResp.ok) {
       const formData = await formResp.json();
       Object.entries(formData.forms).forEach(([domain, roles]) => {
