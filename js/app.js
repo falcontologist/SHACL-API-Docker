@@ -552,6 +552,7 @@ Check that your data has :lemma and :synset properties.`;
   reportContent.textContent = message;
   reportContent.style.color = success ? "#93c5fd" : "#fde047";
   reportBox.classList.remove('hidden');
+  reportBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function showValidationReport(result) {
@@ -568,6 +569,7 @@ function showValidationReport(result) {
   reportContent.textContent = result.report_text;
   reportContent.style.color = result.conforms ? "#6ee7b7" : "#fcd34d";
   reportBox.classList.remove('hidden');
+  reportBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // ============================================
