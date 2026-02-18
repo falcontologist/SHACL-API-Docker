@@ -1,0 +1,64 @@
+@prefix :    <http://example.org/ontology/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+### ONTOLOGY MANIFEST ###
+### Single entry point for the federated ontology graph.
+### Load partitions in :loadOrder sequence; :requires declares dependencies.
+
+:OntologyManifest a :Manifest ;
+    rdfs:label "Roles Ontology Manifest" ;
+    rdfs:comment "Dereference this IRI to discover and load all ontology partitions in dependency order." ;
+    :partitions :conceptual, :structural, :lexical .
+
+:OntologyPartition a rdfs:Class ;
+    rdfs:label "Ontology Partition" ;
+    rdfs:comment "A named, independently loadable segment of the ontology graph." .
+
+:Manifest a rdfs:Class ;
+    rdfs:label "Manifest" ;
+    rdfs:comment "Entry point describing a federated set of ontology partitions." .
+
+:sourceFile a rdf:Property ;
+    rdfs:label "source file" ;
+    rdfs:comment "Relative path to the TTL file for this partition." ;
+    rdfs:domain :OntologyPartition .
+
+:loadOrder a rdf:Property ;
+    rdfs:label "load order" ;
+    rdfs:comment "Integer indicating the sequence in which partitions must be loaded." ;
+    rdfs:domain :OntologyPartition ;
+    rdfs:range xsd:integer .
+
+:requires a rdf:Property ;
+    rdfs:label "requires" ;
+    rdfs:comment "Declares a dependency: this partition must be loaded after the referenced partition." ;
+    rdfs:domain :OntologyPartition ;
+    rdfs:range :OntologyPartition .
+
+:partitions a rdf:Property ;
+    rdfs:label "partitions" ;
+    rdfs:comment "Links a manifest to its constituent partitions." ;
+    rdfs:domain :Manifest ;
+    rdfs:range :OntologyPartition .
+
+:conceptual a :OntologyPartition ;
+    rdfs:label "Conceptual Partition" ;
+    rdfs:comment "Classes, properties, semantic domains, and role hierarchy. No SHACL dependencies." ;
+    :sourceFile "conceptual.ttl" ;
+    :loadOrder 1 .
+
+:structural a :OntologyPartition ;
+    rdfs:label "Structural Partition" ;
+    rdfs:comment "SHACL shapes, SPARQL inference rules, and ontology metadata. Depends on conceptual." ;
+    :sourceFile "structural.ttl" ;
+    :requires :conceptual ;
+    :loadOrder 2 .
+
+:lexical a :OntologyPartition ;
+    rdfs:label "Lexical Partition" ;
+    rdfs:comment "VerbNet classes, verb lemmas, and WordNet synsets. Depends on structural for shape references." ;
+    :sourceFile "lexical.ttl" ;
+    :requires :structural ;
+    :loadOrder 3 .
