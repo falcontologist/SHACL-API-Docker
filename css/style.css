@@ -308,7 +308,7 @@ button:disabled {
 /* The 3-button aligned grid */
 .action-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr; /* 3 Equal columns */
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
   margin-bottom: 10px;
   width: 100%;
@@ -395,7 +395,7 @@ button:disabled {
    OUTPUT AREA
    ============================================ */
 .output-section {
-  flex: 1;
+  flex: 0 1 auto;
   display: flex;
   flex-direction: column;
 }
@@ -409,24 +409,22 @@ textarea#ttlInput {
   line-height: 1.5;
 }
 
+/* ============================================
+   REPORT BOX (Inference & Validation)
+   ============================================ */
 .report-box { 
   background: #1a1500; 
   border: 1px solid #422006; 
   border-radius: 6px; 
-  overflow: hidden; 
+  overflow: visible;      /* was 'hidden' — caused the pre to be clipped to zero height */
   margin-top: 10px;
-  animation: slideDown 0.3s ease;
+  flex-shrink: 0;         /* prevents flex from crushing it */
+  animation: fadeIn 0.3s ease;
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .report-header { 
@@ -437,6 +435,7 @@ textarea#ttlInput {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border-radius: 6px 6px 0 0;  /* re-applied since overflow is no longer hidden */
 }
 
 #reportContent { 
@@ -445,6 +444,8 @@ textarea#ttlInput {
   font-size: 0.7rem; 
   color: #fcd34d; 
   white-space: pre-wrap; 
+  display: block;         /* ensures pre doesn't collapse in flex context */
+  min-height: 2rem;       /* guarantees it never collapses to zero */
   max-height: 150px; 
   overflow-y: auto; 
   margin: 0;
@@ -657,7 +658,6 @@ textarea#ttlInput {
 /* ============================================
    ACCESSIBILITY IMPROVEMENTS
    ============================================ */
-/* Focus visible for keyboard navigation */
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
@@ -666,7 +666,6 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 
-/* Skip to main content (for screen readers) */
 .skip-to-main {
   position: absolute;
   top: -40px;
@@ -683,7 +682,6 @@ textarea:focus-visible {
   top: 0;
 }
 
-/* High contrast mode support */
 @media (prefers-contrast: high) {
   .btn-primary,
   .btn-success,
@@ -693,7 +691,6 @@ textarea:focus-visible {
   }
 }
 
-/* Reduced motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
