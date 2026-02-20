@@ -144,7 +144,7 @@ async function fetchStats() {
 
   try {
     // Fetch stats
-    const statsResp = await fetch(`${API_BASE_URL}/stats?manifest=${encodeURIComponent(ONTOLOGY_MANIFEST)}`);
+    const statsResp = await fetch(`${CONFIG.API_BASE_URL}/stats`);
     if (!statsResp.ok) throw new Error(`Stats endpoint returned ${statsResp.status}`);
     
     const stats = await statsResp.json();
@@ -159,7 +159,7 @@ async function fetchStats() {
     });
 
     // Fetch form definitions
-    const formResp = await fetch(`${API_BASE_URL}/forms?manifest=${encodeURIComponent(ONTOLOGY_MANIFEST)}`);
+    const formResp = await fetch(`${CONFIG.API_BASE_URL}/forms`);
     if (formResp.ok) {
       const formData = await formResp.json();
       Object.entries(formData.forms).forEach(([domain, roles]) => {
@@ -552,6 +552,7 @@ Check that your data has :lemma and :synset properties.`;
   reportContent.textContent = message;
   reportContent.style.color = success ? "#93c5fd" : "#fde047";
   reportBox.classList.remove('hidden');
+  reportBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function showValidationReport(result) {
@@ -568,6 +569,7 @@ function showValidationReport(result) {
   reportContent.textContent = result.report_text;
   reportContent.style.color = result.conforms ? "#6ee7b7" : "#fcd34d";
   reportBox.classList.remove('hidden');
+  reportBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // ============================================
