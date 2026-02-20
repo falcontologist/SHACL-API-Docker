@@ -23,7 +23,7 @@ import java.util.*;
 
 public class App {
 
-    private static final String ONT_NS = "http://example.org/ontology/";
+    private static final String ONT_NS = "https://falcontologist.github.io/shacl-demo/ontology/";
     private static final Model SHAPES_GRAPH = loadShapesGraph();
 
     public static void main(String[] args) {
@@ -46,7 +46,7 @@ public class App {
     private static final String MANIFEST_URL =
         "https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/main/manifest.ttl";
 
-    private static final String MANIFEST_NS = "http://example.org/ontology/";
+    private static final String MANIFEST_NS = "https://falcontologist.github.io/shacl-demo/ontology/";
 
     private static Model loadShapesGraph() {
         Model merged = JenaUtil.createMemoryModel();
@@ -354,8 +354,8 @@ public class App {
             Model outputModel = JenaUtil.createMemoryModel();
             outputModel.add(dataModel);
             outputModel.setNsPrefixes(PrefixMapping.Factory.create());  // clear inherited prefixes
-            outputModel.setNsPrefix("",    "http://example.org/ontology/");
-            outputModel.setNsPrefix("temp","http://example.org/temp/");
+            outputModel.setNsPrefix("",    "https://falcontologist.github.io/shacl-demo/ontology/");
+            outputModel.setNsPrefix("temp","https://falcontologist.github.io/shacl-demo/temp/");
             outputModel.setNsPrefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
             outputModel.setNsPrefix("rdfs","http://www.w3.org/2000/01/rdf-schema#");
             outputModel.setNsPrefix("sh",  "http://www.w3.org/ns/shacl#");
