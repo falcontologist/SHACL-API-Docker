@@ -92,31 +92,41 @@ public class App {
 
     // ── Stats ─────────────────────────────────────────────────────────────────
     static void stats(Context ctx) {
+        long classes = ontologyModel.listSubjectsWithProperty(
+            ontologyModel.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            ontologyModel.createResource("http://www.w3.org/2000/01/rdf-schema#Class")
+        ).toList().size();
+
+        // Query to find all properties that are subProperties of common role roots
+        // or properties used as paths in Situation shapes.
+        String roleQuery = 
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
+            "PREFIX : <" + ONT_NS + "> " +
+            "SELECT (COUNT(DISTINCT ?prop) AS ?count) WHERE { " +
+            "  { ?prop rdfs:subPropertyOf+ :participant . } " +
+            "  UNION { ?prop rdfs:subPropertyOf+ :attribute . } " +
+            "  UNION { ?prop rdfs:subPropertyOf+ :initial . } " +
+            "  UNION { ?prop rdfs:subPropertyOf+ :result . } " +
+            "  UNION { ?prop rdfs:subPropertyOf+ :regulation . } " +
+            "}";
+
+        long roles = 0;
+        try (org.apache.jena.query.QueryExecution qe = org.apache.jena.query.QueryExecutionFactory.create(roleQuery, ontologyModel)) {
+            org.apache.jena.query.ResultSet rs = qe.execSelect();
+            if (rs.hasNext()) {
+                roles = rs.next().getLiteral("count").getLong();
+            }
+        }
+
         long shapes = ontologyModel.listSubjectsWithProperty(
             ontologyModel.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            ontologyModel.createResource(ONT_NS + "Situation_shape")).toList().size();
-
-        long roles = ontologyModel.listSubjectsWithProperty(
-            ontologyModel.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            ontologyModel.createResource(ONT_NS + "Role")).toList().size();
-
-        long rules = ontologyModel.listSubjectsWithProperty(
-            ontologyModel.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            ontologyModel.createResource("http://www.w3.org/ns/shacl#SPARQLRule")).toList().size();
-
-        long lemmas = ontologyModel.listSubjectsWithProperty(
-            ontologyModel.createProperty(ONT_NS + "lemma")).toList().size();
-
-        long senses = ontologyModel.listSubjectsWithProperty(
-            ontologyModel.createProperty(ONT_NS + "gloss")).toList().size();
+            ontologyModel.createResource(ONT_NS + "Situation_shape")
+        ).toList().size();
 
         ctx.json(Map.of(
-            "shapes", shapes,
-            "roles",  roles,
-            "rules",  rules,
-            "lemmas", lemmas,
-            "senses", senses,
-            "total_triples", ontologyModel.size()
+            "classes", classes,
+            "roles",   roles,
+            "shapes",  shapes
         ));
     }
 
