@@ -3,26 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Token Graph Explorer | SHACL Demo</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+    <title>SPARQL Query | SHACL Demo</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap');
-
         :root {
-            --bg:         #0a0e17;
-            --surface:    #111827;
-            --surface2:   #1a2235;
-            --border:     #1e2d45;
-            --text:       #e2e8f0;
-            --muted:      #64748b;
-            --accent:     #38bdf8;
-            --accent2:    #818cf8;
-            --success:    #10b981;
-            --warning:    #f59e0b;
-            --error:      #ef4444;
-            --token:      #f59e0b;
-            --mono:       'JetBrains Mono', monospace;
-            --sans:       'Syne', sans-serif;
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --border: #334155;
+            --mono: 'Fira Code', monospace;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -30,7 +21,7 @@
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: var(--sans);
+            font-family: system-ui, -apple-system, sans-serif;
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -39,69 +30,84 @@
 
         /* ── Header ── */
         header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.75rem 1.5rem;
+            padding: 1rem 1.5rem;
             border-bottom: 1px solid var(--border);
-            background: var(--surface);
+            background: var(--bg);
             flex-shrink: 0;
-        }
-
-        .header-left {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 1rem;
+            gap: 2rem;
         }
 
-        .back-link {
-            color: var(--muted);
-            text-decoration: none;
+        .header-main { flex-shrink: 0; }
+
+        h1 {
+            margin: 0 0 8px 0;
+            font-weight: 300;
+            font-size: 1.25rem;
+            line-height: 1.2;
+        }
+
+        .meta {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .badge {
+            background: #334155;
+            color: #94a3b8;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-links {
             font-size: 0.75rem;
-            font-family: var(--mono);
-            letter-spacing: 0.05em;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            flex-shrink: 0;
+            text-align: right;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
             transition: color 0.2s;
         }
 
-        .back-link:hover { color: var(--accent); }
+        .nav-links a:hover { color: var(--accent); }
+        .nav-links a.active { color: var(--accent); }
 
-        .divider { color: var(--border); }
-
-        h1 {
-            font-size: 1rem;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            color: var(--text);
+        /* ── Status dot ── */
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
 
-        h1 span {
-            color: var(--token);
-        }
-
-        .graph-pill {
-            font-family: var(--mono);
-            font-size: 0.65rem;
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            color: var(--token);
-            padding: 3px 8px;
-            border-radius: 20px;
-            letter-spacing: 0.03em;
-        }
-
-        .status-dot {
-            width: 7px;
-            height: 7px;
+        .dot-indicator {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background: var(--error);
+            background: #ef4444;
             transition: background 0.3s;
             flex-shrink: 0;
         }
 
-        .status-dot.online { background: var(--success); box-shadow: 0 0 6px var(--success); }
+        .dot-indicator.online {
+            background: #10b981;
+            box-shadow: 0 0 5px #10b981;
+        }
 
         /* ── Main layout ── */
         .main {
@@ -110,172 +116,138 @@
             overflow: hidden;
         }
 
-        /* ── Left sidebar ── */
-        .sidebar {
-            width: 260px;
+        /* ── Sidebar ── */
+        .left-panel {
+            width: 280px;
             flex-shrink: 0;
+            background: var(--bg);
             border-right: 1px solid var(--border);
-            background: var(--surface);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            padding: 1.5rem;
+            gap: 1.2rem;
+            overflow-y: auto;
         }
 
-        .sidebar-section {
-            padding: 1rem;
+        .section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .section label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Stats */
+        .status-dashboard {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .api-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
             border-bottom: 1px solid var(--border);
         }
 
-        .sidebar-label {
-            font-family: var(--mono);
-            font-size: 0.6rem;
-            letter-spacing: 0.12em;
+        .api-row .label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
             text-transform: uppercase;
-            color: var(--muted);
-            margin-bottom: 0.75rem;
+            letter-spacing: 0.5px;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
-        }
-
-        .stat-box {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 0.5rem;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
             text-align: center;
         }
 
-        .stat-box strong {
-            display: block;
-            font-family: var(--mono);
+        .stat-item strong {
             font-size: 1.1rem;
-            color: var(--token);
+            color: var(--text);
+            display: block;
+            transition: color 0.2s;
         }
 
-        .stat-box small {
-            font-size: 0.6rem;
-            color: var(--muted);
+        .stat-item small {
+            font-size: 0.65rem;
+            color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.08em;
         }
 
-        .example-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-            overflow-y: auto;
-            flex: 1;
-            padding: 1rem;
-        }
+        .stat-item:hover strong { color: var(--accent); }
 
+        /* Example buttons */
         .example-btn {
-            background: var(--surface2);
+            background: #020617;
             border: 1px solid var(--border);
             border-radius: 6px;
-            padding: 0.6rem 0.75rem;
-            color: var(--text);
+            padding: 0.5rem 0.75rem;
+            color: var(--text-muted);
             font-family: var(--mono);
             font-size: 0.72rem;
             cursor: pointer;
             text-align: left;
             transition: all 0.15s;
             line-height: 1.4;
+            width: 100%;
         }
 
         .example-btn:hover {
             border-color: var(--accent);
             color: var(--accent);
-            background: rgba(56, 189, 248, 0.05);
         }
 
         .example-btn .ex-label {
             display: block;
             font-weight: 700;
-            margin-bottom: 0.2rem;
-            font-size: 0.7rem;
-            color: var(--accent2);
-            font-family: var(--sans);
-            letter-spacing: 0.02em;
+            margin-bottom: 0.15rem;
+            font-size: 0.72rem;
+            color: var(--text);
+            font-family: system-ui, sans-serif;
         }
 
-        /* ── Editor panel ── */
-        .editor-panel {
+        .example-btn:hover .ex-label { color: var(--accent); }
+
+        /* ── Right panel ── */
+        .right-panel {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            background: var(--bg);
         }
 
+        /* Toolbar */
         .editor-toolbar {
             display: flex;
             align-items: center;
             gap: 0.75rem;
             padding: 0.75rem 1rem;
             border-bottom: 1px solid var(--border);
-            background: var(--surface);
             flex-shrink: 0;
         }
 
-        .editor-toolbar-left {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex: 1;
-        }
-
-        .graph-select {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            color: var(--text);
-            font-family: var(--mono);
+        .limit-label {
             font-size: 0.75rem;
-            padding: 0.35rem 0.6rem;
-            border-radius: 5px;
-            cursor: pointer;
+            color: var(--text-muted);
         }
-
-        .graph-select:focus { outline: none; border-color: var(--accent); }
-
-        .btn-run {
-            background: var(--accent);
-            color: #0a0e17;
-            border: none;
-            border-radius: 6px;
-            padding: 0.45rem 1.2rem;
-            font-family: var(--sans);
-            font-weight: 700;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.15s;
-            letter-spacing: 0.03em;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .btn-run:hover { filter: brightness(1.1); transform: translateY(-1px); }
-        .btn-run:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-        .btn-clear {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--muted);
-            border-radius: 6px;
-            padding: 0.4rem 0.8rem;
-            font-family: var(--mono);
-            font-size: 0.72rem;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .btn-clear:hover { border-color: var(--muted); color: var(--text); }
 
         .limit-input {
-            background: var(--surface2);
+            background: #020617;
             border: 1px solid var(--border);
             color: var(--text);
             font-family: var(--mono);
@@ -288,15 +260,65 @@
 
         .limit-input:focus { outline: none; border-color: var(--accent); }
 
-        .limit-label {
-            font-family: var(--mono);
+        .shortcut-hint {
+            margin-left: auto;
             font-size: 0.65rem;
-            color: var(--muted);
+            color: var(--text-muted);
+            font-family: var(--mono);
         }
 
+        /* Buttons */
+        button {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            min-height: 36px;
+        }
+
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-primary {
+            background: #38bdf8;
+            color: #0f172a;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .btn-secondary {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover { background: #334155; }
+
+        .btn-export {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            border-radius: 5px;
+            padding: 0.25rem 0.6rem;
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            min-height: unset;
+        }
+
+        .btn-export:hover { border-color: #10b981; color: #10b981; }
+
+        /* Editor */
         textarea#queryEditor {
             flex: 1;
-            background: #070b12;
+            background: #020617;
             border: none;
             color: #a5b4fc;
             font-family: var(--mono);
@@ -305,25 +327,24 @@
             resize: none;
             line-height: 1.7;
             outline: none;
-            min-height: 180px;
+            min-height: 160px;
         }
 
-        /* ── Results panel ── */
+        /* Results */
         .results-panel {
             border-top: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             flex: 1;
             overflow: hidden;
-            min-height: 200px;
+            min-height: 180px;
         }
 
         .results-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.5rem 1rem;
-            background: var(--surface);
+            padding: 0.4rem 1rem;
             border-bottom: 1px solid var(--border);
             flex-shrink: 0;
         }
@@ -331,39 +352,16 @@
         .results-meta {
             font-family: var(--mono);
             font-size: 0.65rem;
-            color: var(--muted);
+            color: var(--text-muted);
             display: flex;
             align-items: center;
             gap: 1rem;
         }
 
-        .results-meta .count {
-            color: var(--success);
-            font-weight: 700;
-        }
+        .results-meta .count { color: #10b981; font-weight: 700; }
+        .results-meta .timing { color: var(--accent); }
 
-        .results-meta .timing {
-            color: var(--accent2);
-        }
-
-        .btn-export {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--muted);
-            border-radius: 5px;
-            padding: 0.25rem 0.6rem;
-            font-family: var(--mono);
-            font-size: 0.65rem;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .btn-export:hover { border-color: var(--success); color: var(--success); }
-
-        .results-table-wrap {
-            flex: 1;
-            overflow: auto;
-        }
+        .results-table-wrap { flex: 1; overflow: auto; }
 
         table {
             width: 100%;
@@ -373,8 +371,8 @@
         }
 
         thead th {
-            background: var(--surface2);
-            color: var(--accent2);
+            background: var(--panel);
+            color: var(--text-muted);
             font-weight: 700;
             padding: 0.5rem 0.75rem;
             text-align: left;
@@ -386,15 +384,11 @@
             text-transform: uppercase;
         }
 
-        tbody tr {
-            border-bottom: 1px solid rgba(30, 45, 69, 0.5);
-            transition: background 0.1s;
-        }
-
-        tbody tr:hover { background: rgba(56, 189, 248, 0.04); }
+        tbody tr { border-bottom: 1px solid rgba(51,65,85,0.4); }
+        tbody tr:hover { background: rgba(56,189,248,0.03); }
 
         tbody td {
-            padding: 0.5rem 0.75rem;
+            padding: 0.45rem 0.75rem;
             color: var(--text);
             max-width: 400px;
             overflow: hidden;
@@ -402,14 +396,8 @@
             white-space: nowrap;
         }
 
-        tbody td.iri {
-            color: var(--accent);
-            font-size: 0.7rem;
-        }
-
-        tbody td.literal {
-            color: #86efac;
-        }
+        tbody td.iri { color: var(--accent); font-size: 0.7rem; }
+        tbody td.literal { color: #86efac; }
 
         .empty-state {
             display: flex;
@@ -417,139 +405,125 @@
             align-items: center;
             justify-content: center;
             height: 100%;
-            gap: 0.75rem;
-            color: var(--muted);
-            font-family: var(--mono);
+            gap: 0.5rem;
+            color: var(--text-muted);
             font-size: 0.8rem;
+            opacity: 0.6;
         }
-
-        .empty-state .icon { font-size: 2rem; opacity: 0.3; }
 
         .error-state {
             padding: 1rem;
-            color: var(--error);
+            color: #ef4444;
             font-family: var(--mono);
-            font-size: 0.78rem;
-            background: rgba(239, 68, 68, 0.05);
-            border: 1px solid rgba(239, 68, 68, 0.2);
+            font-size: 0.75rem;
+            background: rgba(239,68,68,0.05);
+            border: 1px solid rgba(239,68,68,0.2);
             border-radius: 6px;
             margin: 1rem;
             white-space: pre-wrap;
         }
 
-        /* ── Scrollbars ── */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-        /* ── Spinner ── */
+        /* Spinner */
         .spinner {
             width: 14px; height: 14px;
-            border: 2px solid rgba(10,14,23,0.3);
-            border-top-color: #0a0e17;
+            border: 2px solid rgba(15,23,42,0.3);
+            border-top-color: #0f172a;
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
             display: inline-block;
+            vertical-align: middle;
         }
+
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── Nav link in footer ── */
-        .app-footer {
-            background: var(--surface);
-            color: var(--muted);
-            text-align: center;
-            padding: 10px 20px;
-            font-size: 11px;
-            border-top: 1px solid var(--border);
-            flex-shrink: 0;
-            font-family: var(--mono);
-        }
-
-        .app-footer a { color: var(--accent); text-decoration: none; }
-        .app-footer a:hover { text-decoration: underline; }
+        .small { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="header-left">
-        <a href="index.html" class="back-link">← Generator</a>
-        <span class="divider">|</span>
-        <h1>Token Graph <span>Explorer</span></h1>
-        <span class="graph-pill">http://shacl-demo.org/token</span>
+    <div class="header-main">
+        <h1>SPARQL Query</h1>
+        <div class="meta">
+            <span class="badge">Token Graph</span>
+            <span style="font-size:0.75rem;color:var(--text-muted);font-family:var(--mono);">http://shacl-demo.org/token</span>
+        </div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-        <span class="status-dot" id="statusDot"></span>
-        <span id="statusText" style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);">Connecting...</span>
+    <div class="nav-links">
+        <a href="index.html">Instance Creation</a> |
+        <a href="index.html">Template Generation</a> |
+        <a href="index.html">SHACL Inference</a> |
+        <a href="index.html">SHACL Validation</a> |
+        <a href="sparql.html" class="active">SPARQL Query</a>
     </div>
 </header>
 
 <div class="main">
 
     <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-section">
-            <div class="sidebar-label">Token Graph Stats</div>
+    <div class="left-panel">
+
+        <div class="status-dashboard">
+            <div class="api-row">
+                <span class="label">Token Graph</span>
+                <div class="status-indicator">
+                    <span class="dot-indicator" id="statusDot"></span>
+                    <span id="statusText" style="font-size:0.8rem;font-weight:600;">Connecting...</span>
+                </div>
+            </div>
             <div class="stats-grid">
-                <div class="stat-box"><strong id="countTokens">—</strong><small>Tokens</small></div>
-                <div class="stat-box"><strong id="countTriples">—</strong><small>Triples</small></div>
-                <div class="stat-box"><strong id="countTypes">—</strong><small>Types</small></div>
-                <div class="stat-box"><strong id="countProps">—</strong><small>Properties</small></div>
+                <div class="stat-item"><strong id="countTokens">—</strong><small>Tokens</small></div>
+                <div class="stat-item"><strong id="countTriples">—</strong><small>Triples</small></div>
+                <div class="stat-item"><strong id="countTypes">—</strong><small>Types</small></div>
+                <div class="stat-item"><strong id="countProps">—</strong><small>Properties</small></div>
             </div>
         </div>
 
-        <div class="sidebar-label" style="padding: 1rem 1rem 0.5rem;">Example Queries</div>
-        <div class="example-list">
-
+        <div class="section">
+            <label>Example Queries</label>
             <button class="example-btn" onclick="loadExample('all')">
                 <span class="ex-label">All Tokens</span>
                 Browse everything in the token graph
             </button>
-
             <button class="example-btn" onclick="loadExample('byType')">
                 <span class="ex-label">Tokens by Type</span>
                 Group instances by situation class
             </button>
-
             <button class="example-btn" onclick="loadExample('inferred')">
                 <span class="ex-label">Inferred Relations</span>
-                Show opaque properties generated by SHACL rules
+                Opaque properties from SHACL rules
             </button>
-
             <button class="example-btn" onclick="loadExample('entities')">
                 <span class="ex-label">Named Entities</span>
                 All Entity instances with labels
             </button>
-
             <button class="example-btn" onclick="loadExample('timeline')">
                 <span class="ex-label">Situation Chain</span>
-                Find situations connected by shared participants
+                Situations connected by shared participants
             </button>
-
             <button class="example-btn" onclick="loadExample('lemmas')">
                 <span class="ex-label">Verbs Used</span>
-                All unique verb lemmas in the token graph
+                Unique verb lemmas in the token graph
             </button>
-
         </div>
+
     </div>
 
     <!-- Editor + Results -->
-    <div class="editor-panel">
+    <div class="right-panel">
 
         <div class="editor-toolbar">
-            <div class="editor-toolbar-left">
-                <button class="btn-run" id="runBtn" onclick="runQuery()">
-                    ▶ Run Query
-                </button>
-                <button class="btn-clear" onclick="clearEditor()">Clear</button>
-                <span class="limit-label">Limit</span>
-                <input class="limit-input" type="number" id="limitInput" value="100" min="1" max="10000">
-            </div>
-            <span style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);">
-                Ctrl+Enter to run
-            </span>
+            <button class="btn-primary" id="runBtn" onclick="runQuery()">▶ Run Query</button>
+            <button class="btn-secondary small" onclick="clearEditor()">Clear</button>
+            <span class="limit-label">Limit</span>
+            <input class="limit-input" type="number" id="limitInput" value="100" min="1" max="10000">
+            <span class="shortcut-hint">⌘↵ to run</span>
         </div>
 
         <textarea id="queryEditor" spellcheck="false" placeholder="Enter SPARQL SELECT query..."></textarea>
@@ -560,13 +534,10 @@
                     <span id="resultCount"></span>
                     <span id="resultTiming"></span>
                 </div>
-                <button class="btn-export" id="exportBtn" onclick="exportCSV()" style="display:none">
-                    ↓ Export CSV
-                </button>
+                <button class="btn-export" id="exportBtn" onclick="exportCSV()" style="display:none">↓ Export CSV</button>
             </div>
             <div class="results-table-wrap" id="resultsArea">
                 <div class="empty-state">
-                    <span class="icon">◈</span>
                     <span>Run a query to see results</span>
                 </div>
             </div>
@@ -575,92 +546,27 @@
     </div>
 </div>
 
-<footer class="app-footer">
-    <a href="index.html">← Template Generator</a>
-     · 
-    <a href="https://github.com/falcontologist/shacl-demo" target="_blank">GitHub</a>
-     · 
-    Token graph: <code>http://shacl-demo.org/token</code>
-</footer>
-
 <script>
-// ── Config ──────────────────────────────────────────────────────────────────
 const SPARQL_ENDPOINT = "http://localhost:8890/sparql";
 const TOKEN_GRAPH     = "http://shacl-demo.org/token";
 const ONT_NS          = "https://falcontologist.github.io/shacl-demo/ontology/";
 const TEMP_NS         = "https://falcontologist.github.io/shacl-demo/temp/";
 
-// ── Example queries ──────────────────────────────────────────────────────────
 const EXAMPLES = {
-
-    all: `SELECT ?subject ?predicate ?object
-WHERE {
-  GRAPH <${TOKEN_GRAPH}> {
-    ?subject ?predicate ?object .
-  }
-}
-ORDER BY ?subject`,
-
-    byType: `SELECT ?type (COUNT(?token) AS ?count)
-WHERE {
-  GRAPH <${TOKEN_GRAPH}> {
-    ?token a ?type .
-  }
-}
-GROUP BY ?type
-ORDER BY DESC(?count)`,
-
-    inferred: `SELECT ?subject ?verb ?object
-WHERE {
-  GRAPH <${TOKEN_GRAPH}> {
-    ?subject ?verb ?object .
-    FILTER(CONTAINS(STR(?verb), "${ONT_NS}"))
-    FILTER(REGEX(STR(?verb), "_[a-f0-9]{12}$"))
-  }
-}`,
-
-    entities: `SELECT ?entity ?label
-WHERE {
-  GRAPH <${TOKEN_GRAPH}> {
-    ?entity a <${ONT_NS}Entity> ;
-            <http://www.w3.org/2000/01/rdf-schema#label> ?label .
-  }
-}
-ORDER BY ?label`,
-
-    timeline: `SELECT ?s1label ?predicate ?s2label
-WHERE {
-  GRAPH <${TOKEN_GRAPH}> {
-    ?s1 a ?type1 ;
-        <http://www.w3.org/2000/01/rdf-schema#label> ?s1label .
-    ?s2 a ?type2 ;
-        <http://www.w3.org/2000/01/rdf-schema#label> ?s2label .
-    ?s1 ?predicate ?s2 .
-    FILTER(?s1 != ?s2)
-    FILTER(STRSTARTS(STR(?s1), "${TEMP_NS}s"))
-    FILTER(STRSTARTS(STR(?s2), "${TEMP_NS}s"))
-  }
-}`,
-
-    lemmas: `SELECT DISTINCT ?lemma (COUNT(?token) AS ?count)
-WHERE {
-  GRAPH <${TOKEN_GRAPH}> {
-    ?token <${ONT_NS}lemma> ?lemma .
-  }
-}
-GROUP BY ?lemma
-ORDER BY DESC(?count)`
+    all: `SELECT ?subject ?predicate ?object\nWHERE {\n  GRAPH <${TOKEN_GRAPH}> {\n    ?subject ?predicate ?object .\n  }\n}\nORDER BY ?subject`,
+    byType: `SELECT ?type (COUNT(?token) AS ?count)\nWHERE {\n  GRAPH <${TOKEN_GRAPH}> {\n    ?token a ?type .\n  }\n}\nGROUP BY ?type\nORDER BY DESC(?count)`,
+    inferred: `SELECT ?subject ?verb ?object\nWHERE {\n  GRAPH <${TOKEN_GRAPH}> {\n    ?subject ?verb ?object .\n    FILTER(CONTAINS(STR(?verb), "${ONT_NS}"))\n    FILTER(REGEX(STR(?verb), "_[a-f0-9]{12}$"))\n  }\n}`,
+    entities: `SELECT ?entity ?label\nWHERE {\n  GRAPH <${TOKEN_GRAPH}> {\n    ?entity a <${ONT_NS}Entity> ;\n            <http://www.w3.org/2000/01/rdf-schema#label> ?label .\n  }\n}\nORDER BY ?label`,
+    timeline: `SELECT ?s1label ?predicate ?s2label\nWHERE {\n  GRAPH <${TOKEN_GRAPH}> {\n    ?s1 a ?type1 ; <http://www.w3.org/2000/01/rdf-schema#label> ?s1label .\n    ?s2 a ?type2 ; <http://www.w3.org/2000/01/rdf-schema#label> ?s2label .\n    ?s1 ?predicate ?s2 .\n    FILTER(?s1 != ?s2)\n    FILTER(STRSTARTS(STR(?s1), "${TEMP_NS}s"))\n    FILTER(STRSTARTS(STR(?s2), "${TEMP_NS}s"))\n  }\n}`,
+    lemmas: `SELECT DISTINCT ?lemma (COUNT(?token) AS ?count)\nWHERE {\n  GRAPH <${TOKEN_GRAPH}> {\n    ?token <${ONT_NS}lemma> ?lemma .\n  }\n}\nGROUP BY ?lemma\nORDER BY DESC(?count)`
 };
 
-// ── State ────────────────────────────────────────────────────────────────────
 let lastResults = [];
 
-// ── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     loadExample('all');
     checkConnection();
     loadStats();
-
     document.getElementById('queryEditor').addEventListener('keydown', e => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             e.preventDefault();
@@ -670,21 +576,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function loadExample(key) {
-    const editor = document.getElementById('queryEditor');
-    editor.value = EXAMPLES[key];
+    document.getElementById('queryEditor').value = EXAMPLES[key];
 }
 
 function clearEditor() {
     document.getElementById('queryEditor').value = '';
-    document.getElementById('resultsArea').innerHTML =
-        '<div class="empty-state"><span class="icon">◈</span><span>Run a query to see results</span></div>';
+    document.getElementById('resultsArea').innerHTML = '<div class="empty-state"><span>Run a query to see results</span></div>';
     document.getElementById('resultCount').textContent = '';
     document.getElementById('resultTiming').textContent = '';
     document.getElementById('exportBtn').style.display = 'none';
     lastResults = [];
 }
 
-// ── Connection check ──────────────────────────────────────────────────────────
 async function checkConnection() {
     try {
         const url = `${SPARQL_ENDPOINT}?query=${encodeURIComponent('ASK { }')}&format=json`;
@@ -692,15 +595,12 @@ async function checkConnection() {
         if (r.ok) {
             document.getElementById('statusDot').classList.add('online');
             document.getElementById('statusText').textContent = 'Connected';
-        } else {
-            throw new Error();
-        }
+        } else throw new Error();
     } catch {
         document.getElementById('statusText').textContent = 'Offline';
     }
 }
 
-// ── Stats ─────────────────────────────────────────────────────────────────────
 async function loadStats() {
     const queries = {
         countTokens: `SELECT (COUNT(DISTINCT ?s) AS ?n) WHERE { GRAPH <${TOKEN_GRAPH}> { ?s a ?t . FILTER(STRSTARTS(STR(?s), "${TEMP_NS}s")) } }`,
@@ -708,68 +608,48 @@ async function loadStats() {
         countTypes:   `SELECT (COUNT(DISTINCT ?t) AS ?n) WHERE { GRAPH <${TOKEN_GRAPH}> { ?s a ?t } }`,
         countProps:   `SELECT (COUNT(DISTINCT ?p) AS ?n) WHERE { GRAPH <${TOKEN_GRAPH}> { ?s ?p ?o } }`
     };
-
     for (const [id, q] of Object.entries(queries)) {
         try {
-            const url = `${SPARQL_ENDPOINT}?query=${encodeURIComponent(q)}&format=json`;
-            const r = await fetch(url);
+            const r = await fetch(`${SPARQL_ENDPOINT}?query=${encodeURIComponent(q)}&format=json`);
             const data = await r.json();
-            const val = data.results.bindings[0]?.n?.value ?? '—';
-            document.getElementById(id).textContent = val;
-        } catch { /* silent */ }
+            document.getElementById(id).textContent = data.results.bindings[0]?.n?.value ?? '—';
+        } catch {}
     }
 }
 
-// ── Run query ─────────────────────────────────────────────────────────────────
 async function runQuery() {
     const btn = document.getElementById('runBtn');
     const editor = document.getElementById('queryEditor');
     const resultsArea = document.getElementById('resultsArea');
-    const limitInput = document.getElementById('limitInput');
-
     let query = editor.value.trim();
     if (!query) return;
 
-    // Inject LIMIT if not present
-    const limit = parseInt(limitInput.value) || 100;
-    if (!/LIMIT\s+\d+/i.test(query)) {
-        query += `\nLIMIT ${limit}`;
-    }
+    const limit = parseInt(document.getElementById('limitInput').value) || 100;
+    if (!/LIMIT\s+\d+/i.test(query)) query += `\nLIMIT ${limit}`;
 
     btn.innerHTML = '<span class="spinner"></span> Running…';
     btn.disabled = true;
-    resultsArea.innerHTML = '<div class="empty-state"><span class="icon">⏳</span><span>Executing query…</span></div>';
+    resultsArea.innerHTML = '<div class="empty-state"><span>Executing…</span></div>';
     document.getElementById('resultCount').textContent = '';
     document.getElementById('resultTiming').textContent = '';
     document.getElementById('exportBtn').style.display = 'none';
 
     const t0 = performance.now();
-
     try {
-        const url = `${SPARQL_ENDPOINT}?query=${encodeURIComponent(query)}&format=json`;
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(errText);
-        }
-
-        const data = await response.json();
+        const r = await fetch(`${SPARQL_ENDPOINT}?query=${encodeURIComponent(query)}&format=json`);
+        if (!r.ok) throw new Error(await r.text());
+        const data = await r.json();
         const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
-
         renderResults(data, elapsed);
-        loadStats(); // refresh stats after query
-
+        loadStats();
     } catch (err) {
         resultsArea.innerHTML = `<div class="error-state">⚠ Query failed:\n\n${err.message}</div>`;
-        document.getElementById('resultCount').textContent = '';
     } finally {
         btn.innerHTML = '▶ Run Query';
         btn.disabled = false;
     }
 }
 
-// ── Render results ────────────────────────────────────────────────────────────
 function renderResults(data, elapsed) {
     const resultsArea = document.getElementById('resultsArea');
     const vars = data.head.variables;
@@ -777,85 +657,60 @@ function renderResults(data, elapsed) {
     lastResults = bindings;
 
     const count = bindings.length;
-    document.getElementById('resultCount').innerHTML =
-        `<span class="count">${count} row${count !== 1 ? 's' : ''}</span>`;
-    document.getElementById('resultTiming').innerHTML =
-        `<span class="timing">${elapsed}s</span>`;
+    document.getElementById('resultCount').innerHTML = `<span class="count">${count} row${count !== 1 ? 's' : ''}</span>`;
+    document.getElementById('resultTiming').innerHTML = `<span class="timing">${elapsed}s</span>`;
 
     if (count === 0) {
-        resultsArea.innerHTML = '<div class="empty-state"><span class="icon">∅</span><span>No results</span></div>';
+        resultsArea.innerHTML = '<div class="empty-state"><span>No results</span></div>';
         return;
     }
 
     document.getElementById('exportBtn').style.display = 'block';
 
     const table = document.createElement('table');
-
-    // Header
     const thead = document.createElement('thead');
-    const headerRow = document.createElement('tr');
-    vars.forEach(v => {
-        const th = document.createElement('th');
-        th.textContent = v;
-        headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
+    const hr = document.createElement('tr');
+    vars.forEach(v => { const th = document.createElement('th'); th.textContent = v; hr.appendChild(th); });
+    thead.appendChild(hr);
     table.appendChild(thead);
 
-    // Body
     const tbody = document.createElement('tbody');
     bindings.forEach(row => {
         const tr = document.createElement('tr');
         vars.forEach(v => {
             const td = document.createElement('td');
             const cell = row[v];
-            if (!cell) {
-                td.textContent = '';
-            } else if (cell.type === 'uri') {
-                td.className = 'iri';
-                td.textContent = abbreviate(cell.value);
-                td.title = cell.value;
-            } else {
-                td.className = 'literal';
-                td.textContent = cell.value;
-            }
+            if (!cell) { td.textContent = ''; }
+            else if (cell.type === 'uri') { td.className = 'iri'; td.textContent = abbreviate(cell.value); td.title = cell.value; }
+            else { td.className = 'literal'; td.textContent = cell.value; }
             tr.appendChild(td);
         });
         tbody.appendChild(tr);
     });
     table.appendChild(tbody);
-
     resultsArea.innerHTML = '';
     resultsArea.appendChild(table);
 }
 
-// ── Abbreviate IRIs ───────────────────────────────────────────────────────────
 function abbreviate(iri) {
     if (iri.startsWith(ONT_NS))  return ':' + iri.slice(ONT_NS.length);
     if (iri.startsWith(TEMP_NS)) return 'temp:' + iri.slice(TEMP_NS.length);
     if (iri.startsWith('http://www.w3.org/1999/02/22-rdf-syntax-ns#')) return 'rdf:' + iri.slice(43);
     if (iri.startsWith('http://www.w3.org/2000/01/rdf-schema#')) return 'rdfs:' + iri.slice(37);
-    if (iri.startsWith('http://www.w3.org/ns/shacl#')) return 'sh:' + iri.slice(27);
     return iri;
 }
 
-// ── Export CSV ────────────────────────────────────────────────────────────────
 function exportCSV() {
     if (!lastResults.length) return;
     const vars = Object.keys(lastResults[0]);
     const rows = [vars.join(',')];
     lastResults.forEach(row => {
-        rows.push(vars.map(v => {
-            const val = row[v]?.value || '';
-            return `"${val.replace(/"/g, '""')}"`;
-        }).join(','));
+        rows.push(vars.map(v => `"${(row[v]?.value || '').replace(/"/g, '""')}"`).join(','));
     });
     const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = 'sparql-results.csv';
-    a.click();
+    a.href = url; a.download = 'sparql-results.csv'; a.click();
     URL.revokeObjectURL(url);
 }
 </script>
