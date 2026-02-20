@@ -1,4 +1,4 @@
-@prefix :    <http://example.org/ontology/> .
+@prefix :    <https://falcontologist.github.io/shacl-demo/ontology/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -4087,7 +4087,7 @@
     :evokes :Inducive_shape ;
     :pos "Verb" ;
     :present3sg "bullshits" ;
-    :sense <http://example.org/ontology/talk_through_one's_hat.v.01> ;
+    :sense <https://falcontologist.github.io/shacl-demo/ontology/talk_through_one's_hat.v.01> ;
     :vn_class :trick-59_2.vnclass .
 
 :bully.v.lemma a :Lemma ;
@@ -6204,7 +6204,7 @@
     :sense :burn.v.03,
         :burn.v.05,
         :erupt.v.03,
-        <http://example.org/ontology/flip_one's_lid.v.01> ;
+        <https://falcontologist.github.io/shacl-demo/ontology/flip_one's_lid.v.01> ;
     :vn_class :other_cos-45_4.vnclass .
 
 :come.v.lemma a :Lemma ;
@@ -13878,7 +13878,7 @@
     :evokes :Affect_shape ;
     :pos "Verb" ;
     :present3sg "go_ballistics" ;
-    :sense <http://example.org/ontology/flip_one's_lid.v.01> ;
+    :sense <https://falcontologist.github.io/shacl-demo/ontology/flip_one's_lid.v.01> ;
     :vn_class :marvel-31_3.vnclass .
 
 :go_down.v.lemma a :Lemma ;
@@ -64751,7 +64751,7 @@
     :identifier "zoom.v.01" ;
     :lexical_resource "WordNet" .
 
-<http://example.org/ontology/flip_one's_lid.v.01> a :Synset ;
+<https://falcontologist.github.io/shacl-demo/ontology/flip_one's_lid.v.01> a :Synset ;
     rdfs:label "flip_one's_lid.v.01 (synset)" ;
     :evokes :Affect_shape,
         :Basic_Change_of_State_shape ;
@@ -64759,7 +64759,7 @@
     :identifier "flip_one's_lid.v.01" ;
     :lexical_resource "WordNet" .
 
-<http://example.org/ontology/talk_through_one's_hat.v.01> a :Synset ;
+<https://falcontologist.github.io/shacl-demo/ontology/talk_through_one's_hat.v.01> a :Synset ;
     rdfs:label "talk_through_one's_hat.v.01 (synset)" ;
     :evokes :Inducive_shape ;
     :gloss "speak insincerely or without regard for facts or truths" ;

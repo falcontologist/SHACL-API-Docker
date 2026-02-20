@@ -1,4 +1,4 @@
-@prefix :    <http://example.org/ontology/> .
+@prefix :    <https://falcontologist.github.io/shacl-demo/ontology/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix sh:  <http://www.w3.org/ns/shacl#> .
@@ -25,7 +25,7 @@
     sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?transformer ?opaqueProperty ?theme .
@@ -52,7 +52,7 @@
     rdfs:label "Acquisition Opaque IRI (shape)"@en ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?acquirer ?opaqueProperty ?acquired .
@@ -86,7 +86,7 @@
             sh:path :asset ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?acquirer ?opaqueProperty ?acquisition .
@@ -119,7 +119,7 @@
     sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?actor ?opaqueProperty ?affectee .
@@ -163,7 +163,7 @@
             sh:path :advisee ] ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-PREFIX : <http://example.org/ontology/>
+PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
 CONSTRUCT {
     ?s :advises ?o .
 }
@@ -180,7 +180,7 @@ WHERE {
     sh:property [ sh:name "affecter"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affecter ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?affecter ?opaqueProperty ?affectee .
@@ -217,7 +217,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?affiliator ?opaqueProperty ?affectee .
@@ -267,7 +267,7 @@ WHERE {
             sh:path :signal ] ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-PREFIX : <http://example.org/ontology/>
+PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
 CONSTRUCT {
     ?s :announces ?o .
 }
@@ -289,7 +289,7 @@ WHERE {
     sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?associator ?opaqueProperty ?analogue .
@@ -322,7 +322,7 @@ WHERE {
     sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?actor ?opaqueProperty ?affectee .
@@ -398,7 +398,7 @@ WHERE {
     sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?associator ?opaqueProperty ?analogue .
@@ -437,7 +437,7 @@ WHERE {
     sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?transformer ?opaqueProperty ?theme .
@@ -474,7 +474,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?antagonist ?opaqueProperty ?agonist .
@@ -510,7 +510,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?mover ?opaqueProperty ?affectee .
@@ -545,7 +545,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?mover ?opaqueProperty ?theme .
@@ -628,7 +628,7 @@ WHERE {
     sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?transformer ?opaqueProperty ?theme .
@@ -668,7 +668,7 @@ WHERE {
     sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?maker ?opaqueProperty ?affectee .
@@ -704,7 +704,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?mover ?opaqueProperty ?affectee .
@@ -741,7 +741,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?affiliator ?opaqueProperty ?affectee .
@@ -778,7 +778,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?affiliator ?opaqueProperty ?affectee .
@@ -831,7 +831,7 @@ WHERE {
     sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?transactor ?opaqueProperty ?affectee .
@@ -867,7 +867,7 @@ WHERE {
     sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?communicator ?opaqueProperty ?affectee .
@@ -903,7 +903,7 @@ WHERE {
     sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?communicator ?opaqueProperty ?affectee .
@@ -937,7 +937,7 @@ WHERE {
     sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?associator ?opaqueProperty ?analogue .
@@ -973,7 +973,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?mover ?opaqueProperty ?affectee .
@@ -1010,7 +1010,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?antagonist ?opaqueProperty ?agonist .
@@ -1051,7 +1051,7 @@ WHERE {
     sh:property [ sh:name "subordinate"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :subordinate ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?controller ?opaqueProperty ?subordinate .
@@ -1084,7 +1084,7 @@ WHERE {
     sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?evaluator ?opaqueProperty ?affectee .
@@ -1137,7 +1137,7 @@ WHERE {
     sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?maker ?opaqueProperty ?affectee .
@@ -1170,7 +1170,7 @@ WHERE {
     sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?actor ?opaqueProperty ?affectee .
@@ -1209,7 +1209,7 @@ WHERE {
     sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?transactor ?opaqueProperty ?item .
@@ -1249,7 +1249,7 @@ WHERE {
     sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?maker ?opaqueProperty ?affectee .
@@ -1295,7 +1295,7 @@ WHERE {
     sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?transactor ?opaqueProperty ?affectee .
@@ -1334,7 +1334,7 @@ WHERE {
             sh:path :task ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?executor ?opaqueProperty ?task .
@@ -1398,7 +1398,7 @@ WHERE {
     sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?transformer ?opaqueProperty ?theme .
@@ -1431,7 +1431,7 @@ WHERE {
     sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?evaluator ?opaqueProperty ?phenomenon .
@@ -1468,7 +1468,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?antagonist ?opaqueProperty ?agonist .
@@ -1508,7 +1508,7 @@ WHERE {
     sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?maker ?opaqueProperty ?affectee .
@@ -1541,7 +1541,7 @@ WHERE {
     sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?transactor ?opaqueProperty ?affectee .
@@ -1591,7 +1591,7 @@ WHERE {
     sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?transformer ?opaqueProperty ?theme .
@@ -1631,7 +1631,7 @@ WHERE {
     sh:property [ sh:name "work"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :work ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?maker ?opaqueProperty ?affectee .
@@ -1667,7 +1667,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?mover ?opaqueProperty ?affectee .
@@ -1700,7 +1700,7 @@ WHERE {
     sh:property [ sh:name "target"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :target ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?actor ?opaqueProperty ?affectee .
@@ -1750,7 +1750,7 @@ WHERE {
     sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?transformer ?opaqueProperty ?theme .
@@ -1804,7 +1804,7 @@ WHERE {
     sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?communicator ?opaqueProperty ?topic .
@@ -1837,7 +1837,7 @@ WHERE {
     sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?evaluator ?opaqueProperty ?phenomenon .
@@ -1908,7 +1908,7 @@ WHERE {
     sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?associator ?opaqueProperty ?analogue .
@@ -1970,7 +1970,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?antagonist ?opaqueProperty ?agonist .
@@ -2005,7 +2005,7 @@ WHERE {
     sh:property [ sh:name "value"@en ; sh:path :value ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?item ?opaqueProperty ?value .
@@ -2065,7 +2065,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?mover ?opaqueProperty ?theme .
@@ -2144,7 +2144,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?mover ?opaqueProperty ?affectee .
@@ -2177,7 +2177,7 @@ WHERE {
     sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?transactor ?opaqueProperty ?affectee .
@@ -2212,7 +2212,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?pursuer ?opaqueProperty ?theme .
@@ -2245,7 +2245,7 @@ WHERE {
     sh:property [ sh:name "value"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :value ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?evaluator ?opaqueProperty ?affectee .
@@ -2285,7 +2285,7 @@ WHERE {
     sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?transactor ?opaqueProperty ?affectee .
@@ -2321,7 +2321,7 @@ WHERE {
     sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?communicator ?opaqueProperty ?affectee .
@@ -2355,7 +2355,7 @@ WHERE {
     sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?associator ?opaqueProperty ?analogue .
@@ -2391,7 +2391,7 @@ WHERE {
     sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?communicator ?opaqueProperty ?affectee .
@@ -2475,7 +2475,7 @@ WHERE {
     sh:property [ sh:name "topic"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :topic ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?communicator ?opaqueProperty ?message .
@@ -2532,7 +2532,7 @@ WHERE {
             sh:path :asset ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?transactor ?opaqueProperty ?item .
@@ -2565,7 +2565,7 @@ WHERE {
     sh:property [ sh:name "transactor"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :transactor ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?transactor ?opaqueProperty ?affectee .
@@ -2604,7 +2604,7 @@ WHERE {
     sh:property [ sh:name "undergoer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :undergoer ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?transformer ?opaqueProperty ?theme .
@@ -2639,7 +2639,7 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ]  ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <http://example.org/ontology/>
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
             ?driver ?opaqueProperty ?theme .
@@ -2690,7 +2690,7 @@ WHERE {
 :Acquisition_Inference_Rule a sh:NodeShape ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-            PREFIX : <http://example.org/ontology/>
+            PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
             CONSTRUCT { ?agent :acquires ?target . }
             WHERE {
                 $this :acquirer ?agent .
@@ -2701,7 +2701,7 @@ WHERE {
             sh:prefixes :Ontology_Prefixes ] ;
     sh:targetClass :Acquisition .
 
-:Ontology_Prefixes sh:declare [ sh:namespace "http://example.org/ontology/"^^xsd:anyURI ;
+:Ontology_Prefixes sh:declare [ sh:namespace "https://falcontologist.github.io/shacl-demo/ontology/"^^xsd:anyURI ;
             sh:prefix "" ],
         [ sh:namespace "http://www.w3.org/1999/02/22-rdf-syntax-ns#"^^xsd:anyURI ;
             sh:prefix "rdf" ],

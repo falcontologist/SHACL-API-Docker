@@ -3,8 +3,7 @@ package com.example;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.riot.RDFFormat;
+import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.topbraid.jenax.util.JenaUtil;
@@ -348,13 +347,21 @@ public class App {
             System.out.println("[infer] Removed " + lemmaStatements.size() + " lemma triples");
 
             // Return complete data (original + inferred, minus lemma nodes)
-            // Register prefixes so output uses compact notation, not full URIs
-            dataModel.setNsPrefix("",    "http://example.org/ontology/");
-            dataModel.setNsPrefix("temp","http://example.org/temp/");
-            dataModel.setNsPrefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
-            dataModel.setNsPrefix("rdfs","http://www.w3.org/2000/01/rdf-schema#");
+            // Build a clean output model with only the prefixes we want.
+            // Note: RDFDataMgr.write(TURTLE_PRETTY) ignores model.setNsPrefix() and pulls
+            // from Jena's global PrefixMapping.Extended (which includes owl, dash, swa, etc).
+            // Using a fresh model and model.write() respects only the prefixes we register.
+            Model outputModel = JenaUtil.createMemoryModel();
+            outputModel.add(dataModel);
+            outputModel.setNsPrefixes(PrefixMapping.Factory.create());  // clear inherited prefixes
+            outputModel.setNsPrefix("",    "http://example.org/ontology/");
+            outputModel.setNsPrefix("temp","http://example.org/temp/");
+            outputModel.setNsPrefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+            outputModel.setNsPrefix("rdfs","http://www.w3.org/2000/01/rdf-schema#");
+            outputModel.setNsPrefix("sh",  "http://www.w3.org/ns/shacl#");
+            outputModel.setNsPrefix("xsd", "http://www.w3.org/2001/XMLSchema#");
             StringWriter dataWriter = new StringWriter();
-            RDFDataMgr.write(dataWriter, dataModel, RDFFormat.TURTLE_PRETTY);
+            outputModel.write(dataWriter, "TURTLE");
 
             System.out.println("[infer] Complete. Total: " + dataModel.size() + " triples");
 
@@ -393,8 +400,15 @@ public class App {
             System.out.println("[validate] Running SHACL validation...");
             Resource report = ValidationUtil.validateModel(dataModel, SHAPES_GRAPH, false);
             
+            Model reportModel = JenaUtil.createMemoryModel();
+            reportModel.add(report.getModel());
+            reportModel.setNsPrefixes(PrefixMapping.Factory.create());  // clear inherited prefixes
+            reportModel.setNsPrefix("sh",  "http://www.w3.org/ns/shacl#");
+            reportModel.setNsPrefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+            reportModel.setNsPrefix("rdfs","http://www.w3.org/2000/01/rdf-schema#");
+            reportModel.setNsPrefix("xsd", "http://www.w3.org/2001/XMLSchema#");
             StringWriter reportWriter = new StringWriter();
-            RDFDataMgr.write(reportWriter, report.getModel(), RDFFormat.TURTLE);
+            reportModel.write(reportWriter, "TURTLE");
 
             boolean conforms = report.getProperty(SH.conforms).getBoolean();
             System.out.println("[validate] Complete. Conforms: " + conforms);
