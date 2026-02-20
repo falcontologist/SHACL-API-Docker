@@ -760,7 +760,7 @@ async function runQuery() {
 // ── Render table ──────────────────────────────────────────────────────────────
 function renderResults(data, elapsed) {
     const resultsArea = document.getElementById('resultsArea');
-    const vars = data.head.variables;
+    const vars = data.head.vars;
     const bindings = data.results.bindings;
     lastResults = bindings;
 
