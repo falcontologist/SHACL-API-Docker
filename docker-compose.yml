@@ -1,0 +1,69 @@
+version: "3.9"
+
+services:
+
+  # ── Virtuoso Open Source ──────────────────────────────────────────────────
+  virtuoso:
+    image: openlink/virtuoso-opensource-7:latest
+    container_name: shacl-virtuoso
+    environment:
+      DBA_PASSWORD: "dba_secret"
+      VIRT_Parameters_NumberOfBuffers: "2000"
+      VIRT_Parameters_MaxDirtyBuffers: "1500"
+      VIRT_SPARQL_ResultSetMaxRows: "100000"
+      VIRT_SPARQL_MaxQueryExecutionTime: "60"
+      VIRT_HTTPServer_EnabledDavVSP: "0"
+    ports:
+      - "8890:8890"
+      - "1111:1111"
+    volumes:
+      - virtuoso-data:/database
+      - ./virtuoso-init:/init:ro
+    networks:
+      - shacl-net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8890/sparql"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # ── One-time init: creates sparql_writer user and loads ontology ──────────
+  virtuoso-init:
+    image: openlink/virtuoso-opensource-7:latest
+    container_name: shacl-virtuoso-init
+    depends_on:
+      virtuoso:
+        condition: service_healthy
+    volumes:
+      - ./virtuoso-init:/init:ro
+    entrypoint: ["sh", "-c", "isql virtuoso:1111 dba dba_secret /init/init.sql && echo '[init] Virtuoso init complete'"]
+    networks:
+      - shacl-net
+    restart: "no"
+
+  # ── Java / Javalin backend ────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shacl-backend
+    environment:
+      VIRTUOSO_SPARQL_UPDATE_URL: "http://virtuoso:8890/sparql-auth"
+      VIRTUOSO_USER: "sparql_writer"
+      VIRTUOSO_PASSWORD: "writer_secret"
+      VIRTUOSO_INSTANCE_GRAPH: "http://shacl-demo.org/token"
+    ports:
+      - "8080:8080"
+    depends_on:
+      virtuoso:
+        condition: service_healthy
+    networks:
+      - shacl-net
+
+networks:
+  shacl-net:
+    driver: bridge
+
+volumes:
+  virtuoso-data:

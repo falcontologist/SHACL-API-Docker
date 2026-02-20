@@ -37,8 +37,9 @@ public class App {
         app.get("/api/stats", App::getStats);
         app.get("/api/lookup", App::lookupVerb);
         app.get("/api/forms", App::getForms);
-        app.post("/api/infer", App::inferGraph);        // NEW: Inference endpoint
-        app.post("/api/validate", App::validateGraph);  // Validation only
+        app.post("/api/infer", App::inferGraph);       
+        app.post("/api/validate", App::validateGraph); 
+        app.post("/api/save", SaveRoute::handle);
 
         System.out.println("Server running on port 8080");
     }
