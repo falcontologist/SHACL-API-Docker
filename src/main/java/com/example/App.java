@@ -92,41 +92,57 @@ public class App {
 
     // ── Stats ─────────────────────────────────────────────────────────────────
     static void stats(Context ctx) {
-        long classes = ontologyModel.listSubjectsWithProperty(
-            ontologyModel.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            ontologyModel.createResource("http://www.w3.org/2000/01/rdf-schema#Class")
-        ).toList().size();
+        Property typeProp  = ontologyModel.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+        Property subPropOf = ontologyModel.createProperty("http://www.w3.org/2000/01/rdf-schema#subPropertyOf");
 
-        // Query to find all properties that are subProperties of common role roots
-        // or properties used as paths in Situation shapes.
-        String roleQuery = 
-            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
-            "PREFIX : <" + ONT_NS + "> " +
-            "SELECT (COUNT(DISTINCT ?prop) AS ?count) WHERE { " +
-            "  { ?prop rdfs:subPropertyOf+ :participant . } " +
-            "  UNION { ?prop rdfs:subPropertyOf+ :attribute . } " +
-            "  UNION { ?prop rdfs:subPropertyOf+ :initial . } " +
-            "  UNION { ?prop rdfs:subPropertyOf+ :result . } " +
-            "  UNION { ?prop rdfs:subPropertyOf+ :regulation . } " +
-            "}";
-
-        long roles = 0;
-        try (org.apache.jena.query.QueryExecution qe = org.apache.jena.query.QueryExecutionFactory.create(roleQuery, ontologyModel)) {
-            org.apache.jena.query.ResultSet rs = qe.execSelect();
-            if (rs.hasNext()) {
-                roles = rs.next().getLiteral("count").getLong();
-            }
-        }
-
+        // 1. Shapes
         long shapes = ontologyModel.listSubjectsWithProperty(
-            ontologyModel.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            typeProp, 
             ontologyModel.createResource(ONT_NS + "Situation_shape")
         ).toList().size();
 
+        // 2. Rules
+        long rules = ontologyModel.listSubjectsWithProperty(
+            typeProp, 
+            ontologyModel.createResource("http://www.w3.org/ns/shacl#SPARQLRule")
+        ).toList().size();
+
+        // 3. Roles (Iterative traversal from :shape_element to catch all ~200 descendants)
+        Set<Resource> rolesSet = new HashSet<>();
+        Queue<Resource> queue = new LinkedList<>();
+        queue.add(ontologyModel.createResource(ONT_NS + "shape_element"));
+        
+        while (!queue.isEmpty()) {
+            Resource current = queue.poll();
+            ontologyModel.listSubjectsWithProperty(subPropOf, current).forEachRemaining(child -> {
+                if (rolesSet.add(child)) { // Only add to queue if we haven't seen it yet
+                    queue.add(child);
+                }
+            });
+        }
+        long roles = rolesSet.size();
+
+        // 4. Lemmas (Count distinct nodes that have a :lemma property)
+        Set<Resource> lemmasSet = new HashSet<>();
+        ontologyModel.listSubjectsWithProperty(ontologyModel.createProperty(ONT_NS + "lemma"))
+            .forEachRemaining(lemmasSet::add);
+        long lemmas = lemmasSet.size();
+
+        // 5. Senses (Count distinct nodes of type :Synset or having a :gloss)
+        Set<Resource> sensesSet = new HashSet<>();
+        ontologyModel.listSubjectsWithProperty(ontologyModel.createProperty(ONT_NS + "gloss"))
+            .forEachRemaining(sensesSet::add);
+        ontologyModel.listSubjectsWithProperty(typeProp, ontologyModel.createResource(ONT_NS + "Synset"))
+            .forEachRemaining(sensesSet::add);
+        long senses = sensesSet.size();
+
         ctx.json(Map.of(
-            "classes", classes,
-            "roles",   roles,
-            "shapes",  shapes
+            "shapes", shapes,
+            "roles",  roles,
+            "rules",  rules,
+            "lemmas", lemmas,
+            "senses", senses,
+            "total_triples", ontologyModel.size()
         ));
     }
 
