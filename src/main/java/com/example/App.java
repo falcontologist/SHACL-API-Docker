@@ -165,14 +165,15 @@ public class App {
 
         Property lemmaProp  = ontologyModel.createProperty(ONT_NS + "lemma");
         Property glossProp  = ontologyModel.createProperty(ONT_NS + "gloss");
-        Property sitProp    = ontologyModel.createProperty(ONT_NS + "situation");
+        // FIX 1: Property in lexical.ttl is :evokes, not :situation
+        Property sitProp    = ontologyModel.createProperty(ONT_NS + "evokes");
 
         List<Map<String, Object>> senses = new ArrayList<>();
 
         ontologyModel.listSubjectsWithProperty(lemmaProp, verb).forEach(lemmaNode -> {
-            ontologyModel.listSubjectsWithProperty(
-                ontologyModel.createProperty(ONT_NS + "sense"), lemmaNode
-            ).forEach(synsetNode -> {
+            // FIX 2: Iterate over the lemmaNode's :sense properties to find the synset object
+            lemmaNode.listProperties(ontologyModel.createProperty(ONT_NS + "sense")).forEach(senseStmt -> {
+                Resource synsetNode = senseStmt.getObject().asResource();
                 Statement glossSt = synsetNode.getProperty(glossProp);
                 if (glossSt == null) return;
 
