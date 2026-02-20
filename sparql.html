@@ -610,25 +610,26 @@
 </div>
 
 <script>
-const SPARQL_ENDPOINT = (window.location.hostname === 'localhost' ||
+const API_BASE_URL = (window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1' ||
     window.location.hostname === '')
-    ? "http://localhost:8890/sparql"
-    : null;
+    ? "http://localhost:8080/api"
+    : "https://shacl-api-docker.onrender.com/api";
+
+const SPARQL_ENDPOINT = API_BASE_URL + "/sparql";
 const GRAPH_URI       = "http://shacl-demo.org/token";
 const ONT_NS          = "https://falcontologist.github.io/shacl-demo/ontology/";
 const TEMP_NS         = "https://falcontologist.github.io/shacl-demo/temp/";
 
 const EXAMPLES = {
     nvidia: `# Which companies did NVIDIA acquire?
-SELECT ?acquisition ?target ?synset
+SELECT ?acquiredCompany
 WHERE {
   GRAPH <${GRAPH_URI}> {
-    ?acquisition a <${ONT_NS}Dynamic_Possession> ;
-                 <${ONT_NS}transactor> <${TEMP_NS}NVIDIA> ;
-                 <${ONT_NS}item> ?targetNode ;
-                 <${ONT_NS}synset> ?synset .
-    ?targetNode <http://www.w3.org/2000/01/rdf-schema#label> ?target .
+    ?s a <${ONT_NS}Acquisition> ;
+       <${ONT_NS}acquirer> <${TEMP_NS}NVIDIA> ;
+       <${ONT_NS}acquisition> ?targetNode .
+    ?targetNode <http://www.w3.org/2000/01/rdf-schema#label> ?acquiredCompany .
   }
 }`,
     bloomberg: `# What is Mike Bloomberg's employment history?
@@ -677,10 +678,7 @@ function clearAll() {
 
 // ── Connection ────────────────────────────────────────────────────────────────
 async function checkConnection() {
-    if (!SPARQL_ENDPOINT) {
-        document.getElementById('statusText').textContent = 'Local only';
-        return;
-    }
+
     try {
         const r = await fetch(`${SPARQL_ENDPOINT}?query=${encodeURIComponent('ASK { }')}&format=json`);
         if (r.ok) {
@@ -692,7 +690,7 @@ async function checkConnection() {
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
 async function loadStats() {
-    if (!SPARQL_ENDPOINT) return;
+
     const queries = {
         countInstances: `SELECT (COUNT(DISTINCT ?s) AS ?n) WHERE { GRAPH <${GRAPH_URI}> { ?s a ?t . FILTER(STRSTARTS(STR(?s), "${TEMP_NS}s")) } }`,
         countTriples:   `SELECT (COUNT(*) AS ?n) WHERE { GRAPH <${GRAPH_URI}> { ?s ?p ?o } }`
@@ -710,7 +708,7 @@ async function loadStats() {
 async function runQuery() {
     if (!SPARQL_ENDPOINT) {
         document.getElementById('resultsArea').innerHTML =
-            '<div class="error-state">⚠ SPARQL queries require running locally with Docker.\n\nOpen the file directly from your machine to connect to the local graph database.</div>';
+            '<div class="error-state">⚠ Start Docker and open this page locally to run queries.</div>';
         return;
     }
     const btn = document.getElementById('runBtn');
