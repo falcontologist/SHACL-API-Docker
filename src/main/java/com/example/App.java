@@ -7,7 +7,6 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.Lang;
 import org.topbraid.shacl.rules.RuleUtil;
 import org.topbraid.shacl.validation.ValidationUtil;
-import org.apache.jena.graph.Graph;
 import org.apache.jena.util.FileUtils;
 
 import java.io.*;
@@ -247,16 +246,14 @@ public class App {
         Model shapesModel = ontologyModel;
         System.out.println("[infer] Executing SHACL rules...");
 
-        Graph inferredGraph;
+        Model inferredModel;
         try {
-            inferredGraph = RuleUtil.executeRules(dataModel.getGraph(), shapesModel.getGraph(), null, null);
+            inferredModel = RuleUtil.executeRules(dataModel, shapesModel, null, null);
         } catch (Exception e) {
             System.err.println("[infer] Rule execution error: " + e.getMessage());
             ctx.status(500).result("Inference error: " + e.getMessage());
             return;
         }
-
-        Model inferredModel = ModelFactory.createModelForGraph(inferredGraph);
         long newTriples = inferredModel.size();
         System.out.println("[infer] Generated " + newTriples + " new triples");
 
@@ -322,14 +319,23 @@ public class App {
 
         Model manifest = ModelFactory.createDefaultModel();
         RDFDataMgr.read(manifest, MANIFEST_URL);
+        System.out.println("[startup] Manifest loaded: " + manifest.size() + " triples");
+
+        // Print all distinct namespaces seen in the manifest for debugging
+        manifest.listStatements().forEach(stmt -> {
+            String ns = stmt.getPredicate().getNameSpace();
+            System.out.println("[startup] predicate ns: " + ns + " | local: " + stmt.getPredicate().getLocalName());
+        });
 
         // Manifest schema uses :sourceFile and :loadOrder under ONT_NS
         Property orderProp  = manifest.createProperty(ONT_NS + "loadOrder");
         Property sourceProp = manifest.createProperty(ONT_NS + "sourceFile");
+        System.out.println("[startup] Looking for orderProp: " + orderProp);
 
         // Find all partitions that have a loadOrder
         List<Resource> partitions = manifest
             .listSubjectsWithProperty(orderProp).toList();
+        System.out.println("[startup] Found " + partitions.size() + " partitions");
 
         if (partitions.isEmpty()) {
             System.err.println("[startup] WARNING: No partitions found in manifest. " +
