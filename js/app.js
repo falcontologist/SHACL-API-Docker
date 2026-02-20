@@ -227,9 +227,7 @@ async function runInference() {
   setButtonState(btn, "Running...", true);
 
   try {
-    const turtle = ttlArea.value.startsWith('@prefix') 
-      ? ttlArea.value 
-      : PREFIXES + ttlArea.value;
+    const turtle = PREFIXES + ttlArea.value.replace(PREFIXES, '').trimStart();
     const response = await fetch(`${CONFIG.API_BASE_URL}/infer`, {
       method: "POST",
       headers: { "Content-Type": "text/plain" },
@@ -270,9 +268,7 @@ async function validateGraph() {
   setButtonState(btn, "Checking...", true);
   
   try {
-    const turtle = ttlArea.value.startsWith('@prefix') 
-      ? ttlArea.value 
-      : PREFIXES + ttlArea.value;
+    const turtle = PREFIXES + ttlArea.value.replace(PREFIXES, '').trimStart();
     const response = await fetch(`${CONFIG.API_BASE_URL}/infer`, {
       method: "POST",
       headers: { "Content-Type": "text/plain" },
