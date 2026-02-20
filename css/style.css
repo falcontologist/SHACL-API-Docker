@@ -305,10 +305,10 @@ button:disabled {
   display: block;
 }
 
-/* The 3-button aligned grid */
+/* The 4-button aligned grid */
 .action-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-bottom: 10px;
   width: 100%;
@@ -346,10 +346,16 @@ button:disabled {
   color: #ffffff; 
 }
 
+.btn-save {
+  background: #0f766e;
+  color: #ffffff;
+}
+
 .btn-primary:hover, 
 .btn-success:hover, 
 .btn-validate:hover, 
-.btn-infer:hover {
+.btn-infer:hover,
+.btn-save:hover {
   filter: brightness(1.1);
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
@@ -358,7 +364,8 @@ button:disabled {
 .btn-primary:active,
 .btn-success:active,
 .btn-validate:active,
-.btn-infer:active {
+.btn-infer:active,
+.btn-save:active {
   transform: translateY(0);
 }
 

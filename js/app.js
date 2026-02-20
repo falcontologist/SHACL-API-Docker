@@ -3,7 +3,7 @@
 // ============================================
 const CONFIG = {
   API_BASE_URL: "https://shacl-api-docker.onrender.com/api",
-  TEMP_NS: "http://example.org/temp/",
+  TEMP_NS: "https://falcontologist.github.io/shacl-demo/temp/",
   COLORS: {
     class: "#10b981",
     instance: "#f59e0b",
@@ -21,7 +21,7 @@ const CONFIG = {
   }
 };
 
-const PREFIXES = `@prefix :    <http://example.org/ontology/> .
+const PREFIXES = `@prefix :    <https://falcontologist.github.io/shacl-demo/ontology/> .
 @prefix temp: <${CONFIG.TEMP_NS}> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -123,6 +123,8 @@ function setupEventListeners() {
   if (cancelBtn) cancelBtn.addEventListener('click', resetUI);
   if (downloadBtn) downloadBtn.addEventListener('click', downloadTTL);
   if (newGraphBtn) newGraphBtn.addEventListener('click', handleNewGraph);
+  const saveBtn = getElement('saveBtn');
+  if (saveBtn) saveBtn.addEventListener('click', saveToGraph);
 }
 
 function setupTTLArea() {
@@ -861,6 +863,13 @@ function renderGraph(nodes, links) {
     });
   });
 
+  // Enable Save button if there is meaningful content
+  const saveBtn = getElement('saveBtn');
+  if (saveBtn) {
+    const hasMeaningfulContent = (getElement('ttlInput')?.value || '').replace(PREFIXES, '').trim().length > 0;
+    saveBtn.disabled = !hasMeaningfulContent;
+  }
+
   State.simulation.force("link").links(links);
   State.simulation.alpha(1).restart();
   
@@ -1060,3 +1069,43 @@ function handleDownloadTemplate() {
 // START APPLICATION
 // ============================================
 checkDependencies();
+
+// ============================================
+// SAVE TO GRAPH DB
+// ============================================
+async function saveToGraph() {
+  const btn = getElement('saveBtn');
+  const ttlArea = getElement('ttlInput');
+
+  if (!btn || !ttlArea) return;
+
+  const turtle = ttlArea.value;
+  const hasMeaningfulContent = turtle.replace(PREFIXES, '').trim().length > 0;
+  if (!hasMeaningfulContent) return;
+
+  const originalText = btn.textContent;
+  setButtonState(btn, '⏳ Saving…', true);
+
+  try {
+    const res = await fetch(`${CONFIG.API_BASE_URL}/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: turtle
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      setButtonState(btn, `✅ Saved (${data.tripleCount} triples)`, false);
+      setTimeout(() => setButtonState(btn, originalText, false), 3000);
+    } else {
+      const msg = await res.text();
+      console.error('Save error:', msg);
+      setButtonState(btn, '❌ Save failed', false);
+      setTimeout(() => setButtonState(btn, originalText, false), 3000);
+    }
+  } catch (err) {
+    console.error('Save network error:', err);
+    setButtonState(btn, '❌ Network error', false);
+    setTimeout(() => setButtonState(btn, originalText, false), 3000);
+  }
+}
