@@ -538,7 +538,6 @@
 
 <div class="split-view">
 
-    <!-- Left panel -->
     <div class="left-panel">
 
         <div class="status-dashboard">
@@ -593,7 +592,6 @@
 
     </div>
 
-    <!-- Right panel: D3 graph -->
     <div class="right-panel">
         <div id="graph-container"></div>
         <div class="empty-graph" id="emptyGraph">Results will appear here as a graph</div>
@@ -678,26 +676,34 @@ function clearAll() {
 
 // ── Connection ────────────────────────────────────────────────────────────────
 async function checkConnection() {
-
     try {
-        const r = await fetch(`${SPARQL_ENDPOINT}?query=${encodeURIComponent('ASK { }')}&format=json`);
+        const url = `${SPARQL_ENDPOINT}?query=${encodeURIComponent('ASK { }')}`;
+        const r = await fetch(url, {
+            method: 'GET',
+            headers: { 'Accept': 'application/sparql-results+json' }
+        });
         if (r.ok) {
             document.getElementById('statusDot').classList.add('online');
             document.getElementById('statusText').textContent = 'Connected';
         } else throw new Error();
-    } catch { document.getElementById('statusText').textContent = 'Offline'; }
+    } catch { 
+        document.getElementById('statusText').textContent = 'Offline'; 
+    }
 }
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
 async function loadStats() {
-
     const queries = {
         countInstances: `SELECT (COUNT(DISTINCT ?s) AS ?n) WHERE { GRAPH <${GRAPH_URI}> { ?s a ?t . FILTER(STRSTARTS(STR(?s), "${TEMP_NS}s")) } }`,
         countTriples:   `SELECT (COUNT(*) AS ?n) WHERE { GRAPH <${GRAPH_URI}> { ?s ?p ?o } }`
     };
     for (const [id, q] of Object.entries(queries)) {
         try {
-            const r = await fetch(`${SPARQL_ENDPOINT}?query=${encodeURIComponent(q)}&format=json`);
+            const url = `${SPARQL_ENDPOINT}?query=${encodeURIComponent(q)}`;
+            const r = await fetch(url, {
+                method: 'GET',
+                headers: { 'Accept': 'application/sparql-results+json' }
+            });
             const data = await r.json();
             document.getElementById(id).textContent = data.results.bindings[0]?.n?.value ?? '—';
         } catch {}
@@ -729,9 +735,14 @@ async function runQuery() {
 
     const t0 = performance.now();
     try {
-        const r = await fetch(`${SPARQL_ENDPOINT}?query=${encodeURIComponent(query)}&format=json`);
-        if (!r.ok) throw new Error(await r.text());
+        const url = `${API_BASE_URL}/sparql?query=${encodeURIComponent(query)}`;
+        const r = await fetch(url, {
+            method: 'GET',
+            headers: { 'Accept': 'application/sparql-results+json' }
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
         const data = await r.json();
+        lastResults = data.results.bindings;
         const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
         renderResults(data, elapsed);
         renderGraph(data);
