@@ -865,3 +865,11 @@ textarea::-webkit-scrollbar-thumb {
 textarea::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
+.project-summary-mini a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.project-summary-mini a:hover {
+  color: var(--accent);
+}
