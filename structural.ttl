@@ -1995,37 +1995,35 @@ WHERE {
 
 :Measurement_shape a :Situation_shape, sh:NodeShape ;
     rdfs:label "Measurement (shape)"@en ;
-    sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
-    sh:property [ sh:name "attribute"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :attribute ] ;
-    sh:property [ sh:name "container"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :container ] ;
-    sh:property [ sh:name "evaluator"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :evaluator ] ;
     sh:property [ sh:name "item"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :item ] ;
-    sh:property [ sh:name "multiplier"@en ; sh:path :multiplier ] ;
-    sh:property [ sh:name "unit"@en ; sh:path :unit ] ;
-    sh:property [ sh:name "value"@en ; sh:path :value ]  ;
+    sh:property [ sh:name "value"@en ; sh:nodeKind sh:Literal ; sh:path :value ] ;
+    sh:property [ sh:name "multiplier"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :multiplier ] ;
+    sh:property [ sh:name "unit"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :unit ] ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
-        
-        CONSTRUCT {
-            ?item ?opaqueProperty ?value .
-        }
-        WHERE {
-            ?this a :Measurement ;
-                  :lemma ?lemma ;
-                  :synset ?synset ;
-                  :item ?item ;
-                  :value ?value .
-            
-            # Look up the proper 3ps inflection from the lemma node
-            ?lemmaNode :lemma ?lemma ;
-                       :present3sg ?verbForm .
-            
-            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
-            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
-        }
+            PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            CONSTRUCT {
+                ?item :costs ?quantity .
+            }
+            WHERE {
+                $this :item ?item .
+                $this :value ?val .
+                $this :unit ?uNode .
+                ?uNode rdfs:label ?uLabel .
+                
+                # Optional multiplier handling
+                OPTIONAL { 
+                    $this :multiplier ?mNode .
+                    ?mNode rdfs:label ?mLabel .
+                }
+                
+                # Concatenate the literal: e.g., "32" + " Billion" + " USD"
+                BIND(IF(BOUND(?mLabel), CONCAT(STR(?val), " ", STR(?mLabel), " ", STR(?uLabel)), CONCAT(STR(?val), " ", STR(?uLabel))) AS ?quantity)
+            }
         """ ;
-            sh:order 2 ] ;
+            sh:order 1 ;
+            sh:prefixes :Ontology_Prefixes ] ;
     sh:targetClass :Measurement .
 
 :Membership_shape a :Situation_shape, sh:NodeShape ;
