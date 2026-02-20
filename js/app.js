@@ -2,10 +2,12 @@
 // CONFIGURATION & CONSTANTS
 // ============================================
 const CONFIG = {
-  API_BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? "http://localhost:8080/api"
-  : "https://shacl-api-docker.onrender.com/api",
-  TEMP_NS: "https://falcontologist.github.io/shacl-demo/temp/",
+  API_BASE_URL: (window.location.hostname === 'localhost' || 
+                window.location.hostname === '127.0.0.1' ||
+                window.location.hostname === '')
+    ? "http://localhost:8080/api"
+    : "https://shacl-api-docker.onrender.com/api",
+    TEMP_NS: "https://falcontologist.github.io/shacl-demo/temp/",
   COLORS: {
     class: "#10b981",
     instance: "#f59e0b",
