@@ -132,6 +132,10 @@ function setupTTLArea() {
   if (ttlInput) {
     ttlInput.value = PREFIXES;
     ttlInput.addEventListener('input', debounce(updateGraph, 300));
+    ttlInput.addEventListener('input', () => {
+      const saveBtn = getElement('saveBtn');
+      if (saveBtn) saveBtn.disabled = ttlInput.value.replace(/^@prefix[^\n]*\n/gm, '').trim().length === 0;
+    });
   }
 }
 
@@ -868,7 +872,7 @@ function renderGraph(nodes, links) {
   // Enable Save button if there is meaningful content
   const saveBtn = getElement('saveBtn');
   if (saveBtn) {
-    const hasMeaningfulContent = (getElement('ttlInput')?.value || '').replace(PREFIXES, '').trim().length > 0;
+    const hasMeaningfulContent = (getElement('ttlInput')?.value || '').replace(/^@prefix[^\n]*\n/gm, '').trim().length > 0;
     saveBtn.disabled = !hasMeaningfulContent;
   }
 
@@ -1082,7 +1086,7 @@ async function saveToGraph() {
   if (!btn || !ttlArea) return;
 
   const turtle = ttlArea.value;
-  const hasMeaningfulContent = turtle.replace(PREFIXES, '').trim().length > 0;
+  const hasMeaningfulContent = (getElement('ttlInput')?.value || '').replace(/^@prefix[^\n]*\n/gm, '').trim().length > 0;
   if (!hasMeaningfulContent) return;
 
   const originalText = btn.textContent;
