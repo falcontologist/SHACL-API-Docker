@@ -615,13 +615,13 @@
     :semantic_domain :Location ;
     rdfs:subClassOf :Entity .
 
-:Quantity a rdfs:Class ; 
-    rdfs:label "Quantity"@en ;
+:Quantity_Dimension a rdfs:Class ; 
+    rdfs:label "Quantity Dimension"@en ;
     :semantic_domain :Evaluation ;
     rdfs:subClassOf :Entity .
 
-:Quality a rdfs:Class ; 
-    rdfs:label "Quality"@en ;
+:Quality_Dimension a rdfs:Class ; 
+    rdfs:label "Quality Dimension"@en ;
     :semantic_domain :Evaluation ;
     rdfs:subClassOf :Entity .
 

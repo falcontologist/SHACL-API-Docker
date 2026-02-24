@@ -2685,7 +2685,7 @@ WHERE {
 
 ### Entity Shapes ###
 
-:Quantity_shape a :Entity_shape, sh:NodeShape ;
+:Quantity_Dimension_shape a :Entity_shape, sh:NodeShape ;
     rdfs:label "Quantity (shape)"@en ;
     sh:property [
         sh:minCount 1 ;
@@ -2710,9 +2710,9 @@ WHERE {
         sh:nodeKind sh:BlankNodeOrIRI ;
         sh:path :unit
     ] ;
-    sh:targetClass :Quantity .
+    sh:targetClass :Quantity_Dimension .
 
-:Quality_shape a :Entity_shape, sh:NodeShape ;
+:Quality_Dimension_shape a :Entity_shape, sh:NodeShape ;
     rdfs:label "Quality (shape)"@en ;
     sh:property [
         sh:minCount 1 ;
@@ -2733,7 +2733,7 @@ WHERE {
         sh:nodeKind sh:BlankNodeOrIRI ;
         sh:path :item
     ] ;
-    sh:targetClass :Quality .
+    sh:targetClass :Quality_Dimension .
 
 
 ### MISC (12) ###

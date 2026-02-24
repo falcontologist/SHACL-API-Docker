@@ -64956,67 +64956,67 @@
     :gloss "checking whether the server responds to a SPARQL query [17]" ;
     :identifier ":availability.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :availability.n.x.02 a :Synset ;
     rdfs:label ":availability.n.x.02 (synset)" ;
     :gloss "checking whether an RDF dump is provided and can be downloaded [17]" ;
     :identifier ":availability.n.x.02" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :availability.n.x.03 a :Synset ;
     rdfs:label ":availability.n.x.03 (synset)" ;
     :gloss "detection of dereferenceability of URIs by checking: (i) for dead or broken links, i.e. that when an HTTP-GET request is sent, the status code 404 Not Found is not returned; (ii) that useful data (particularly RDF) is returned upon lookup of a URI; (iii) for changes in the URI, i.e. compliance with the recommended way of implementing redirections using the status code 303 See Other [17,29]" ;
     :identifier ":availability.n.x.03" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :availability.n.x.04 a :Synset ;
     rdfs:label ":availability.n.x.04 (synset)" ;
     :gloss "detect whether the HTTP response contains the header field stating the appropriate content type of the returned file, e.g. application/rdf+xml [29]" ;
     :identifier ":availability.n.x.04" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :availability.n.x.05 a :Synset ;
     rdfs:label ":availability.n.x.05 (synset)" ;
     :gloss "dereferenceability of all forward links: all available triples where the local URI is mentioned in the subject (i.e. the description of the resource) [30]" ;
     :identifier ":availability.n.x.05" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :licensing.n.x.01 a :Synset ;
     rdfs:label ":licensing.n.x.01 (synset)" ;
     :gloss "machine-readable indication of a license in the VoID description or in the dataset itself [17,30]" ;
     :identifier ":licensing.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :licensing.n.x.02 a :Synset ;
     rdfs:label ":licensing.n.x.02 (synset)" ;
     :gloss "human-readable indication of a license in the documentation of the dataset [17,30]" ;
     :identifier ":licensing.n.x.02" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :licensing.n.x.03 a :Synset ;
     rdfs:label ":licensing.n.x.03 (synset)" ;
     :gloss "detection of whether the dataset is attributed under the same license as the original [17]" ;
     :identifier ":licensing.n.x.03" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :interlinking.n.x.01 a :Synset ;
     rdfs:label ":interlinking.n.x.01 (synset)" ;
     :gloss "(i) detection of: (a) interlinking degree: how many hubs there are in a network; (b) clustering coefficient: how dense is the network; (c) centrality: indicates the likelihood of a node being on the shortest path between two other nodes; (d) whether there are open sameAs chains in the network; (e) how much value is added to the description of a resource through the use of sameAs edges [24]; (ii) via crowdsourcing [1,65]" ;
     :identifier ":interlinking.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :interlinking.n.x.02 a :Synset ;
     rdfs:label ":interlinking.n.x.02 (synset)" ;
     :gloss "detection of the existence and usage of external URIs (e.g. using owl:sameAs links) [29,30]" ;
     :identifier ":interlinking.n.x.02" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :interlinking.n.x.03 a :Synset ;
     rdfs:label ":interlinking.n.x.03 (synset)" ;
     :gloss "detection of all local in-links or back-links: all triples from a dataset that have the resource's URI as the object [30]" ;
     :identifier ":interlinking.n.x.03" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :security.n.01 a :Synset ;
     rdfs:label "security.n.01 (synset)" ;
     :gloss "the state of being free from danger or injury" ;
@@ -65067,7 +65067,7 @@
     :gloss "using digital signatures to sign documents containing an RDF serialization, a SPARQL result set or signing an RDF graph [17]" ;
     :identifier ":security.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :security.n.x.02 a :Synset ;
     rdfs:label ":security.n.x.02 (synset)" ;
     :gloss "verifying authenticity of the dataset based on provenance information such as the author and his contributors, the publisher of the data and its sources (if present in the dataset) [17]" ;
@@ -65104,55 +65104,55 @@
     :gloss "checking for usage of slash-URIs where large amounts of data is provided [17]" ;
     :identifier ":performance.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :performance.n.x.02 a :Synset ;
     rdfs:label ":performance.n.x.02 (synset)" ;
     :gloss "low latency: (minimum) delay between submission of a request by the user and reception of the response from the system [17]" ;
     :identifier ":performance.n.x.02" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :performance.n.x.03 a :Synset ;
     rdfs:label ":performance.n.x.03 (synset)" ;
     :gloss "high throughput: (maximum) number of answered HTTP-requests per second [17]" ;
     :identifier ":performance.n.x.03" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :performance.n.x.04 a :Synset ;
     rdfs:label ":performance.n.x.04 (synset)" ;
     :gloss "scalability: detection of whether the time to answer an amount of ten requests divided by ten is not longer than the time it takes to answer one request [17]" ;
     :identifier ":performance.n.x.04" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :syntactic_validity.n.x.01 a :Synset ;
     rdfs:label ":syntactic_validity.n.x.01 (synset)" ;
     :gloss "detecting syntax errors using (i) validators [17,29], (ii) via crowdsourcing [1,65]" ;
     :identifier ":syntactic_validity.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :syntactic_validity.n.x.02 a :Synset ;
     rdfs:label ":syntactic_validity.n.x.02 (synset)" ;
     :gloss "detecting use of: (i) explicit definition of the allowed values for a certain datatype [18]; (ii) syntactic rules (type of characters allowed and/or the pattern of literal values) [18]; (iii) detecting whether the data conforms to the specific RDF pattern and that the “types” are defined for specific resources [36]; (iv) use of different outlier techniques and clustering for detecting wrong values [64]" ;
     :identifier ":syntactic_validity.n.x.02" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :syntactic_validity.n.x.03 a :Synset ;
     rdfs:label ":syntactic_validity.n.x.03 (synset)" ;
     :gloss "detection of ill-typed literals, which do not abide by the lexical syntax for their respective datatype that can occur if a value is (i) malformed, (ii) is a member of an incompatible datatype [16,29]" ;
     :identifier ":syntactic_validity.n.x.03" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :semantic_accuracy.n.x.01 a :Synset ;
     rdfs:label ":semantic_accuracy.n.x.01 (synset)" ;
     :gloss "detection of outliers by (i) using distance-based, deviation-based and distribution-based methods [7,16], (ii) using the statistical distributions of a certain type to assess the statement's correctness [50]" ;
     :identifier ":semantic_accuracy.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :semantic_accuracy.n.x.02 a :Synset ;
     rdfs:label ":semantic_accuracy.n.x.02 (synset)" ;
     :gloss "detection of inaccurate values by (i) using functional dependencies between the values of two or more different properties [18], (ii) comparison between two literal values of a resource [36], (iii) via crowdsourcing [1,65]" ;
     :identifier ":semantic_accuracy.n.x.02" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :semantic_accuracy.n.x.03 a :Synset ;
     rdfs:label ":semantic_accuracy.n.x.03 (synset)" ;
     :gloss "detection of inaccurate annotations, labellings or classifications using the formula: 1 - (inaccurate instances / total no. of instances) [41]" ;
@@ -65164,13 +65164,13 @@
     :gloss "detection of misuse of properties by using profiling statistics, which support the detection of discordant values or misused properties and facilitate to find valid values for specific properties [9]" ;
     :identifier ":semantic_accuracy.n.x.04" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :semantic_accuracy.n.x.05 a :Synset ;
     rdfs:label ":semantic_accuracy.n.x.05 (synset)" ;
     :gloss "ratio of the number of semantically valid rules to the number of nontrivial rules [13]" ;
     :identifier ":semantic_accuracy.n.x.05" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :consistency.n.01 a :Synset ;
     rdfs:label "consistency.n.01 (synset)" ;
     :gloss "the property of holding together and retaining its shape" ;
@@ -65196,61 +65196,61 @@
     :gloss "detection of use of entities as members of disjoint classes using the formula: no. of entities described as members of disjoint classes / total no. of entities described in the dataset [17,29,36]" ;
     :identifier ":consistency.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :consistency.n.x.02 a :Synset ;
     rdfs:label ":consistency.n.x.02 (synset)" ;
     :gloss "detection of misplaced classes or properties using entailment rules that indicate the position of a term in a triple [16,29]" ;
     :identifier ":consistency.n.x.02" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :consistency.n.x.03 a :Synset ;
     rdfs:label ":consistency.n.x.03 (synset)" ;
     :gloss "detection of misuse of owl:DatatypeProperty or owl:ObjectProperty through the ontology maintainer [29]" ;
     :identifier ":consistency.n.x.03" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :consistency.n.x.04 a :Synset ;
     rdfs:label ":consistency.n.x.04 (synset)" ;
     :gloss "detection of use of members of owl:DeprecatedClass or owl:DeprecatedProperty through the ontology maintainer or by specifying manual mappings from deprecated terms to compatible terms [16,29]" ;
     :identifier ":consistency.n.x.04" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :consistency.n.x.05 a :Synset ;
     rdfs:label ":consistency.n.x.05 (synset)" ;
     :gloss "detection of bogus owl:InverseFunctionalProperty values (i) by checking the uniqueness and validity of the inverse-functional values [29], (ii) by defining a SPARQL query as a constraint [36]" ;
     :identifier ":consistency.n.x.05" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :consistency.n.x.06 a :Synset ;
     rdfs:label ":consistency.n.x.06 (synset)" ;
     :gloss "detection of the re-definition by third parties of external classes/properties (ontology hijacking) such that reasoning over data using those external terms is not affected [29]" ;
     :identifier ":consistency.n.x.06" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :consistency.n.x.07 a :Synset ;
     rdfs:label ":consistency.n.x.07 (synset)" ;
     :gloss "detection of negative dependencies/correlation among properties using association rules [9]" ;
     :identifier ":consistency.n.x.07" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :consistency.n.x.08 a :Synset ;
     rdfs:label ":consistency.n.x.08 (synset)" ;
     :gloss "detection of inconsistencies in spatial data through semantic and geometric constraints [48]" ;
     :identifier ":consistency.n.x.08" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :consistency.n.x.09 a :Synset ;
     rdfs:label ":consistency.n.x.09 (synset)" ;
     :gloss "the attribution of a resource's property (with a certain value) is only valid if the resource (domain), value (range) or literal value (rdfs ranged) is of a certain type - detected by use of SPARQL queries as a constraint [36]" ;
     :identifier ":consistency.n.x.09" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :consistency.n.x.10 a :Synset ;
     rdfs:label ":consistency.n.x.10 (synset)" ;
     :gloss "detection of inconsistent values by the generation of a particular set of schema axioms for all properties in a dataset and the manual verification of these axioms [65]" ;
     :identifier ":consistency.n.x.10" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :conciseness.n.01 a :Synset ;
     rdfs:label "conciseness.n.01 (synset)" ;
     :gloss "terseness and economy in writing and speaking achieved by expressing a great deal in just a few words" ;
@@ -65261,13 +65261,13 @@
     :gloss "intensional conciseness measured by no. of unique properties/classes of a dataset [45]" ;
     :identifier ":conciseness.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :conciseness.n.x.02 a :Synset ;
     rdfs:label ":conciseness.n.x.02 (synset)" ;
     :gloss "extensional conciseness measured by: total number of objects representations in the dataset / total no. of instances that violate the uniqueness rule [18,36,41]" ;
     :identifier ":conciseness.n.x.02" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :conciseness.n.x.03 a :Synset ;
     rdfs:label ":conciseness.n.x.03 (synset)" ;
     :gloss "usage of unambiguous annotations/labels using the formula: 1 - (no. of ambiguous instances / no. of instances contained in the semantic metadata set) [41,53]" ;
@@ -65289,25 +65289,25 @@
     :gloss "schema completeness: no. of classes and properties represented / total no. of classes and properties [18,45]" ;
     :identifier ":completeness.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :completeness.n.x.02 a :Synset ;
     rdfs:label ":completeness.n.x.02 (synset)" ;
     :gloss "property completeness: (i) no. of values represented for a specific property / total no. of values for a specific property [16,18]; (ii) exploiting statistical distributions of properties and types to characterize the property and then detect completeness [50]" ;
     :identifier ":completeness.n.x.02" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :completeness.n.x.03 a :Synset ;
     rdfs:label ":completeness.n.x.03 (synset)" ;
     :gloss "population completeness: no. of real-world objects are represented / total no. of real-world objects [16,18,45]" ;
     :identifier ":completeness.n.x.03" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :completeness.n.x.04 a :Synset ;
     rdfs:label ":completeness.n.x.04 (synset)" ;
     :gloss "interlinking completeness: (i) no. of instances in the dataset that are interlinked / total no. of instances in a dataset [24,53]; (ii) calculating percentage of mappable types in a datasets that have not yet been considered in the linksets when assuming an alignment among types [2]" ;
     :identifier ":completeness.n.x.04" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :relevance.n.01 a :Synset ;
     rdfs:label "relevance.n.01 (synset)" ;
     :gloss "the relation of something to the matter at hand" ;
@@ -65318,13 +65318,13 @@
     :gloss "obtaining relevant data by: (i) ranking (a numerical value similar to PageRank), which determines the centrality of RDF documents and statements [10]), (ii) via crowdsourcing [1,65]" ;
     :identifier ":relevancy.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :relevancy.n.x.02 a :Synset ;
     rdfs:label ":relevancy.n.x.02 (synset)" ;
     :gloss "measuring the coverage (i.e. number of entities described in a dataset) and level of detail (i.e. number of properties) in a dataset to ensure that the data retrieved is appropriate for the task at hand [17]" ;
     :identifier ":relevancy.n.x.02" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :trustworthiness.n.01 a :Synset ;
     rdfs:label "trustworthiness.n.01 (synset)" ;
     :gloss "the trait of deserving trust and confidence" ;
@@ -65335,31 +65335,31 @@
     :gloss "computing statement trust values based on: (i) provenance information which can be either unknown or a value in the interval [-1,1] where 1: absolute belief, -1: absolute disbelief and 0: lack of belief/disbelief [16,26]; (ii) opinion-based method, which use trust annotations made by several individuals [21,26]; (iii) provenance information and trust annotations in Semantic Web-based social-networks [22]; (iv) annotating triples with provenance data and usage of provenance history to evaluate the trustworthiness of facts [14]" ;
     :identifier ":trustworthiness.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :trustworthiness.n.x.02 a :Synset ;
     rdfs:label ":trustworthiness.n.x.02 (synset)" ;
     :gloss "using annotations for data to encode two facets of information [10]: (i) blacklists (indicates that the referent data is known to be harmful); (ii) authority (a boolean value which uses the Linked Data principles to conservatively determine whether or not information can be trusted)" ;
     :identifier ":trustworthiness.n.x.02" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :trustworthiness.n.x.03 a :Synset ;
     rdfs:label ":trustworthiness.n.x.03 (synset)" ;
     :gloss "using trust ontologies that assigns trust values that can be transferred from known to unknown data using: (i) content-based methods (from content or rules); (ii) metadata-based methods (based on reputation assignments, user ratings, and provenance, rather than the content itself) [31]" ;
     :identifier ":trustworthiness.n.x.03" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :trustworthiness.n.x.04 a :Synset ;
     rdfs:label ":trustworthiness.n.x.04 (synset)" ;
     :gloss "computing trust values between two entities through a path by using: (i) a propagation algorithm based on statistical techniques; (ii) in case there are several paths, trust values from all paths are aggregated based on a weighting mechanism [59]" ;
     :identifier ":trustworthiness.n.x.04" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :trustworthiness.n.x.05 a :Synset ;
     rdfs:label ":trustworthiness.n.x.05 (synset)" ;
     :gloss "computing trustworthiness of the information provider by: (i) construction of decision networks informed by provenance graphs [19]; (ii) checking whether the provider/contributor is contained in a list of trusted providers [7]; (iii) indicating the level of trust for the publisher on a scale of 1-9 [20,23]" ;
     :identifier ":trustworthiness.n.x.05" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :trustworthiness.n.x.06 a :Synset ;
     rdfs:label ":trustworthiness.n.x.06 (synset)" ;
     :gloss "checking content trust based on associations (e.g. anything having a relationship to a resource such as author of the dataset) that transfer trust from content to resources [20]" ;
@@ -65382,31 +65382,31 @@
     :gloss "detection of human-readable labelling of classes, properties and entities as well as indication of metadata (e.g. name, description, website) of a dataset [16,17,30]" ;
     :identifier ":understandability.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :understandability.n.x.02 a :Synset ;
     rdfs:label ":understandability.n.x.02 (synset)" ;
     :gloss "detect whether the pattern of the URIs is provided [17]" ;
     :identifier ":understandability.n.x.02" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :understandability.n.x.03 a :Synset ;
     rdfs:label ":understandability.n.x.03 (synset)" ;
     :gloss "detect whether a regular expression that matches the URIs is present [17]" ;
     :identifier ":understandability.n.x.03" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :understandability.n.x.04 a :Synset ;
     rdfs:label ":understandability.n.x.04 (synset)" ;
     :gloss "detect whether examples of SPARQL queries are provided [17]" ;
     :identifier ":understandability.n.x.04" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :understandability.n.x.05 a :Synset ;
     rdfs:label ":understandability.n.x.05 (synset)" ;
     :gloss "checking whether a list of vocabularies used in the dataset is provided [17]" ;
     :identifier ":understandability.n.x.05" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :understandability.n.x.06 a :Synset ;
     rdfs:label ":understandability.n.x.06 (synset)" ;
     :gloss "checking the effectiveness and the efficiency of the usage of the mailing list and/or the message boards [17]" ;
@@ -65428,25 +65428,25 @@
     :gloss "detecting freshness of datasets based on currency and volatility using the formula: max{0, 1 - currency/volatility} [27], where currency is the age of the data when delivered to the user [16,45,56] and volatility is the length of time the data remains valid [18]" ;
     :identifier ":timeliness.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :timeliness.n.x.02 a :Synset ;
     rdfs:label ":timeliness.n.x.02 (synset)" ;
     :gloss "detecting freshness of datasets based on their data source by measuring the distance between the last modified time of the data source and last modified time of the dataset [18]" ;
     :identifier ":timeliness.n.x.02" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :representational_conciseness.n.x.01 a :Synset ;
     rdfs:label ":representational_conciseness.n.x.01 (synset)" ;
     :gloss "detection of long URIs or those that contain query parameters [16,30]" ;
     :identifier ":representational_conciseness.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :representational_conciseness.n.x.02 a :Synset ;
     rdfs:label ":representational_conciseness.n.x.02 (synset)" ;
     :gloss "detection of RDF primitives i.e. RDF reification, RDF containers and RDF collections [16,30]" ;
     :identifier ":representational_conciseness.n.x.02" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :interoperability.n.01 a :Synset ;
     rdfs:label "interoperability.n.01 (synset)" ;
     :gloss "(computer science) the ability to exchange and use information (usually in a large heterogeneous network made up of several local area networks)" ;
@@ -65469,7 +65469,7 @@
     :gloss "identifying objects and terms used to define these objects with globally unique identifiers [16]" ;
     :identifier ":interpretability.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :interpretability.n.x.02 a :Synset ;
     rdfs:label ":interpretability.n.x.02 (synset)" ;
     :gloss "detecting the use of appropriate language, symbols, units, datatypes and clear definitions [17]" ;
@@ -65481,13 +65481,13 @@
     :gloss "detection of invalid usage of undefined classes and properties (i.e. those without any formal definition) [29]" ;
     :identifier ":interpretability.n.x.03" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :interpretability.n.x.04 a :Synset ;
     rdfs:label ":interpretability.n.x.04 (synset)" ;
     :gloss "detecting the use of blank nodes [30]" ;
     :identifier ":interpretability.n.x.04" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :versatility.n.01 a :Synset ;
     rdfs:label "versatility.n.01 (synset)" ;
     :gloss "having a wide variety of skills" ;
@@ -65498,11 +65498,11 @@
     :gloss "checking whether data is available in different serialization formats [17]" ;
     :identifier ":versatility.n.x.01" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 :versatility.n.x.02 a :Synset ;
     rdfs:label ":versatility.n.x.02 (synset)" ;
     :gloss "checking whether data is available in different languages [17]" ;
     :identifier ":versatility.n.x.02" ;
     :lexical_resource <https://doi.org/10.3233/SW-150175> ;
-    :evokes :Quality_shape .
+    :evokes :Quantity_shape .
 
