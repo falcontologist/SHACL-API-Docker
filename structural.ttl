@@ -2683,6 +2683,59 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
     sh:targetClass :Weather .
 
+### Entity Shapes ###
+
+:Quantity_shape a :Entity_shape, sh:NodeShape ;
+    rdfs:label "Quantity (shape)"@en ;
+    sh:property [
+        sh:minCount 1 ;
+        sh:name "value"@en ;
+        sh:nodeKind sh:Literal ;
+        sh:path :value
+    ] , [
+        sh:name "multiplier"@en ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:path :multiplier
+    ] , [
+        sh:name "item"@en ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:path :item
+    ] , [
+        sh:minCount 1 ;
+        sh:name "dimension"@en ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:path :dimension
+    ] , [
+        sh:name "unit"@en ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:path :unit
+    ] ;
+    sh:targetClass :Quantity .
+
+:Quality_shape a :Entity_shape, sh:NodeShape ;
+    rdfs:label "Quality (shape)"@en ;
+    sh:property [
+        sh:minCount 1 ;
+        sh:name "value"@en ;
+        sh:nodeKind sh:Literal ;
+        sh:path :value
+    ] , [
+        sh:minCount 1 ;
+        sh:name "degree"@en ;
+        sh:nodeKind sh:Literal ;
+        sh:path :degree
+    ] , [
+        sh:name "dimension"@en ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:path :attribute
+    ] , [
+        sh:name "item"@en ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:path :item
+    ] ;
+    sh:targetClass :Quality .
+
+
 ### MISC (12) ###
 
 :Acquisition_Inference_Rule a sh:NodeShape ;
