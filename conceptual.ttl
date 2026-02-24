@@ -6,7 +6,7 @@
 ### CONCEPTUAL PARTITION ###
 ### Classes, Properties, Semantic Domains ###
 
-### CLASSES (111) ###
+### SITUATION CLASSES (111) ###
 
 :Absorb a rdfs:Class ;
     rdfs:label "Absorb"@en ;
@@ -596,6 +596,39 @@
     :aspect :Proto_Change ;
     :realm :Mental ;
     rdfs:subClassOf :Situation .
+
+
+### ENTITY CLASSES ###
+
+:Group a rdfs:Class ; 
+    rdfs:label "Group"@en ;
+    :semantic_domain :Group ;
+    rdfs:subClassOf :Entity .
+
+:Person a rdfs:Class ; 
+    rdfs:label "Person"@en ;
+    :semantic_domain :Person ;
+    rdfs:subClassOf :Entity .
+
+:Location a rdfs:Class ; 
+    rdfs:label "Place"@en ;
+    :semantic_domain :Location ;
+    rdfs:subClassOf :Entity .
+
+:Quantity a rdfs:Class ; 
+    rdfs:label "Quantity"@en ;
+    :semantic_domain :Evaluation ;
+    rdfs:subClassOf :Entity .
+
+:Quality a rdfs:Class ; 
+    rdfs:label "Quality"@en ;
+    :semantic_domain :Evaluation ;
+    rdfs:subClassOf :Entity .
+
+:Time a rdfs:Class ; 
+    rdfs:label "Time"@en ;
+    :semantic_domain :Time ;
+    rdfs:subClassOf :Entity .
 
 ### ROOT AND STRUCTURAL PROPERTIES ###
 
