@@ -237,6 +237,11 @@
     :semantic_domain :Creation ;
     rdfs:subClassOf :Situation .
 
+:Employment a rdfs:Class ;
+    rdfs:label "Employment"@en ;
+    :semantic_domain :Affiliation ;
+    rdfs:subClassOf :Affiliation .
+
 :Enforcement a rdfs:Class ;
     rdfs:label "Enforcement"@en ;
     :semantic_domain :Control ;
@@ -1950,5 +1955,37 @@
     rdfs:domain :Affiliation ;
 
     rdfs:subPropertyOf :role .
+
+# new roles added for Employment
+
+:employer a rdf:Property ;
+    rdfs:label "employer"@en ;
+    rdfs:domain :Employment ;
+    rdfs:subPropertyOf :affiliator .
+
+:employee a rdf:Property ;
+    rdfs:label "employee"@en ;
+    rdfs:domain :Employment ;
+    rdfs:subPropertyOf :participant .
+
+:industry a rdf:Property ;
+    rdfs:label "industry"@en ;
+    rdfs:domain :Employment ;
+    rdfs:subPropertyOf :institution .
+
+:occupation a rdf:Property ;
+    rdfs:label "occupation"@en ;
+    rdfs:domain :Employment ;
+    rdfs:subPropertyOf :role .
+
+:start a rdf:Property ;
+    rdfs:label "start"@en ;
+    rdfs:domain :Employment ;
+    rdfs:subPropertyOf :time .
+
+:end a rdf:Property ;
+    rdfs:label "end"@en ;
+    rdfs:domain :Employment ;
+    rdfs:subPropertyOf :time .
 
 
