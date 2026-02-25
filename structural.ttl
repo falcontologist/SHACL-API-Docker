@@ -727,6 +727,38 @@ WHERE {
             sh:order 2 ] ;
     sh:targetClass :Causative_Incremental .
 
+:CauseEmployment_shape a :Situation_shape, sh:NodeShape ;
+    rdfs:label "Cause Employment (shape)"@en ;
+    sh:property [ sh:name "employer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :employer ] ;
+    sh:property [ sh:name "employee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :employee ] ;
+    sh:property [ sh:name "industry"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :industry ] ;
+    sh:property [ sh:name "occupation"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :occupation ] ;
+    sh:property [ sh:name "start"@en ; sh:nodeKind sh:Literal ; sh:path :start ; sh:datatype xsd:date ] ;
+    sh:property [ sh:name "end"@en ; sh:nodeKind sh:Literal ; sh:path :end ; sh:datatype xsd:date ] ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
+        
+        CONSTRUCT {
+            ?employer ?opaqueProperty ?employee .
+        }
+        WHERE {
+            ?this a :CauseEmployment ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :employer ?employer ;
+                  :employee ?employee .
+            
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+            
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 2 ] ;
+    sh:targetClass :CauseEmployment .
+
 :Cause_Membership_shape a :Situation_shape, sh:NodeShape ;
     rdfs:label "Cause Membership (shape)"@en ;
     sh:property [ sh:name "affectee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :affectee ] ;
@@ -1278,23 +1310,22 @@ WHERE {
     sh:property [ sh:name "employee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :employee ] ;
     sh:property [ sh:name "industry"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :industry ] ;
     sh:property [ sh:name "occupation"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :occupation ] ;
-    sh:property [ sh:name "start"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :start ] ;
-    sh:property [ sh:name "end"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :end ] ;
+    sh:property [ sh:name "start"@en ; sh:nodeKind sh:Literal ; sh:path :start ; sh:datatype xsd:date ] ;
+    sh:property [ sh:name "end"@en ; sh:nodeKind sh:Literal ; sh:path :end ; sh:datatype xsd:date ] ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
         PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
-            ?employer ?opaqueProperty ?employee .
+            ?employee ?opaqueProperty ?employer .
         }
         WHERE {
             ?this a :Employment ;
                   :lemma ?lemma ;
                   :synset ?synset ;
-                  :employer ?employer ;
-                  :employee ?employee .
+                  :employee ?employee ;
+                  :employer ?employer .
             
-            # Look up the proper 3ps inflection from the lemma node
             ?lemmaNode :lemma ?lemma ;
                        :present3sg ?verbForm .
             

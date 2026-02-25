@@ -142,6 +142,11 @@
     :semantic_domain :Incremental ;
     rdfs:subClassOf :Situation .
 
+:CauseEmployment a rdfs:Class ;
+    rdfs:label "Cause Employment"@en ;
+    :semantic_domain :Affiliation ;
+    rdfs:subClassOf :Cause_Membership .
+
 :Cause_Membership a rdfs:Class ;
     rdfs:label "Cause Membership"@en ;
     :semantic_domain :Affiliation ;
@@ -240,7 +245,7 @@
 :Employment a rdfs:Class ;
     rdfs:label "Employment"@en ;
     :semantic_domain :Affiliation ;
-    rdfs:subClassOf :Affiliation .
+    rdfs:subClassOf :Membership .
 
 :Enforcement a rdfs:Class ;
     rdfs:label "Enforcement"@en ;
@@ -1956,36 +1961,20 @@
 
     rdfs:subPropertyOf :role .
 
-# new roles added for Employment
+# Employment domain
 
 :employer a rdf:Property ;
     rdfs:label "employer"@en ;
-    rdfs:domain :Employment ;
     rdfs:subPropertyOf :affiliator .
 
 :employee a rdf:Property ;
     rdfs:label "employee"@en ;
-    rdfs:domain :Employment ;
     rdfs:subPropertyOf :participant .
 
 :industry a rdf:Property ;
     rdfs:label "industry"@en ;
-    rdfs:domain :Employment ;
     rdfs:subPropertyOf :institution .
 
 :occupation a rdf:Property ;
     rdfs:label "occupation"@en ;
-    rdfs:domain :Employment ;
     rdfs:subPropertyOf :role .
-
-:start a rdf:Property ;
-    rdfs:label "start"@en ;
-    rdfs:domain :Employment ;
-    rdfs:subPropertyOf :time .
-
-:end a rdf:Property ;
-    rdfs:label "end"@en ;
-    rdfs:domain :Employment ;
-    rdfs:subPropertyOf :time .
-
-
