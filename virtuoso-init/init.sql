@@ -9,9 +9,10 @@
 DB.DBA.USER_CREATE ('sparql_writer', 'writer_secret');
 
 -- 2. Load ontology partitions into the type graph via SPARQL 1.1 LOAD
-SPARQL LOAD <https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/main/conceptual.ttl> INTO <http://shacl-demo.org/type>;
-SPARQL LOAD <https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/main/structural.ttl> INTO <http://shacl-demo.org/type>;
-SPARQL LOAD <https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/main/lexical.ttl> INTO <http://shacl-demo.org/type>;
+--    Load order respects dependencies: conceptual → structural → lexical
+SPARQL LOAD <https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/refs/heads/main/conceptual.ttl> INTO <http://shacl-demo.org/type>;
+SPARQL LOAD <https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/refs/heads/main/structural.ttl> INTO <http://shacl-demo.org/type>;
+SPARQL LOAD <https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/refs/heads/main/lexical.ttl> INTO <http://shacl-demo.org/type>;
 
 -- 3. Set permissions
 --    15 = read + write + list + sponge
@@ -23,6 +24,14 @@ DB.DBA.RDF_DEFAULT_USER_PERMS_SET ('nobody', 1);
 DB.DBA.RDF_GRAPH_USER_PERMS_SET ('http://shacl-demo.org/type',  'nobody', 1);
 DB.DBA.RDF_GRAPH_USER_PERMS_SET ('http://shacl-demo.org/token', 'nobody', 1);
 
+-- 3.5 Enable CORS on the /sparql endpoint for frontend access
+DB.DBA.VHOST_DEFINE (
+  lpath=>'/sparql',
+  ppath=>'/QS',
+  is_dav=>0,
+  vsp_user=>'dba',
+  opts=>vector('cors', '*', 'cors_restricted', 0)
+);
 COMMIT WORK;
 
 -- 4. Verify - triple count printed to init logs
