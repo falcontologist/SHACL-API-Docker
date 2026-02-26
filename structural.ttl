@@ -727,7 +727,7 @@ WHERE {
             sh:order 2 ] ;
     sh:targetClass :Causative_Incremental .
 
-:CauseEmployment_shape a :Situation_shape, sh:NodeShape ;
+:Cause_Employment_shape a :Situation_shape, sh:NodeShape ;
     rdfs:label "Cause Employment (shape)"@en ;
     sh:property [ sh:name "employer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :employer ] ;
     sh:property [ sh:name "employee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :employee ] ;
@@ -743,7 +743,7 @@ WHERE {
             ?employer ?opaqueProperty ?employee .
         }
         WHERE {
-            ?this a :CauseEmployment ;
+            ?this a :Cause_Employment ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :employer ?employer ;
@@ -757,7 +757,7 @@ WHERE {
         }
         """ ;
             sh:order 2 ] ;
-    sh:targetClass :CauseEmployment .
+    sh:targetClass :Cause_Employment .
 
 :Cause_Membership_shape a :Situation_shape, sh:NodeShape ;
     rdfs:label "Cause Membership (shape)"@en ;
