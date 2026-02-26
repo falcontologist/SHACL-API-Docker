@@ -142,7 +142,7 @@
     :semantic_domain :Incremental ;
     rdfs:subClassOf :Situation .
 
-:CauseEmployment a rdfs:Class ;
+:Cause_Employment a rdfs:Class ;
     rdfs:label "Cause Employment"@en ;
     :semantic_domain :Affiliation ;
     rdfs:subClassOf :Cause_Membership .
