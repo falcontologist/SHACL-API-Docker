@@ -10,7 +10,7 @@
 :OntologyManifest a :Manifest ;
     rdfs:label "Roles Ontology Manifest" ;
     rdfs:comment "Dereference this IRI to discover and load all ontology partitions in dependency order." ;
-    :partitions :conceptual, :structural, :lexical .
+    :partitions :conceptual, :structural, :lexical, :gpe_entity, :gpe_entry .
 
 :OntologyPartition a rdfs:Class ;
     rdfs:label "Ontology Partition" ;
@@ -58,7 +58,21 @@
 
 :lexical a :OntologyPartition ;
     rdfs:label "Lexical Partition" ;
-    rdfs:comment "VerbNet classes, verb lemmas, and WordNet synsets. Depends on structural for shape references." ;
+    rdfs:comment "VerbNet classes, verb lemmas, and WordNet synsets. Depends on structural." ;
     :sourceFile "lexical.ttl" ;
     :requires :structural ;
     :loadOrder 3 .
+
+:gpe_entity a :OntologyPartition ;
+    rdfs:label "Geopolitical Entity Partition" ;
+    rdfs:comment "Geopolitical entities, continents, countries, and geographical regions." ;
+    :sourceFile "gpe_entity.ttl" ;
+    :requires :conceptual ;
+    :loadOrder 4 .
+
+:gpe_entry a :OntologyPartition ;
+    rdfs:label "Geopolitical Entry Partition" ;
+    rdfs:comment "Lexical entries for geopolitical entities mapping terms to their entity forms." ;
+    :sourceFile "gpe_entry.ttl" ;
+    :requires :gpe_entity ;
+    :loadOrder 5 .
