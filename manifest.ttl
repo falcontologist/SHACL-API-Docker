@@ -10,7 +10,7 @@
 :OntologyManifest a :Manifest ;
     rdfs:label "Roles Ontology Manifest" ;
     rdfs:comment "Dereference this IRI to discover and load all ontology partitions in dependency order." ;
-    :partitions :conceptual, :structural, :lexical, :gpe_entity, :gpe_entry .
+    :partitions :conceptual, :structural, :lexical, :gpe_entity, :gpe_entry, :product_entity, :product_entry .
 
 :OntologyPartition a rdfs:Class ;
     rdfs:label "Ontology Partition" ;
@@ -76,3 +76,17 @@
     :sourceFile "gpe_entry.ttl" ;
     :requires :gpe_entity ;
     :loadOrder 5 .
+
+:product_entity a :OntologyPartition ;
+    rdfs:label "Product Entity Partition" ;
+    rdfs:comment "Physical goods, software, and manufactured products extracted from external sources." ;
+    :sourceFile "product_entity.ttl" ;
+    :requires :conceptual ;
+    :loadOrder 6 .
+
+:product_entry a :OntologyPartition ;
+    rdfs:label "Product Entry Partition" ;
+    rdfs:comment "Lexical entries for products mapping commercial names to their entity forms." ;
+    :sourceFile "product_entry.ttl" ;
+    :requires :product_entity ;
+    :loadOrder 7 .
