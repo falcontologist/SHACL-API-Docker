@@ -8,6 +8,7 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <lucene.version>9.11.1</lucene.version>
     </properties>
 
     <dependencies>
@@ -40,6 +41,28 @@
             <groupId>org.topbraid</groupId>
             <artifactId>shacl</artifactId>
             <version>1.4.3</version>
+        </dependency>
+
+        <!-- Lucene core + suggest (FST-backed AnalyzingInfixSuggester) -->
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+            <version>${lucene.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-suggest</artifactId>
+            <version>${lucene.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-analysis-common</artifactId>
+            <version>${lucene.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-queryparser</artifactId>
+            <version>${lucene.version}</version>
         </dependency>
     </dependencies>
 

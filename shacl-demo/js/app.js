@@ -22,7 +22,11 @@ const CONFIG = {
       instance: 22,
       literal: 10
     }
-  }
+  },
+  ENTITY_CATEGORIES: ["Person_Entity", "Organization_Entity", "Geopolitical_Entity", "Product_Entity"],
+  SUGGEST_DEBOUNCE_MS: 150,
+  SUGGEST_MIN_CHARS: 2,
+  SUGGEST_MAX_RESULTS: 10
 };
 
 const PREFIXES = `@prefix :    <https://falcontologist.github.io/shacl-demo/ontology/> .
@@ -42,6 +46,9 @@ const State = {
   selectedSituation: null,
   currentVerb: "",
   
+  // Entity suggest state (per-row, keyed by row index)
+  entitySuggestControllers: new Map(), // AbortControllers for in-flight requests
+  
   // Graph state
   simulation: null,
   svg: null,
@@ -52,6 +59,9 @@ const State = {
     this.currentSenses = [];
     this.selectedSituation = null;
     this.currentVerb = "";
+    // Abort any in-flight suggest requests
+    this.entitySuggestControllers.forEach(c => c.abort());
+    this.entitySuggestControllers.clear();
   }
 };
 
@@ -86,6 +96,14 @@ function init() {
   updateGraph();
   fetchStats();
   window.addEventListener('resize', debounce(handleResize, 250));
+  
+  // Close all suggest dropdowns when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.entity-suggest-wrapper')) {
+      document.querySelectorAll('.suggest-dropdown').forEach(d => d.classList.add('hidden'));
+    }
+  });
+  
   console.log("✓ Application initialized");
 }
 
@@ -297,6 +315,32 @@ async function validateGraph() {
 }
 
 // ============================================
+// ENTITY SUGGEST API
+// ============================================
+
+/**
+ * Query the entity suggest endpoint.
+ * Returns {results: [{label, iri, category, matchedLabel?}], count, latencyMicros}
+ */
+async function fetchEntitySuggestions(category, query, signal) {
+  const url = `${CONFIG.API_BASE_URL}/entity-suggest?type=${encodeURIComponent(category)}&q=${encodeURIComponent(query)}&limit=${CONFIG.SUGGEST_MAX_RESULTS}`;
+  const resp = await fetch(url, { signal });
+  if (!resp.ok) throw new Error(`Suggest returned ${resp.status}`);
+  return resp.json();
+}
+
+/**
+ * Fetch senses for a given entity IRI.
+ * Returns {iri, senses: [{senseId, senseIRI, gloss, label}], count}
+ */
+async function fetchEntitySenses(iri) {
+  const url = `${CONFIG.API_BASE_URL}/entity-senses?iri=${encodeURIComponent(iri)}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`Entity senses returned ${resp.status}`);
+  return resp.json();
+}
+
+// ============================================
 // UI HANDLERS
 // ============================================
 function handleSenseSelect() {
@@ -366,17 +410,27 @@ function renderForm(fields) {
     return;
   }
   
-  fields.forEach(field => {
-    const row = createRoleRow(field);
+  fields.forEach((field, index) => {
+    const row = createRoleRow(field, index);
     form.appendChild(row);
   });
   
   showElement('stepForm');
 }
 
-function createRoleRow(field) {
+// ============================================
+// ENTITY AUTOCOMPLETE ROW BUILDER
+// ============================================
+
+/**
+ * Creates a form row for a SHACL property slot.
+ * When "Entity" is selected as the type, shows:
+ *   [Category dropdown] [Search input with autocomplete] [Sense dropdown (after selection)]
+ */
+function createRoleRow(field, rowIndex) {
   const row = document.createElement('div');
   row.className = 'role-row';
+  row.dataset.rowIndex = rowIndex;
   
   row.innerHTML = `
     <label class="role-label">${field.label}${field.required ? ' *' : ''}</label>
@@ -388,34 +442,258 @@ function createRoleRow(field) {
         <option value="IRI">IRI</option>
         <option value="BNode">_:</option>
       </select>
-      <input class="role-input" type="text" 
+
+      <!-- Entity mode: category + autocomplete + sense selector -->
+      <div class="entity-suggest-wrapper">
+        <select class="entity-category-select">
+          ${CONFIG.ENTITY_CATEGORIES.map(c => 
+            `<option value="${c}">${formatCategoryLabel(c)}</option>`
+          ).join('')}
+        </select>
+        <div class="suggest-input-container">
+          <input class="entity-search-input" type="text" 
+                 placeholder="Search entities..." 
+                 autocomplete="off"
+                 data-role="${field.label}" 
+                 data-path="${field.path}">
+          <div class="suggest-spinner hidden"></div>
+          <div class="suggest-dropdown hidden"></div>
+        </div>
+        <select class="entity-sense-select hidden">
+          <option value="">-- Select Sense --</option>
+        </select>
+      </div>
+
+      <!-- Plain text input (for Literal, IRI, BNode modes) -->
+      <input class="role-input hidden" type="text" 
              data-role="${field.label}" 
              data-path="${field.path}" 
              placeholder="Value..." 
              ${field.required ? 'required' : ''}>
+
+      <!-- Instance reference select -->
       <select class="instance-select hidden" style="flex: 1;">
         <option value="">-- Select Instance --</option>
       </select>
     </div>
   `;
   
-  // Setup type switching
+  // --- Wire up type switching ---
   const typeSelect = row.querySelector('.type-select');
+  const entityWrapper = row.querySelector('.entity-suggest-wrapper');
   const textInput = row.querySelector('.role-input');
   const instanceSelect = row.querySelector('.instance-select');
   
   typeSelect.addEventListener('change', () => {
-    if (typeSelect.value === 'Instance') {
-      textInput.classList.add('hidden');
+    const val = typeSelect.value;
+    
+    // Hide all first
+    entityWrapper.classList.add('hidden');
+    textInput.classList.add('hidden');
+    instanceSelect.classList.add('hidden');
+    
+    if (val === 'Entity') {
+      entityWrapper.classList.remove('hidden');
+    } else if (val === 'Instance') {
       instanceSelect.classList.remove('hidden');
       populateInstanceSelect(instanceSelect);
     } else {
       textInput.classList.remove('hidden');
-      instanceSelect.classList.add('hidden');
     }
   });
+
+  // Default: show entity wrapper
+  entityWrapper.classList.remove('hidden');
+  textInput.classList.add('hidden');
+  instanceSelect.classList.add('hidden');
+
+  // --- Wire up entity autocomplete ---
+  const searchInput = row.querySelector('.entity-search-input');
+  const categorySelect = row.querySelector('.entity-category-select');
+  const dropdown = row.querySelector('.suggest-dropdown');
+  const spinner = row.querySelector('.suggest-spinner');
+  const senseSelect = row.querySelector('.entity-sense-select');
+
+  // Debounced suggest handler
+  const debouncedSuggest = debounce(async () => {
+    const query = searchInput.value.trim();
+    const category = categorySelect.value;
+    
+    if (query.length < CONFIG.SUGGEST_MIN_CHARS) {
+      dropdown.classList.add('hidden');
+      return;
+    }
+
+    // Abort previous request for this row
+    const prevController = State.entitySuggestControllers.get(rowIndex);
+    if (prevController) prevController.abort();
+    
+    const controller = new AbortController();
+    State.entitySuggestControllers.set(rowIndex, controller);
+
+    spinner.classList.remove('hidden');
+
+    try {
+      const data = await fetchEntitySuggestions(category, query, controller.signal);
+      renderSuggestDropdown(dropdown, data.results, searchInput, senseSelect, row);
+      spinner.classList.add('hidden');
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.error('Suggest error:', err);
+        spinner.classList.add('hidden');
+      }
+    }
+  }, CONFIG.SUGGEST_DEBOUNCE_MS);
+
+  searchInput.addEventListener('input', debouncedSuggest);
+
+  // Keyboard navigation for dropdown
+  searchInput.addEventListener('keydown', (e) => {
+    if (dropdown.classList.contains('hidden')) return;
+    const items = dropdown.querySelectorAll('.suggest-item');
+    const active = dropdown.querySelector('.suggest-item.active');
+    let idx = Array.from(items).indexOf(active);
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (idx < items.length - 1) idx++;
+      else idx = 0;
+      items.forEach(i => i.classList.remove('active'));
+      items[idx]?.classList.add('active');
+      items[idx]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (idx > 0) idx--;
+      else idx = items.length - 1;
+      items.forEach(i => i.classList.remove('active'));
+      items[idx]?.classList.add('active');
+      items[idx]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (active) active.click();
+    } else if (e.key === 'Escape') {
+      dropdown.classList.add('hidden');
+    }
+  });
+
+  // Close dropdown on blur (with delay for click to register)
+  searchInput.addEventListener('blur', () => {
+    setTimeout(() => dropdown.classList.add('hidden'), 200);
+  });
   
+  // Re-query when category changes
+  categorySelect.addEventListener('change', () => {
+    searchInput.value = '';
+    senseSelect.classList.add('hidden');
+    senseSelect.innerHTML = '<option value="">-- Select Sense --</option>';
+    dropdown.classList.add('hidden');
+    // Clear resolved entity data
+    delete searchInput.dataset.resolvedIri;
+    delete searchInput.dataset.resolvedLabel;
+    searchInput.focus();
+  });
+
   return row;
+}
+
+/**
+ * Render suggest dropdown with results.
+ */
+function renderSuggestDropdown(dropdown, results, searchInput, senseSelect, row) {
+  dropdown.innerHTML = '';
+
+  if (results.length === 0) {
+    dropdown.innerHTML = '<div class="suggest-empty">No matches found</div>';
+    dropdown.classList.remove('hidden');
+    return;
+  }
+
+  results.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'suggest-item' + (i === 0 ? ' active' : '');
+    
+    const labelSpan = document.createElement('span');
+    labelSpan.className = 'suggest-label';
+    labelSpan.textContent = item.label;
+    div.appendChild(labelSpan);
+
+    if (item.matchedLabel && item.matchedLabel !== item.label) {
+      const altSpan = document.createElement('span');
+      altSpan.className = 'suggest-alt';
+      altSpan.textContent = `(${item.matchedLabel})`;
+      div.appendChild(altSpan);
+    }
+
+    const iriSpan = document.createElement('span');
+    iriSpan.className = 'suggest-iri';
+    // Show just the local name from the IRI
+    const localName = item.iri.includes('/') 
+      ? item.iri.substring(item.iri.lastIndexOf('/') + 1) 
+      : item.iri.includes('#')
+        ? item.iri.substring(item.iri.lastIndexOf('#') + 1)
+        : item.iri;
+    iriSpan.textContent = decodeURIComponent(localName);
+    div.appendChild(iriSpan);
+
+    div.addEventListener('click', () => {
+      handleEntitySelection(item, searchInput, senseSelect, dropdown, row);
+    });
+
+    dropdown.appendChild(div);
+  });
+
+  dropdown.classList.remove('hidden');
+}
+
+/**
+ * Handle entity selection: set input, fetch senses, resolve IRI.
+ */
+async function handleEntitySelection(item, searchInput, senseSelect, dropdown, row) {
+  searchInput.value = item.label;
+  searchInput.dataset.resolvedIri = item.iri;
+  searchInput.dataset.resolvedLabel = item.label;
+  dropdown.classList.add('hidden');
+
+  // Fetch senses for this entity
+  try {
+    const data = await fetchEntitySenses(item.iri);
+    
+    if (data.senses && data.senses.length > 0) {
+      senseSelect.innerHTML = '<option value="">-- Select Sense --</option>';
+      data.senses.forEach(sense => {
+        const opt = document.createElement('option');
+        opt.value = sense.senseIRI;
+        const shortGloss = sense.gloss.length > 50 
+          ? sense.gloss.substring(0, 50) + '...' 
+          : sense.gloss;
+        opt.textContent = `${sense.senseId}: ${shortGloss}`;
+        opt.dataset.senseIri = sense.senseIRI;
+        senseSelect.appendChild(opt);
+      });
+      senseSelect.classList.remove('hidden');
+
+      // Auto-select if only one sense
+      if (data.senses.length === 1) {
+        senseSelect.value = data.senses[0].senseIRI;
+      }
+    } else {
+      // No senses — just use the IRI directly
+      senseSelect.classList.add('hidden');
+    }
+  } catch (err) {
+    console.error('Failed to fetch entity senses:', err);
+    senseSelect.classList.add('hidden');
+  }
+}
+
+function formatCategoryLabel(category) {
+  switch (category) {
+    case 'Geopolitical_Entity': return 'Geo-Political';
+    case 'Organization_Entity': return 'Organization';
+    case 'Person_Entity': return 'Person';
+    case 'Product_Entity': return 'Product';
+    default: return category.replace(/_Entity$/, '');
+  }
 }
 
 function populateInstanceSelect(selectElement) {
@@ -449,6 +727,9 @@ function populateInstanceSelect(selectElement) {
   }
 }
 
+// ============================================
+// ADD ENTRY (updated for Entity mode)
+// ============================================
 async function addEntry() {
   State.globalCount++;
   const sitId = `temp:s${State.globalCount}`;
@@ -473,21 +754,45 @@ async function addEntry() {
   // Process roles
   document.querySelectorAll('.role-row').forEach(row => {
     const type = row.querySelector('.type-select').value;
-    const input = row.querySelector('.role-input');
+    const textInput = row.querySelector('.role-input');
     const instanceSelect = row.querySelector('.instance-select');
-    const value = type === 'Instance' ? instanceSelect.value : input.value.trim();
+    const entitySearchInput = row.querySelector('.entity-search-input');
+    const entitySenseSelect = row.querySelector('.entity-sense-select');
+    
+    let value = '';
+    let resolvedIri = null;
+    
+    if (type === 'Entity') {
+      // Entity mode: use resolved IRI if available
+      resolvedIri = entitySearchInput?.dataset.resolvedIri;
+      value = entitySearchInput?.value.trim() || '';
+      
+      if (!value) return;
+    } else if (type === 'Instance') {
+      value = instanceSelect.value;
+    } else {
+      value = textInput.value.trim();
+    }
     
     if (!value) return;
     
-    let predicate = `:${input.dataset.role}`;
-    if (input.dataset.path && input.dataset.path !== 'unknown') {
-      const parts = input.dataset.path.split(/[#/]/);
+    // Determine predicate
+    const dataInput = type === 'Entity' ? entitySearchInput : textInput;
+    let predicate = `:${dataInput.dataset.role}`;
+    if (dataInput.dataset.path && dataInput.dataset.path !== 'unknown') {
+      const parts = dataInput.dataset.path.split(/[#/]/);
       predicate = `:${parts[parts.length - 1]}`;
     }
     
-    const triple = buildTriple(type, value, predicate, ttlArea.value);
-    mainBlock += triple.main;
-    entityBlock += triple.entity;
+    if (type === 'Entity' && resolvedIri) {
+      // Use the resolved IRI from the suggest service
+      const iriRef = `<${resolvedIri}>`;
+      mainBlock += ` ;\n    ${predicate} ${iriRef}`;
+    } else {
+      const triple = buildTriple(type, value, predicate, ttlArea.value);
+      mainBlock += triple.main;
+      entityBlock += triple.entity;
+    }
   });
 
   const newData = `${mainBlock} .\n${entityBlock}\n`;
@@ -650,197 +955,71 @@ function updateGraph() {
   const ttlInput = getElement('ttlInput');
   if (!ttlInput) return;
   
-  const { nodes, links } = parseTTL(ttlInput.value);
-  renderGraph(nodes, links);
-}
-
-function parseTTL(rawText) {
-  const nodes = [];
-  const links = [];
-  const nodeMap = new Map();
-  let bnodeCount = 0;
-  let currentSubject = null;
-
-  const getOrCreateNode = (id, label, group) => {
-    if (!nodeMap.has(id)) {
-      const node = {
-        id,
-        label: label || id,
-        group,
-        r: CONFIG.GRAPH.NODE_SIZES[group] || 16
-      };
-      nodeMap.set(id, node);
-      nodes.push(node);
-    }
-    return nodeMap.get(id);
-  };
-
-  rawText.split('\n').forEach(line => {
-    line = line.trim();
-    if (!line || line.startsWith('@prefix')) return;
-    
-    const cleanContent = line.replace(/[;.,\]]+$/, '').trim();
-
-    // Handle blank nodes
-    if (line.startsWith('[')) {
-      bnodeCount++;
-      currentSubject = `_:bnode${bnodeCount}`;
-      const typeMatch = cleanContent.match(/(?:a|rdf:type)\s+(\S+)/);
-      if (typeMatch) {
-        const type = typeMatch[1].split(':').pop();
-        getOrCreateNode(currentSubject, "Situation", 'instance');
-        const classId = `Class:${type}`;
-        getOrCreateNode(classId, type, 'class');
-        links.push({
-          source: currentSubject,
-          target: classId,
-          label: 'type',
-          isInferred: false
-        });
-      }
-      return;
-    }
-
-    // Handle subject declarations
-    const subjMatch = cleanContent.match(/^(\S+)\s+(?:a|rdf:type)\s+(\S+)/);
-    if (subjMatch && !line.startsWith(']')) {
-      currentSubject = subjMatch[1];
-      const type = subjMatch[2].split(':').pop().replace(/[<>]/g, '');
-      const label = currentSubject.startsWith('temp:') 
-        ? currentSubject.slice(5).replace(/_/g, ' ') 
-        : currentSubject;
-      
-      getOrCreateNode(currentSubject, label, 'instance');
-      const classId = `Class:${type}`;
-      getOrCreateNode(classId, type, 'class');
-      links.push({
-        source: currentSubject,
-        target: classId,
-        label: 'type',
-        isInferred: false
-      });
-      return;
-    }
-
-    // Handle properties
-    if (currentSubject && !line.startsWith(']')) {
-      const propMatch = cleanContent.match(/^(\S+)\s+(.+)/);
-      if (propMatch) {
-        const [_, pred, val] = propMatch;
-        const predLabel = pred.split(/[/#:]/).pop();
-        
-        // Update node label if this is rdfs:label
-        if (pred === 'rdfs:label' || pred === 'label') {
-          const node = nodeMap.get(currentSubject);
-          if (node) node.label = val.replace(/"/g, '');
-        } 
-        // Skip type and metadata predicates
-        else if (!['rdf:type', 'a', ':lemma', ':synset'].includes(pred)) {
-          const isInferred = predLabel.includes('_') && 
-                            predLabel.match(/_[a-f0-9]{12}$/);
-          
-          if (val.startsWith('"')) {
-            // Literal value
-            const litVal = val.replace(/"/g, '');
-            const litId = `Lit:${litVal}_${currentSubject}`;
-            getOrCreateNode(litId, `"${litVal}"`, 'literal');
-            links.push({
-              source: currentSubject,
-              target: litId,
-              label: predLabel,
-              isInferred
-            });
-          } else {
-            // Object reference
-            const targetLabel = val.startsWith('temp:') 
-              ? val.slice(5).replace(/_/g, ' ') 
-              : val;
-            getOrCreateNode(val, targetLabel, 'instance');
-            links.push({
-              source: currentSubject,
-              target: val,
-              label: predLabel,
-              isInferred
-            });
-          }
-        }
-      }
-    }
-
-    // Reset subject at end of block
-    if (line.endsWith('] .') || line.startsWith(']')) {
-      currentSubject = null;
-    }
-  });
-
-  return { nodes, links };
-}
-
-function renderGraph(nodes, links) {
-  if (!State.g) return;
+  const text = ttlInput.value;
+  const { nodes, links } = parseTurtle(text);
   
-  State.g.selectAll("*").remove();
+  // Clear
+  State.g.selectAll(".link").remove();
+  State.g.selectAll(".node").remove();
+  State.g.selectAll(".link-label-group").remove();
+  
+  if (nodes.length === 0) return;
 
   // Create links
-  const link = State.g.append("g")
-    .selectAll("line")
+  const link = State.g.selectAll(".link")
     .data(links)
-    .enter()
-    .append("line")
-    .attr("class", d => d.isInferred ? "link inferred" : "link")
+    .join("line")
+    .attr("class", d => `link${d.inferred ? ' inferred' : ''}`)
     .attr("marker-end", "url(#arrowhead)");
 
   // Create link labels
-  const linkLabel = State.g.append("g")
-    .selectAll("g")
+  const linkLabel = State.g.selectAll(".link-label-group")
     .data(links)
-    .enter()
-    .append("g");
+    .join("g")
+    .attr("class", "link-label-group");
   
   linkLabel.append("rect")
+    .attr("fill", "#0f172a")
     .attr("rx", 3)
-    .attr("ry", 3)
-    .attr("fill", "#020617")
-    .attr("opacity", 0.9);
+    .attr("opacity", 0.85);
   
   linkLabel.append("text")
     .attr("class", "link-label-text")
-    .attr("dy", 3)
+    .attr("text-anchor", "middle")
+    .attr("dy", "0.35em")
     .text(d => d.label);
 
   // Create nodes
-  const node = State.g.append("g")
-    .selectAll("g")
+  const node = State.g.selectAll(".node")
     .data(nodes)
-    .enter()
-    .append("g")
+    .join("g")
+    .attr("class", "node")
     .call(d3.drag()
       .on("start", dragstarted)
       .on("drag", dragged)
       .on("end", dragended));
-
-  node.append("circle")
-    .attr("r", d => d.r)
-    .attr("fill", d => CONFIG.COLORS[d.group])
-    .attr("stroke", "#fff")
-    .attr("stroke-width", 1);
-
-  // Create node labels
-  const nodeLabel = node.append("g");
   
-  nodeLabel.append("rect")
+  node.append("circle")
+    .attr("r", d => CONFIG.GRAPH.NODE_SIZES[d.type] || 14)
+    .attr("fill", d => CONFIG.COLORS[d.type] || "#888")
+    .attr("stroke", "#0f172a")
+    .attr("stroke-width", 2);
+
+  // Node labels
+  const labelGroup = node.append("g").attr("transform", "translate(0, 25)");
+  
+  labelGroup.append("rect")
+    .attr("fill", "#0f172a")
     .attr("rx", 3)
-    .attr("ry", 3)
-    .attr("fill", "#020617")
     .attr("opacity", 0.85);
   
-  nodeLabel.append("text")
+  labelGroup.append("text")
     .attr("class", "node-label-text")
-    .attr("dy", -25)
     .attr("text-anchor", "middle")
+    .attr("dy", "0.35em")
     .text(d => d.label);
 
-  // Tick function
+  // Update simulation
   State.simulation.nodes(nodes).on("tick", () => {
     link
       .attr("x1", d => d.source.x)
@@ -885,6 +1064,98 @@ function renderGraph(nodes, links) {
   
   // Auto zoom to fit
   setTimeout(zoomToFit, 150);
+}
+
+function parseTurtle(text) {
+  const nodes = [];
+  const links = [];
+  const nodeMap = new Map();
+  
+  const prefixes = {};
+  const prefixPattern = /@prefix\s+(\w*):?\s*<([^>]+)>\s*\./g;
+  let match;
+  while ((match = prefixPattern.exec(text)) !== null) {
+    prefixes[match[1]] = match[2];
+  }
+  
+  const clean = text.replace(/@prefix[^\n]+\n/g, '').trim();
+  if (!clean) return { nodes, links };
+  
+  // Split into blocks by ".\n"
+  const blocks = clean.split(/\.\s*\n/).filter(b => b.trim());
+  
+  blocks.forEach(block => {
+    const lines = block.trim().split(/\s*;\s*\n\s*/);
+    if (lines.length === 0) return;
+    
+    const firstLine = lines[0].trim();
+    const firstParts = firstLine.match(/^(\S+)\s+(\S+)\s+(.*)/s);
+    if (!firstParts) return;
+    
+    const subject = firstParts[1];
+    let subjectLabel = subject;
+    
+    // Find label
+    const labelMatch = block.match(/rdfs:label\s+"([^"]+)"/);
+    if (labelMatch) subjectLabel = labelMatch[1];
+    
+    // Determine type
+    const typeMatch = block.match(/a\s+:(\w+)/);
+    const nodeType = typeMatch ? 'instance' : 'class';
+    
+    if (!nodeMap.has(subject)) {
+      nodeMap.set(subject, { id: subject, label: subjectLabel, type: nodeType });
+      nodes.push(nodeMap.get(subject));
+    }
+    
+    // Parse predicates
+    lines.forEach((line, i) => {
+      const parts = i === 0 
+        ? [firstParts[2], firstParts[3]]
+        : line.trim().split(/\s+(.+)/);
+      
+      if (!parts || parts.length < 2) return;
+      
+      const predicate = parts[0].trim();
+      let object = parts[1].trim().replace(/\s*\.$/, '');
+      
+      if (predicate === 'a') return;
+      if (predicate === 'rdfs:label') return;
+      if (predicate === ':lemma') return;
+      if (predicate === ':synset') return;
+      
+      const predLabel = predicate.replace(/^:/, '').replace(/^.*[#/]/, '');
+      
+      // Determine object type
+      let objType = 'instance';
+      let objLabel = object;
+      
+      if (object.startsWith('"')) {
+        objType = 'literal';
+        objLabel = object.replace(/^"|"$/g, '');
+      } else if (object.startsWith('<') && object.endsWith('>')) {
+        // Full IRI reference — show just the local name
+        objLabel = object.replace(/^<|>$/g, '');
+        if (objLabel.includes('/')) objLabel = objLabel.substring(objLabel.lastIndexOf('/') + 1);
+        if (objLabel.includes('#')) objLabel = objLabel.substring(objLabel.lastIndexOf('#') + 1);
+        objLabel = decodeURIComponent(objLabel);
+      }
+      
+      if (!nodeMap.has(object)) {
+        nodeMap.set(object, { id: object, label: objLabel, type: objType });
+        nodes.push(nodeMap.get(object));
+      }
+      
+      links.push({
+        source: subject,
+        target: object,
+        label: predLabel,
+        inferred: false
+      });
+    });
+  });
+  
+  return { nodes, links };
 }
 
 function zoomToFit() {
@@ -990,7 +1261,6 @@ function showSuccess(buttonId, text, duration = 1000) {
 
 function showError(message) {
   console.error(message);
-  // Could add a toast notification here
 }
 
 function toSlug(value) {

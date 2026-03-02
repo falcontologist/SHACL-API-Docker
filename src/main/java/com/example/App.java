@@ -34,10 +34,23 @@ public class App {
     // Shared in-memory ontology model loaded at startup
     static Model ontologyModel;
 
+    // Entity autocomplete service (Lucene FST-backed)
+    static EntitySuggestService entitySuggestService;
+
     public static void main(String[] args) throws Exception {
 
         // ── Load federated ontology graph ─────────────────────────────────────
         ontologyModel = loadOntology();
+
+        // ── Build entity autocomplete index ───────────────────────────────────
+        entitySuggestService = new EntitySuggestService();
+        try {
+            entitySuggestService.buildIndex(ontologyModel);
+        } catch (Exception e) {
+            System.err.println("[startup] Entity suggest index build failed: " + e.getMessage());
+            e.printStackTrace();
+            // Non-fatal: suggest endpoints will return empty until fixed
+        }
 
         // ── Javalin app ───────────────────────────────────────────────────────
         Javalin app = Javalin.create(config -> {
@@ -49,14 +62,100 @@ public class App {
         System.out.println("Server running on port 8080");
 
         // ── Routes ────────────────────────────────────────────────────────────
-        app.get("/api/status",  App::status);
-        app.get("/api/stats",   App::stats);
-        app.get("/api/forms",   App::forms);
-        app.get("/api/lookup",  App::lookup);
-        app.post("/api/infer",  App::inferGraph);
-        app.post("/api/validate", App::validateGraph);
-        app.post("/api/save",   SaveRoute::handle);
-        app.get("/api/sparql",  App::sparqlProxy);
+        app.get("/api/status",          App::status);
+        app.get("/api/stats",           App::stats);
+        app.get("/api/forms",           App::forms);
+        app.get("/api/lookup",          App::lookup);
+        app.post("/api/infer",          App::inferGraph);
+        app.post("/api/validate",       App::validateGraph);
+        app.post("/api/save",           SaveRoute::handle);
+        app.get("/api/sparql",          App::sparqlProxy);
+
+        // ── Entity autocomplete routes ────────────────────────────────────────
+        app.get("/api/entity-suggest",  App::entitySuggest);
+        app.get("/api/entity-senses",   App::entitySenses);
+        app.get("/api/entity-stats",    App::entityStats);
+    }
+
+    // ── Entity suggest (autocomplete) ──────────────────────────────────────────
+    static void entitySuggest(Context ctx) {
+        String category = ctx.queryParam("type");
+        String query = ctx.queryParam("q");
+        int limit = 10;
+        try {
+            String limitParam = ctx.queryParam("limit");
+            if (limitParam != null) limit = Integer.parseInt(limitParam);
+        } catch (NumberFormatException ignored) {}
+
+        if (category == null || category.isBlank()) {
+            ctx.status(400).json(Map.of("error", "Missing 'type' parameter"));
+            return;
+        }
+        if (query == null || query.isBlank()) {
+            ctx.status(400).json(Map.of("error", "Missing 'q' parameter"));
+            return;
+        }
+        if (!EntitySuggestService.CATEGORIES.contains(category)) {
+            // Try resolving friendly short names
+            String resolved = switch (category.toLowerCase()) {
+                case "person" -> "Person_Entity";
+                case "organization", "org" -> "Organization_Entity";
+                case "geopoliticalentity", "geopolitical", "gpe" -> "Geopolitical_Entity";
+                case "product" -> "Product_Entity";
+                default -> null;
+            };
+            if (resolved != null) {
+                category = resolved;
+            } else {
+                ctx.status(400).json(Map.of(
+                    "error", "Invalid category. Must be one of: " + EntitySuggestService.CATEGORIES
+                ));
+                return;
+            }
+        }
+
+        try {
+            long start = System.nanoTime();
+            List<Map<String, String>> results = entitySuggestService.suggest(category, query, limit);
+            long elapsedMicros = (System.nanoTime() - start) / 1000;
+
+            ctx.json(Map.of(
+                "results", results,
+                "count", results.size(),
+                "query", query,
+                "type", category,
+                "latencyMicros", elapsedMicros
+            ));
+        } catch (Exception e) {
+            System.err.println("[entity-suggest] Error: " + e.getMessage());
+            ctx.status(500).json(Map.of("error", "Suggest failed: " + e.getMessage()));
+        }
+    }
+
+    // ── Entity senses ──────────────────────────────────────────────────────────
+    static void entitySenses(Context ctx) {
+        String iri = ctx.queryParam("iri");
+        if (iri == null || iri.isBlank()) {
+            ctx.status(400).json(Map.of("error", "Missing 'iri' parameter"));
+            return;
+        }
+
+        try {
+            List<Map<String, String>> senses = entitySuggestService.getSenses(iri);
+            ctx.json(Map.of(
+                "iri", iri,
+                "senses", senses,
+                "count", senses.size()
+            ));
+        } catch (Exception e) {
+            System.err.println("[entity-senses] Error: " + e.getMessage());
+            ctx.status(500).json(Map.of("error", "Sense lookup failed: " + e.getMessage()));
+        }
+    }
+
+    // ── Entity stats ───────────────────────────────────────────────────────────
+    static void entityStats(Context ctx) {
+        ctx.json(entitySuggestService.getStats());
     }
 
     // ── SPARQL proxy ──────────────────────────────────────────────────────────
@@ -87,7 +186,11 @@ public class App {
 
     // ── Status ────────────────────────────────────────────────────────────────
     static void status(Context ctx) {
-        ctx.json(Map.of("status", "ok", "triples", ontologyModel.size()));
+        Map<String, Object> statusMap = new LinkedHashMap<>();
+        statusMap.put("status", "ok");
+        statusMap.put("triples", ontologyModel.size());
+        statusMap.put("entitySuggestReady", entitySuggestService != null && entitySuggestService.isReady());
+        ctx.json(statusMap);
     }
 
     // ── Stats ─────────────────────────────────────────────────────────────────
@@ -136,14 +239,20 @@ public class App {
             .forEachRemaining(sensesSet::add);
         long senses = sensesSet.size();
 
-        ctx.json(Map.of(
-            "shapes", shapes,
-            "roles",  roles,
-            "rules",  rules,
-            "lemmas", lemmas,
-            "senses", senses,
-            "total_triples", ontologyModel.size()
-        ));
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("shapes", shapes);
+        result.put("roles", roles);
+        result.put("rules", rules);
+        result.put("lemmas", lemmas);
+        result.put("senses", senses);
+        result.put("total_triples", ontologyModel.size());
+        
+        // Include entity counts from suggest service
+        if (entitySuggestService != null && entitySuggestService.isReady()) {
+            result.put("entities", entitySuggestService.getStats().get("entityCounts"));
+        }
+
+        ctx.json(result);
     }
 
     // ── Forms ─────────────────────────────────────────────────────────────────
