@@ -1,6 +1,6 @@
 package com.example;
 
-import org.apache.jena.rdf.model.*;
+import com.google.gson.*;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.*;
@@ -8,213 +8,175 @@ import org.apache.lucene.search.*;
 import org.apache.lucene.search.suggest.Lookup;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.ByteBuffersDirectory;
-import org.apache.lucene.store.MMapDirectory;
 import org.apache.lucene.util.BytesRef;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.*;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 /**
- * High-performance entity autocomplete using Lucene's AnalyzingInfixSuggester (FST-backed).
+ * Hybrid entity autocomplete: Lucene FST for sub-10ms suggest, Virtuoso SPARQL for data.
  *
- * Design goals:
- * - Sub-10ms suggest latency for millions of entities
- * - Infix matching ("Abdul La" matches "Abdullah Lateef" and "Steve Abdul-Latif")
- * - Category-scoped queries (Person, Organization, GeopoliticalEntity, Product)
- * - Sense resolution: each entity may link to multiple WordNet/ontology senses
+ * Architecture:
+ *   - At startup, paginated SPARQL queries stream entries from Virtuoso
+ *   - Per-category AnalyzingInfixSuggester (FST) built in-memory (~100-300MB for 2M+ entities)
+ *   - Auxiliary Lucene index for sense lookups by entity IRI
+ *   - Runtime autocomplete hits FST (sub-10ms), not Virtuoso
+ *   - Sense resolution queries Virtuoso (single-IRI lookup, fast)
  *
- * Index structure per category:
- *   - AnalyzingInfixSuggester for blazing prefix/infix autocomplete
- *   - Auxiliary Lucene index for sense lookups by IRI
- *
- * Data flow:
- *   1. At startup, scan entity TTL partitions from the manifest
- *   2. Build per-category FST suggesters + sense index
- *   3. Serve /api/entity-suggest and /api/entity-senses endpoints
+ * Memory comparison:
+ *   - Jena in-memory model for 3GB TTL: ~4-6GB RAM → OOM
+ *   - Lucene FST for same data: ~100-300MB RAM → fits easily
  */
 public class EntitySuggestService {
 
     private static final String ONT_NS = "https://falcontologist.github.io/shacl-demo/ontology/";
 
-    // Supported entity categories — must match rdf:type local names in TTL
-    // The TTL uses :Person_Entity, :Organization_Entity, etc.
     public static final List<String> CATEGORIES = List.of(
         "Person_Entity", "Organization_Entity", "Geopolitical_Entity", "Product_Entity"
     );
 
-    // Corresponding entry classes that hold :sense links
-    public static final List<String> ENTRY_CLASSES = List.of(
-        "Person_Entry", "Organization_Entry", "Geopolitical_Entry", "Product_Entry"
+    public static final Map<String, String> ENTRY_CLASSES = Map.of(
+        "Person_Entity", "Person_Entry",
+        "Organization_Entity", "Organization_Entry",
+        "Geopolitical_Entity", "Geopolitical_Entry",
+        "Product_Entity", "Product_Entry"
     );
 
-    // User-friendly display names (keyed by entity class)
-    public static final Map<String, String> CATEGORY_LABELS = Map.of(
-        "Person_Entity", "Person",
-        "Organization_Entity", "Organization",
-        "Geopolitical_Entity", "Geopolitical Entity",
-        "Product_Entity", "Product"
-    );
-
-    // Per-category FST suggester for autocomplete
+    // Per-category FST suggester for sub-10ms autocomplete
     private final Map<String, AnalyzingInfixSuggester> suggesters = new ConcurrentHashMap<>();
 
-    // Shared Lucene index for sense lookups (IRI → senses)
+    // Shared Lucene index for sense lookups (entityIRI → senses)
     private DirectoryReader senseReader;
     private IndexSearcher senseSearcher;
 
+    // Virtuoso SPARQL endpoint for data loading + sense fallback
+    private final String sparqlEndpoint;
+    private final String graphIRI;
+    private final HttpClient http;
+    private final Gson gson;
+
     // Stats
     private final Map<String, Long> entityCounts = new ConcurrentHashMap<>();
+    private final Map<String, Long> entryCounts = new ConcurrentHashMap<>();
     private long totalSenses = 0;
     private volatile boolean ready = false;
+    private long buildTimeMs = 0;
+
+    // Page size for SPARQL streaming
+    private static final int PAGE_SIZE = 10000;
+
+    public EntitySuggestService(String sparqlEndpoint, String graphIRI) {
+        this.sparqlEndpoint = sparqlEndpoint;
+        this.graphIRI = graphIRI;
+        this.http = HttpClient.newHttpClient();
+        this.gson = new Gson();
+    }
 
     /**
-     * Build the suggest indices from the in-memory ontology model.
-     * Call this once at startup after the ontology is loaded.
-     *
-     * For very large datasets (millions), this scans the model for entities
-     * of each category and feeds them into per-category AnalyzingInfixSuggesters.
+     * Build FST indices by streaming entries from Virtuoso via paginated SPARQL.
+     * Call once at startup. Runs in ~30-120s for millions of entities.
      */
-    public void buildIndex(Model ontologyModel) throws Exception {
+    public void buildIndexFromVirtuoso() throws Exception {
         long startTime = System.currentTimeMillis();
-        System.out.println("[entity-suggest] Building autocomplete indices...");
+        System.out.println("[entity-suggest] Building FST indices from Virtuoso SPARQL...");
+        System.out.println("[entity-suggest] Endpoint: " + sparqlEndpoint);
+        System.out.println("[entity-suggest] Graph: " + graphIRI);
 
-        Property typeProp  = ontologyModel.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-        Property labelProp = ontologyModel.createProperty("http://www.w3.org/2000/01/rdf-schema#label");
-        Property altLabel  = ontologyModel.createProperty(ONT_NS + "altLabel");
-        Property senseProp = ontologyModel.createProperty(ONT_NS + "sense");
-        Property glossProp = ontologyModel.createProperty(ONT_NS + "gloss");
-        Property identProp = ontologyModel.createProperty(ONT_NS + "identifier");
-
-        // --- Build sense index (shared across all categories) ---
+        // Sense index (shared across categories)
         ByteBuffersDirectory senseDir = new ByteBuffersDirectory();
         IndexWriterConfig senseConfig = new IndexWriterConfig(new StandardAnalyzer());
         senseConfig.setRAMBufferSizeMB(64);
         IndexWriter senseWriter = new IndexWriter(senseDir, senseConfig);
 
-        // --- Process each category pair ---
-        for (int ci = 0; ci < CATEGORIES.size(); ci++) {
-            String entityClass = CATEGORIES.get(ci);
-            String entryClass  = ENTRY_CLASSES.get(ci);
-            String displayName = CATEGORY_LABELS.getOrDefault(entityClass, entityClass);
+        for (String category : CATEGORIES) {
+            String entryClass = ENTRY_CLASSES.get(category);
+            System.out.println("[entity-suggest]   Streaming category: " + category
+                + " (entries: " + entryClass + ")");
 
-            System.out.println("[entity-suggest]   Indexing: " + displayName 
-                + " (" + entityClass + " / " + entryClass + ")");
-
-            Resource entityTypeRes = ontologyModel.createResource(ONT_NS + entityClass);
-            Resource entryTypeRes  = ontologyModel.createResource(ONT_NS + entryClass);
-
-            // ── Step 1: Pre-cache entity data (gloss, label, identifier) by IRI ──
-            // Entities ARE the senses. Pattern:
-            //   :Spanish_wine.product_entity.01 a :Product_Entity ;
-            //       rdfs:label "Spanish wine (entity)"@en ;
-            //       :gloss "wines of Spain"@en ;
-            //       :identifier wiki:Q1432594 .
-            Map<String, EntityInfo> entityInfoMap = new HashMap<>();
-
-            ontologyModel.listSubjectsWithProperty(typeProp, entityTypeRes).forEachRemaining(entity -> {
-                String iri = entity.getURI();
-                if (iri == null) return;
-
-                String label = null;
-                Statement labelSt = entity.getProperty(labelProp);
-                if (labelSt != null && labelSt.getObject().isLiteral()) {
-                    label = labelSt.getObject().asLiteral().getString();
-                }
-
-                String gloss = null;
-                Statement glossSt = entity.getProperty(glossProp);
-                if (glossSt != null && glossSt.getObject().isLiteral()) {
-                    gloss = glossSt.getObject().asLiteral().getString();
-                }
-
-                String identifier = null;
-                Statement identSt = entity.getProperty(identProp);
-                if (identSt != null) {
-                    identifier = identSt.getObject().isResource() 
-                        ? identSt.getObject().asResource().getURI()
-                        : identSt.getObject().asLiteral().getString();
-                }
-
-                // Collect alt labels
-                Set<String> altLabels = new LinkedHashSet<>();
-                entity.listProperties(altLabel).forEachRemaining(stmt -> {
-                    if (stmt.getObject().isLiteral()) {
-                        altLabels.add(stmt.getObject().asLiteral().getString());
-                    }
-                });
-
-                entityInfoMap.put(iri, new EntityInfo(iri, label, gloss, identifier, altLabels));
-            });
-
-            System.out.println("[entity-suggest]     Entities cached: " + entityInfoMap.size());
-
-            // ── Step 2: Scan entries to build suggest list + sense index ──
-            // Entries link to entities via :sense. Pattern:
-            //   :multifunction_printer.product_entry a :Product_Entry ;
-            //       rdfs:label "multifunction printer"@en ;
-            //       :sense :multifunction_printer.product_entity.01 .
-            //
-            // The entry's rdfs:label is the search text.
-            // The :sense target is the entity IRI (which has :gloss).
-            // An entry can have multiple :sense values (multiple entity matches).
-
-            AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(
-                new ByteBuffersDirectory(),
-                new StandardAnalyzer()
-            );
-
-            // We'll collect suggest entries keyed by entry label.
-            // Multiple entries may share a label; we deduplicate by entity IRI.
-            Map<String, Set<String>> labelToEntityIRIs = new LinkedHashMap<>();
             List<SuggestEntry> suggestEntries = new ArrayList<>();
+            Set<String> seenEntityIRIs = new HashSet<>();
             AtomicLong entryCount = new AtomicLong(0);
+            AtomicLong entityCount = new AtomicLong(0);
 
-            ontologyModel.listSubjectsWithProperty(typeProp, entryTypeRes).forEachRemaining(entry -> {
-                // Get entry label (the search surface form)
-                Statement labelSt = entry.getProperty(labelProp);
-                if (labelSt == null || !labelSt.getObject().isLiteral()) return;
-                String entryLabel = labelSt.getObject().asLiteral().getString();
+            // Paginated SPARQL streaming
+            int offset = 0;
+            boolean hasMore = true;
 
-                // Collect all :sense targets (entity IRIs)
-                List<String> senseTargets = new ArrayList<>();
-                entry.listProperties(senseProp).forEachRemaining(senseStmt -> {
-                    if (senseStmt.getObject().isResource()) {
-                        senseTargets.add(senseStmt.getObject().asResource().getURI());
+            while (hasMore) {
+                String sparql = String.format("""
+                    PREFIX : <%s>
+                    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                    SELECT ?entry ?label ?entityIRI ?entityLabel ?gloss ?identifier WHERE {
+                      GRAPH <%s> {
+                        ?entry a :%s ;
+                               rdfs:label ?label ;
+                               :sense ?entityIRI .
+                        ?entityIRI rdfs:label ?entityLabel .
+                        OPTIONAL { ?entityIRI :gloss ?gloss . }
+                        OPTIONAL { ?entityIRI :identifier ?identifier . }
+                      }
                     }
-                });
+                    ORDER BY ?entry
+                    OFFSET %d LIMIT %d
+                    """, ONT_NS, graphIRI, entryClass, offset, PAGE_SIZE);
 
-                if (senseTargets.isEmpty()) return;
+                JsonObject json = executeSparqlQuery(sparql);
+                if (json == null) {
+                    System.err.println("[entity-suggest]     SPARQL query failed at offset " + offset);
+                    break;
+                }
 
-                // Use the first sense target's entity as the "primary" for the suggest payload.
-                // The user will pick the specific sense in the second dropdown.
-                String primaryEntityIRI = senseTargets.get(0);
-                EntityInfo primaryInfo = entityInfoMap.get(primaryEntityIRI);
-                String displayLabel = primaryInfo != null && primaryInfo.label != null 
-                    ? primaryInfo.label : entryLabel;
+                JsonArray bindings = json.getAsJsonObject("results").getAsJsonArray("bindings");
+                int pageSize = bindings.size();
 
-                // Add suggest entry (entry label → primary entity IRI)
-                suggestEntries.add(new SuggestEntry(entryLabel, displayLabel, primaryEntityIRI, entityClass));
+                for (JsonElement el : bindings) {
+                    JsonObject row = el.getAsJsonObject();
 
-                // Index sense mappings: for this entry label, record all entity targets
-                // so /api/entity-senses can return them
-                for (String entityIRI : senseTargets) {
-                    EntityInfo info = entityInfoMap.get(entityIRI);
-                    if (info == null) continue;
+                    String label = getVal(row, "label");
+                    String entityIRI = getVal(row, "entityIRI");
+                    String entityLabel = getVal(row, "entityLabel");
+                    String gloss = getVal(row, "gloss");
+                    String identifier = getVal(row, "identifier");
+
+                    if (label == null || entityIRI == null) continue;
+
+                    entryCount.incrementAndGet();
+
+                    // Add to FST suggester — search by entry label, payload = entity info
+                    suggestEntries.add(new SuggestEntry(
+                        label,
+                        entityLabel != null ? entityLabel : label,
+                        entityIRI,
+                        category,
+                        gloss
+                    ));
+
+                    // Index senses (one doc per entry→entity link for sense lookups)
+                    if (seenEntityIRIs.add(entityIRI)) {
+                        entityCount.incrementAndGet();
+                    }
+
+                    // Always index the sense mapping
+                    String senseId = entityIRI;
+                    int pos = Math.max(entityIRI.lastIndexOf('#'), entityIRI.lastIndexOf('/'));
+                    if (pos >= 0) senseId = entityIRI.substring(pos + 1);
 
                     Document doc = new Document();
-                    // Key: the entry's primary entity IRI (what the suggest returns)
-                    doc.add(new StringField("entityIRI", primaryEntityIRI, Field.Store.YES));
+                    doc.add(new StringField("entityIRI", entityIRI, Field.Store.YES));
                     doc.add(new StringField("senseIRI", entityIRI, Field.Store.YES));
-                    doc.add(new StringField("senseId", info.localName(), Field.Store.YES));
-                    doc.add(new StoredField("gloss", info.gloss != null ? info.gloss : ""));
-                    doc.add(new StoredField("label", info.label != null ? info.label : ""));
-                    doc.add(new StringField("category", entityClass, Field.Store.YES));
-                    if (info.identifier != null) {
-                        doc.add(new StoredField("identifier", info.identifier));
+                    doc.add(new StringField("senseId", senseId, Field.Store.YES));
+                    doc.add(new StoredField("gloss", gloss != null ? gloss : ""));
+                    doc.add(new StoredField("label", entityLabel != null ? entityLabel : label));
+                    doc.add(new StringField("category", category, Field.Store.YES));
+                    if (identifier != null) {
+                        doc.add(new StoredField("identifier", identifier));
                     }
 
                     try {
@@ -224,32 +186,34 @@ public class EntitySuggestService {
                     }
                 }
 
-                entryCount.incrementAndGet();
-            });
+                offset += PAGE_SIZE;
+                hasMore = pageSize == PAGE_SIZE;
 
-            // Also add suggest entries directly from entities that may not have entries
-            // (e.g., entities with altLabels we want searchable)
-            for (EntityInfo info : entityInfoMap.values()) {
-                // Add altLabel variants as additional suggest entries
-                for (String alt : info.altLabels) {
-                    suggestEntries.add(new SuggestEntry(alt, 
-                        info.label != null ? info.label : alt, info.iri, entityClass));
+                if (offset % 50000 == 0 || !hasMore) {
+                    System.out.println("[entity-suggest]     " + category + ": "
+                        + entryCount.get() + " entries, "
+                        + entityCount.get() + " unique entities streamed...");
                 }
             }
 
-            // Build the FST suggester
+            // Build the FST suggester for this category
+            AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(
+                new ByteBuffersDirectory(),
+                new StandardAnalyzer()
+            );
+
             if (!suggestEntries.isEmpty()) {
                 suggester.build(new SuggestEntryIterator(suggestEntries));
-                System.out.println("[entity-suggest]     " + displayName + ": " 
-                    + entryCount.get() + " entries, " 
-                    + entityInfoMap.size() + " entities, "
-                    + suggestEntries.size() + " suggest variants");
+                System.out.println("[entity-suggest]     " + category + " FST built: "
+                    + entityCount.get() + " entities, "
+                    + suggestEntries.size() + " label variants");
             } else {
-                System.out.println("[entity-suggest]     " + displayName + ": 0 entries (empty)");
+                System.out.println("[entity-suggest]     " + category + ": 0 entries (empty)");
             }
 
-            suggesters.put(entityClass, suggester);
-            entityCounts.put(entityClass, entryCount.get());
+            suggesters.put(category, suggester);
+            entityCounts.put(category, entityCount.get());
+            entryCounts.put(ENTRY_CLASSES.get(category), entryCount.get());
         }
 
         // Finalize sense index
@@ -259,22 +223,17 @@ public class EntitySuggestService {
         senseSearcher = new IndexSearcher(senseReader);
         totalSenses = senseReader.numDocs();
 
-        long elapsed = System.currentTimeMillis() - startTime;
-        System.out.println("[entity-suggest] Index build complete in " + elapsed + "ms");
-        System.out.println("[entity-suggest]   Total entries indexed: " + 
-            entityCounts.values().stream().mapToLong(Long::longValue).sum());
-        System.out.println("[entity-suggest]   Total sense documents: " + totalSenses);
+        buildTimeMs = System.currentTimeMillis() - startTime;
+        System.out.println("[entity-suggest] Index build complete in " + buildTimeMs + "ms");
+        System.out.println("[entity-suggest]   Total entities: "
+            + entityCounts.values().stream().mapToLong(Long::longValue).sum());
+        System.out.println("[entity-suggest]   Total senses indexed: " + totalSenses);
 
         ready = true;
     }
 
     /**
-     * Autocomplete suggest: returns top matches for a query within a category.
-     *
-     * @param category One of: Person, Organization, GeopoliticalEntity, Product
-     * @param query    Partial text (e.g. "Abdul La")
-     * @param limit    Max results (default 10)
-     * @return List of {label, iri, category} maps
+     * Sub-10ms autocomplete via Lucene FST.
      */
     public List<Map<String, String>> suggest(String category, String query, int limit) throws Exception {
         if (!ready) return List.of();
@@ -288,12 +247,13 @@ public class EntitySuggestService {
         LinkedHashMap<String, Map<String, String>> deduped = new LinkedHashMap<>();
         for (Lookup.LookupResult result : results) {
             String payload = result.payload != null ? result.payload.utf8ToString() : "";
-            // payload format: "primaryLabel\tiri"
-            String[] parts = payload.split("\t", 2);
+            // payload format: "primaryLabel\tiri\tgloss"
+            String[] parts = payload.split("\t", 3);
             if (parts.length < 2) continue;
 
             String primaryLabel = parts[0];
             String iri = parts[1];
+            String gloss = parts.length > 2 ? parts[2] : "";
             String matchedText = result.key.toString();
 
             if (!deduped.containsKey(iri)) {
@@ -301,7 +261,15 @@ public class EntitySuggestService {
                 entry.put("label", primaryLabel);
                 entry.put("iri", iri);
                 entry.put("category", category);
-                // If the match was on an altLabel, show it
+                if (!gloss.isEmpty()) entry.put("gloss", gloss);
+
+                // Extract local name for display
+                String localName = iri;
+                int pos = Math.max(iri.lastIndexOf('#'), iri.lastIndexOf('/'));
+                if (pos >= 0) localName = iri.substring(pos + 1);
+                entry.put("localName", localName);
+
+                // If matched on a different label variant, show it
                 if (!matchedText.equals(primaryLabel)) {
                     entry.put("matchedLabel", matchedText);
                 }
@@ -313,14 +281,21 @@ public class EntitySuggestService {
     }
 
     /**
-     * Get all senses for a given entity IRI.
-     *
-     * @param entityIRI The full IRI of the entity
-     * @return List of {senseId, senseIRI, gloss} maps
+     * Sense lookup: first try local Lucene index, fall back to Virtuoso SPARQL.
      */
     public List<Map<String, String>> getSenses(String entityIRI) throws Exception {
-        if (!ready || senseSearcher == null) return List.of();
+        // Try local Lucene index first (fast)
+        if (ready && senseSearcher != null) {
+            List<Map<String, String>> local = getSensesFromLucene(entityIRI);
+            if (!local.isEmpty()) return local;
+        }
 
+        // Fallback to Virtuoso SPARQL
+        return getSensesFromVirtuoso(entityIRI);
+    }
+
+    private List<Map<String, String>> getSensesFromLucene(String entityIRI) throws Exception {
+        // Find all entries that share this entity → get their other senses
         TermQuery query = new TermQuery(new Term("entityIRI", entityIRI));
         TopDocs topDocs = senseSearcher.search(query, 50);
 
@@ -332,8 +307,53 @@ public class EntitySuggestService {
             sense.put("senseIRI", doc.get("senseIRI"));
             sense.put("gloss", doc.get("gloss"));
             sense.put("label", doc.get("label"));
-            String ident = doc.get("identifier");
+            String identifier = doc.get("identifier");
+            if (identifier != null) sense.put("identifier", identifier);
+            senses.add(sense);
+        }
+
+        return senses;
+    }
+
+    private List<Map<String, String>> getSensesFromVirtuoso(String entityIRI) throws Exception {
+        String sparql = String.format("""
+            PREFIX : <%s>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            SELECT DISTINCT ?senseIRI ?senseLabel ?gloss ?identifier WHERE {
+              GRAPH <%s> {
+                ?entry :sense <%s> ;
+                       :sense ?senseIRI .
+                ?senseIRI rdfs:label ?senseLabel .
+                OPTIONAL { ?senseIRI :gloss ?gloss . }
+                OPTIONAL { ?senseIRI :identifier ?identifier . }
+              }
+            }
+            ORDER BY ?senseLabel
+            """, ONT_NS, graphIRI, entityIRI);
+
+        JsonObject json = executeSparqlQuery(sparql);
+        if (json == null) return List.of();
+
+        List<Map<String, String>> senses = new ArrayList<>();
+        JsonArray bindings = json.getAsJsonObject("results").getAsJsonArray("bindings");
+
+        for (JsonElement el : bindings) {
+            JsonObject row = el.getAsJsonObject();
+            String senseIRI = getVal(row, "senseIRI");
+            Map<String, String> sense = new LinkedHashMap<>();
+            sense.put("senseIRI", senseIRI);
+            sense.put("label", getVal(row, "senseLabel"));
+
+            String senseId = senseIRI;
+            int pos = Math.max(senseIRI.lastIndexOf('#'), senseIRI.lastIndexOf('/'));
+            if (pos >= 0) senseId = senseIRI.substring(pos + 1);
+            sense.put("senseId", senseId);
+
+            String gloss = getVal(row, "gloss");
+            if (gloss != null) sense.put("gloss", gloss);
+            String ident = getVal(row, "identifier");
             if (ident != null) sense.put("identifier", ident);
+
             senses.add(sense);
         }
 
@@ -341,13 +361,17 @@ public class EntitySuggestService {
     }
 
     /**
-     * Get index statistics.
+     * Index statistics.
      */
     public Map<String, Object> getStats() {
         Map<String, Object> stats = new LinkedHashMap<>();
         stats.put("ready", ready);
+        stats.put("sparqlEndpoint", sparqlEndpoint);
+        stats.put("graphIRI", graphIRI);
         stats.put("entityCounts", new LinkedHashMap<>(entityCounts));
+        stats.put("entryCounts", new LinkedHashMap<>(entryCounts));
         stats.put("totalSenses", totalSenses);
+        stats.put("buildTimeMs", buildTimeMs);
         stats.put("categories", CATEGORIES);
         return stats;
     }
@@ -356,56 +380,59 @@ public class EntitySuggestService {
         return ready;
     }
 
-    // ========================================================================
-    // Internal: EntityInfo — cached entity data for linking
-    // ========================================================================
+    // ── SPARQL HTTP client ────────────────────────────────────────────────────
 
-    private static class EntityInfo {
-        final String iri;
-        final String label;
-        final String gloss;
-        final String identifier;
-        final Set<String> altLabels;
+    private JsonObject executeSparqlQuery(String sparql) throws Exception {
+        String encoded = URLEncoder.encode(sparql, StandardCharsets.UTF_8);
+        String url = sparqlEndpoint + "?query=" + encoded + "&format=json";
 
-        EntityInfo(String iri, String label, String gloss, String identifier, Set<String> altLabels) {
-            this.iri = iri;
-            this.label = label;
-            this.gloss = gloss;
-            this.identifier = identifier;
-            this.altLabels = altLabels != null ? altLabels : Set.of();
+        HttpRequest req = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .header("Accept", "application/sparql-results+json")
+            .GET()
+            .timeout(java.time.Duration.ofSeconds(120))
+            .build();
+
+        HttpResponse<String> resp = http.send(req, BodyHandlers.ofString());
+
+        if (resp.statusCode() != 200) {
+            System.err.println("[entity-suggest] SPARQL error " + resp.statusCode()
+                + ": " + resp.body().substring(0, Math.min(300, resp.body().length())));
+            return null;
         }
 
-        /** Extract local name from IRI (e.g. "Spanish_wine.product_entity.01") */
-        String localName() {
-            if (iri == null) return "";
-            int hash = iri.lastIndexOf('#');
-            int slash = iri.lastIndexOf('/');
-            int pos = Math.max(hash, slash);
-            return pos >= 0 ? iri.substring(pos + 1) : iri;
-        }
+        return gson.fromJson(resp.body(), JsonObject.class);
     }
 
-    // ========================================================================
-    // Internal: SuggestEntry + Iterator for AnalyzingInfixSuggester.build()
-    // ========================================================================
+    private static String getVal(JsonObject row, String varName) {
+        JsonObject binding = row.getAsJsonObject(varName);
+        if (binding == null) return null;
+        JsonElement val = binding.get("value");
+        return val != null ? val.getAsString() : null;
+    }
+
+    // ── FST data structures ──────────────────────────────────────────────────
 
     private static class SuggestEntry {
-        final String searchText;   // The text to match against (may be altLabel)
-        final String primaryLabel; // The primary display label
+        final String searchText;
+        final String primaryLabel;
         final String iri;
         final String category;
+        final String gloss;
 
-        SuggestEntry(String searchText, String primaryLabel, String iri, String category) {
+        SuggestEntry(String searchText, String primaryLabel, String iri,
+                     String category, String gloss) {
             this.searchText = searchText;
             this.primaryLabel = primaryLabel;
             this.iri = iri;
             this.category = category;
+            this.gloss = gloss;
         }
     }
 
     /**
-     * Iterator adapter for feeding entries into AnalyzingInfixSuggester.
-     * Payload encodes "primaryLabel\tiri" for retrieval at suggest time.
+     * Iterator adapter for AnalyzingInfixSuggester.build().
+     * Payload: "primaryLabel\tiri\tgloss" — resolved at suggest time, no second lookup.
      */
     private static class SuggestEntryIterator implements org.apache.lucene.search.suggest.InputIterator {
         private final Iterator<SuggestEntry> iter;
@@ -426,29 +453,22 @@ public class EntitySuggestService {
 
         @Override
         public BytesRef payload() {
-            return new BytesRef(current.primaryLabel + "\t" + current.iri);
+            String gloss = current.gloss != null ? current.gloss : "";
+            // Truncate gloss in payload to save FST memory (full gloss is in sense index)
+            if (gloss.length() > 120) gloss = gloss.substring(0, 120) + "...";
+            return new BytesRef(current.primaryLabel + "\t" + current.iri + "\t" + gloss);
         }
 
         @Override
-        public boolean hasPayloads() {
-            return true;
-        }
+        public boolean hasPayloads() { return true; }
 
         @Override
-        public long weight() {
-            // Could use popularity/frequency ranking here.
-            // For now, uniform weight; Lucene still ranks by match quality.
-            return 1;
-        }
+        public long weight() { return 1; }
 
         @Override
-        public boolean hasContexts() {
-            return false;
-        }
+        public boolean hasContexts() { return false; }
 
         @Override
-        public Set<BytesRef> contexts() {
-            return null;
-        }
+        public Set<BytesRef> contexts() { return null; }
     }
 }

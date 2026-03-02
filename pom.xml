@@ -42,8 +42,13 @@
             <artifactId>shacl</artifactId>
             <version>1.4.3</version>
         </dependency>
-
-        <!-- Lucene core + suggest (FST-backed AnalyzingInfixSuggester) -->
+        <!-- Gson for parsing Virtuoso SPARQL JSON responses -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+        <!-- Lucene for FST-backed autocomplete -->
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>

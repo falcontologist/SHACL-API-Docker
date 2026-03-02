@@ -20,39 +20,38 @@ import java.util.*;
 public class App {
 
     private static final String ONT_NS   = "https://falcontologist.github.io/shacl-demo/ontology/";
-    // manifest uses ONT_NS for its properties
+
     private static final String MANIFEST_URL =
         System.getenv().getOrDefault("ONTOLOGY_MANIFEST",
             "https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/main/manifest.ttl");
 
+    // Virtuoso SPARQL endpoint (read-only)
     private static final String VIRTUOSO_SPARQL =
         System.getenv().getOrDefault("VIRTUOSO_SPARQL_URL",
-            "http://virtuoso:8890/sparql");
+            "https://virtuoso-sparql-service.onrender.com/sparql");
+
+    // Virtuoso graph IRI
+    private static final String VIRTUOSO_GRAPH =
+        System.getenv().getOrDefault("VIRTUOSO_GRAPH_IRI",
+            "http://shacl-demo.org/type");
 
     private static final HttpClient HTTP = HttpClient.newHttpClient();
 
-    // Shared in-memory ontology model loaded at startup
+    // Small ontology model (conceptual + structural + lexical) for SHACL inference
     static Model ontologyModel;
 
-    // Entity autocomplete service (Lucene FST-backed)
+    // Entity autocomplete: Lucene FST backed, data from Virtuoso
     static EntitySuggestService entitySuggestService;
 
     public static void main(String[] args) throws Exception {
 
-        // ── Load federated ontology graph ─────────────────────────────────────
+        // ── Load small ontology into Jena (fast) ────────────────────────────
         ontologyModel = loadOntology();
 
-        // ── Build entity autocomplete index ───────────────────────────────────
-        entitySuggestService = new EntitySuggestService();
-        try {
-            entitySuggestService.buildIndex(ontologyModel);
-        } catch (Exception e) {
-            System.err.println("[startup] Entity suggest index build failed: " + e.getMessage());
-            e.printStackTrace();
-            // Non-fatal: suggest endpoints will return empty until fixed
-        }
+        // ── Initialize entity suggest service ───────────────────────────────
+        entitySuggestService = new EntitySuggestService(VIRTUOSO_SPARQL, VIRTUOSO_GRAPH);
 
-        // ── Javalin app ───────────────────────────────────────────────────────
+        // ── Start server immediately (FST builds in background) ─────────────
         Javalin app = Javalin.create(config -> {
             config.bundledPlugins.enableCors(cors -> {
                 cors.addRule(rule -> rule.anyHost());
@@ -71,13 +70,26 @@ public class App {
         app.post("/api/save",           SaveRoute::handle);
         app.get("/api/sparql",          App::sparqlProxy);
 
-        // ── Entity autocomplete routes ────────────────────────────────────────
+        // Entity autocomplete (Lucene FST + Virtuoso)
         app.get("/api/entity-suggest",  App::entitySuggest);
         app.get("/api/entity-senses",   App::entitySenses);
         app.get("/api/entity-stats",    App::entityStats);
+
+        // ── Build FST index in background thread ────────────────────────────
+        // Server is already accepting requests; suggest returns empty until ready.
+        Thread indexThread = new Thread(() -> {
+            try {
+                entitySuggestService.buildIndexFromVirtuoso();
+            } catch (Exception e) {
+                System.err.println("[startup] Entity suggest index build failed: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }, "entity-suggest-builder");
+        indexThread.setDaemon(true);
+        indexThread.start();
     }
 
-    // ── Entity suggest (autocomplete) ──────────────────────────────────────────
+    // ── Entity suggest (autocomplete — hits Lucene FST, sub-10ms) ─────────────
     static void entitySuggest(Context ctx) {
         String category = ctx.queryParam("type");
         String query = ctx.queryParam("q");
@@ -95,8 +107,9 @@ public class App {
             ctx.status(400).json(Map.of("error", "Missing 'q' parameter"));
             return;
         }
+
+        // Resolve friendly short names
         if (!EntitySuggestService.CATEGORIES.contains(category)) {
-            // Try resolving friendly short names
             String resolved = switch (category.toLowerCase()) {
                 case "person" -> "Person_Entity";
                 case "organization", "org" -> "Organization_Entity";
@@ -124,7 +137,8 @@ public class App {
                 "count", results.size(),
                 "query", query,
                 "type", category,
-                "latencyMicros", elapsedMicros
+                "latencyMicros", elapsedMicros,
+                "ready", entitySuggestService.isReady()
             ));
         } catch (Exception e) {
             System.err.println("[entity-suggest] Error: " + e.getMessage());
@@ -142,11 +156,7 @@ public class App {
 
         try {
             List<Map<String, String>> senses = entitySuggestService.getSenses(iri);
-            ctx.json(Map.of(
-                "iri", iri,
-                "senses", senses,
-                "count", senses.size()
-            ));
+            ctx.json(Map.of("iri", iri, "senses", senses, "count", senses.size()));
         } catch (Exception e) {
             System.err.println("[entity-senses] Error: " + e.getMessage());
             ctx.status(500).json(Map.of("error", "Sense lookup failed: " + e.getMessage()));
@@ -198,56 +208,44 @@ public class App {
         Property typeProp  = ontologyModel.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
         Property subPropOf = ontologyModel.createProperty("http://www.w3.org/2000/01/rdf-schema#subPropertyOf");
 
-        // 1. Shapes
         long shapes = ontologyModel.listSubjectsWithProperty(
-            typeProp, 
+            typeProp,
             ontologyModel.createResource(ONT_NS + "Situation_shape")
         ).toList().size();
 
-        // 2. Rules
         long rules = ontologyModel.listSubjectsWithProperty(
-            typeProp, 
+            typeProp,
             ontologyModel.createResource("http://www.w3.org/ns/shacl#SPARQLRule")
         ).toList().size();
 
-        // 3. Roles (Iterative traversal from :shape_element to catch all ~200 descendants)
         Set<Resource> rolesSet = new HashSet<>();
         Queue<Resource> queue = new LinkedList<>();
         queue.add(ontologyModel.createResource(ONT_NS + "shape_element"));
-        
         while (!queue.isEmpty()) {
             Resource current = queue.poll();
             ontologyModel.listSubjectsWithProperty(subPropOf, current).forEachRemaining(child -> {
-                if (rolesSet.add(child)) { // Only add to queue if we haven't seen it yet
-                    queue.add(child);
-                }
+                if (rolesSet.add(child)) queue.add(child);
             });
         }
-        long roles = rolesSet.size();
 
-        // 4. Lemmas (Count distinct nodes that have a :lemma property)
         Set<Resource> lemmasSet = new HashSet<>();
         ontologyModel.listSubjectsWithProperty(ontologyModel.createProperty(ONT_NS + "lemma"))
             .forEachRemaining(lemmasSet::add);
-        long lemmas = lemmasSet.size();
 
-        // 5. Senses (Count distinct nodes of type :Synset or having a :gloss)
         Set<Resource> sensesSet = new HashSet<>();
         ontologyModel.listSubjectsWithProperty(ontologyModel.createProperty(ONT_NS + "gloss"))
             .forEachRemaining(sensesSet::add);
         ontologyModel.listSubjectsWithProperty(typeProp, ontologyModel.createResource(ONT_NS + "Synset"))
             .forEachRemaining(sensesSet::add);
-        long senses = sensesSet.size();
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("shapes", shapes);
-        result.put("roles", roles);
+        result.put("roles", rolesSet.size());
         result.put("rules", rules);
-        result.put("lemmas", lemmas);
-        result.put("senses", senses);
+        result.put("lemmas", lemmasSet.size());
+        result.put("senses", sensesSet.size());
         result.put("total_triples", ontologyModel.size());
-        
-        // Include entity counts from suggest service
+
         if (entitySuggestService != null && entitySuggestService.isReady()) {
             result.put("entities", entitySuggestService.getStats().get("entityCounts"));
         }
@@ -300,13 +298,11 @@ public class App {
 
         Property lemmaProp  = ontologyModel.createProperty(ONT_NS + "lemma");
         Property glossProp  = ontologyModel.createProperty(ONT_NS + "gloss");
-        // FIX 1: Property in lexical.ttl is :evokes, not :situation
         Property sitProp    = ontologyModel.createProperty(ONT_NS + "evokes");
 
         List<Map<String, Object>> senses = new ArrayList<>();
 
         ontologyModel.listSubjectsWithProperty(lemmaProp, verb).forEach(lemmaNode -> {
-            // FIX 2: Iterate over the lemmaNode's :sense properties to find the synset object
             lemmaNode.listProperties(ontologyModel.createProperty(ONT_NS + "sense")).forEach(senseStmt -> {
                 Resource synsetNode = senseStmt.getObject().asResource();
                 Statement glossSt = synsetNode.getProperty(glossProp);
@@ -342,7 +338,6 @@ public class App {
 
         System.out.println("[infer] Loaded input: " + inputModel.size() + " triples");
 
-        // Add lemma nodes from ontology for present3sg lookup
         Property lemmaProp = ontologyModel.createProperty(ONT_NS + "lemma");
         Property p3sgProp  = ontologyModel.createProperty(ONT_NS + "present3sg");
 
@@ -350,8 +345,6 @@ public class App {
         inputModel.listObjectsOfProperty(lemmaProp).forEach(o -> {
             if (o.isLiteral()) lemmas.add(o.asLiteral().getString());
         });
-
-        System.out.println("[infer] Found " + lemmas.size() + " unique lemmas: " + lemmas);
 
         Model lemmaModel = ModelFactory.createDefaultModel();
         lemmas.forEach(lemma -> {
@@ -362,12 +355,9 @@ public class App {
                     ln.addProperty(lemmaModel.createProperty(ONT_NS + "lemma"), lemma);
                     ln.addProperty(lemmaModel.createProperty(ONT_NS + "present3sg"),
                         p3sg.getLiteral().getString());
-                    System.out.println("[infer]   Added: " + lemma + " → " + p3sg.getLiteral().getString());
                 }
             });
         });
-
-        System.out.println("[infer] Added " + lemmas.size() + " lemma nodes");
 
         Model dataModel = ModelFactory.createDefaultModel();
         dataModel.add(inputModel);
@@ -377,33 +367,19 @@ public class App {
         dataModel.setNsPrefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
         dataModel.setNsPrefix("rdf",  "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
 
-        System.out.println("[infer] Data model before inference: " + dataModel.size() + " triples");
-
-        Model shapesModel = ontologyModel;
-        System.out.println("[infer] Executing SHACL rules...");
-
         Model inferredModel;
         try {
-            inferredModel = RuleUtil.executeRules(dataModel, shapesModel, null, null);
+            inferredModel = RuleUtil.executeRules(dataModel, ontologyModel, null, null);
         } catch (Exception e) {
-            System.err.println("[infer] Rule execution error: " + e.getMessage());
             ctx.status(500).result("Inference error: " + e.getMessage());
             return;
         }
-        long newTriples = inferredModel.size();
-        System.out.println("[infer] Generated " + newTriples + " new triples");
 
-        // Remove lemma/synset triples (opaque — not for display)
         dataModel.removeAll(null, dataModel.createProperty(ONT_NS + "lemma"), null);
         dataModel.removeAll(null, dataModel.createProperty(ONT_NS + "synset"), null);
         dataModel.removeAll(null, dataModel.createProperty(ONT_NS + "present3sg"), null);
         dataModel.remove(lemmaModel);
-
-        long removedTriples = inputModel.size() - dataModel.size();
-        System.out.println("[infer] Removed " + removedTriples + " lemma triples");
-
         dataModel.add(inferredModel);
-        System.out.println("[infer] Complete. Total: " + dataModel.size() + " triples");
 
         StringWriter sw = new StringWriter();
         dataModel.write(sw, "TURTLE");
@@ -413,7 +389,7 @@ public class App {
             "inferred_data", sw.toString(),
             "stats", Map.of(
                 "input_triples",    inputModel.size(),
-                "inferred_triples", newTriples,
+                "inferred_triples", inferredModel.size(),
                 "total_triples",    dataModel.size()
             )
         ));
@@ -446,70 +422,37 @@ public class App {
         ));
     }
 
-    // ── Load ontology ─────────────────────────────────────────────────────────
-    // Directory where Dockerfile copies TTL files (local-first loading)
-    private static final String LOCAL_TTL_DIR =
-        System.getenv().getOrDefault("LOCAL_TTL_DIR", "/app");
-
+    // ── Load ontology (small partitions only) ────────────────────────────────
     static Model loadOntology() throws Exception {
         System.out.println("[startup] Loading manifest from: " + MANIFEST_URL);
 
-        // Derive base URL from manifest URL (everything up to and including last /)
         String baseUrl = MANIFEST_URL.substring(0, MANIFEST_URL.lastIndexOf('/') + 1);
 
         Model manifest = ModelFactory.createDefaultModel();
         RDFDataMgr.read(manifest, MANIFEST_URL);
         System.out.println("[startup] Manifest loaded: " + manifest.size() + " triples");
 
-        // Print all distinct namespaces seen in the manifest for debugging
-        manifest.listStatements().forEach(stmt -> {
-            String ns = stmt.getPredicate().getNameSpace();
-            System.out.println("[startup] predicate ns: " + ns + " | local: " + stmt.getPredicate().getLocalName());
-        });
-
-        // Manifest schema uses :sourceFile and :loadOrder under ONT_NS
         Property orderProp  = manifest.createProperty(ONT_NS + "loadOrder");
         Property sourceProp = manifest.createProperty(ONT_NS + "sourceFile");
-        System.out.println("[startup] Looking for orderProp: " + orderProp);
 
-        // Find all partitions that have a loadOrder
-        List<Resource> partitions = manifest
-            .listSubjectsWithProperty(orderProp).toList();
+        List<Resource> partitions = manifest.listSubjectsWithProperty(orderProp).toList();
         System.out.println("[startup] Found " + partitions.size() + " partitions");
 
-        if (partitions.isEmpty()) {
-            System.err.println("[startup] WARNING: No partitions found in manifest. " +
-                "Check that manifest uses <" + ONT_NS + "loadOrder> and <" + ONT_NS + "sourceFile>.");
-        }
-
-        partitions.sort(Comparator.comparingInt(r ->
-            r.getProperty(orderProp).getInt()));
+        partitions.sort(Comparator.comparingInt(r -> r.getProperty(orderProp).getInt()));
 
         Model combined = ModelFactory.createDefaultModel();
         long running = 0;
 
         for (Resource partition : partitions) {
             Statement srcSt = partition.getProperty(sourceProp);
-            if (srcSt == null) {
-                System.out.println("[startup] Skipping partition with no sourceFile: " + partition);
-                continue;
-            }
+            if (srcSt == null) continue;
+
             int order = partition.getProperty(orderProp).getInt();
             String sourceFile = srcSt.getLiteral().getString();
+            String url = baseUrl + sourceFile;
 
-            // Try local file first (Dockerfile copies LFS files here)
-            java.io.File localFile = new java.io.File(LOCAL_TTL_DIR, sourceFile);
-            if (localFile.exists() && localFile.length() > 0) {
-                System.out.println("[startup] Loading partition " + order + " (local): " + localFile.getAbsolutePath());
-                try (java.io.InputStream fis = new java.io.FileInputStream(localFile)) {
-                    RDFDataMgr.read(combined, fis, Lang.TURTLE);
-                }
-            } else {
-                // Fall back to remote URL
-                String url = baseUrl + sourceFile;
-                System.out.println("[startup] Loading partition " + order + " (remote): " + url);
-                RDFDataMgr.read(combined, url);
-            }
+            System.out.println("[startup] Loading partition " + order + ": " + url);
+            RDFDataMgr.read(combined, url);
 
             long added = combined.size() - running;
             running = combined.size();
