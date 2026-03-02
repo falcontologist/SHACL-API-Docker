@@ -9,9 +9,18 @@ RUN mvn package -DskipTests
 
 # Step 2: Fetch LFS-hosted TTL files
 FROM alpine/git:latest AS lfs-fetch
-RUN git lfs install
+
+# Install Git LFS (alpine/git doesn't include it by default)
+RUN apk add --no-cache git-lfs \
+    && git lfs install --system
+
 WORKDIR /data
-RUN git clone --no-checkout https://github.com/falcontologist/SHACL-API-Docker.git . \
+
+# Clone and fetch LFS files properly
+RUN git clone https://github.com/falcontologist/SHACL-API-Docker.git . \
+    && git lfs fetch --all \
+    && git checkout main \
+    && git lfs pull \
     && git checkout main -- \
        lexical.ttl \
        person_entity.ttl \
@@ -21,10 +30,9 @@ RUN git clone --no-checkout https://github.com/falcontologist/SHACL-API-Docker.g
        gpe_entity.ttl \
        gpe_entry.ttl \
        product_entity.ttl \
-       product_entry.ttl \
-    && git lfs pull --include="*.ttl"
+       product_entry.ttl
 
-# Verify files are real TTL content, not LFS pointers (build fails fast if wrong)
+# Verify files are real TTL content
 RUN head -1 /data/gpe_entity.ttl | grep -q "prefix" \
     && echo "=== LFS pull verified OK ===" \
     || (echo "ERROR: gpe_entity.ttl is still an LFS pointer!" && cat /data/gpe_entity.ttl && exit 1)
