@@ -2,91 +2,100 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
-
 ### ONTOLOGY MANIFEST ###
 ### Single entry point for the federated ontology graph.
 ### Load partitions in :loadOrder sequence; :requires declares dependencies.
-
 :OntologyManifest a :Manifest ;
     rdfs:label "Roles Ontology Manifest" ;
     rdfs:comment "Dereference this IRI to discover and load all ontology partitions in dependency order." ;
-    :partitions :conceptual, :structural, :lexical, :gpe_entity, :gpe_entry, :product_entity, :product_entry .
-
+    :partitions :conceptual, :structural, :lexical, :gpe_entity, :gpe_entry, :product_entity, :product_entry, :person_entity, :person_entry, :organization_entity, :organization_entry .
 :OntologyPartition a rdfs:Class ;
     rdfs:label "Ontology Partition" ;
     rdfs:comment "A named, independently loadable segment of the ontology graph." .
-
 :Manifest a rdfs:Class ;
     rdfs:label "Manifest" ;
     rdfs:comment "Entry point describing a federated set of ontology partitions." .
-
 :sourceFile a rdf:Property ;
     rdfs:label "source file" ;
     rdfs:comment "Relative path to the TTL file for this partition." ;
     rdfs:domain :OntologyPartition .
-
 :loadOrder a rdf:Property ;
     rdfs:label "load order" ;
     rdfs:comment "Integer indicating the sequence in which partitions must be loaded." ;
     rdfs:domain :OntologyPartition ;
     rdfs:range xsd:integer .
-
 :requires a rdf:Property ;
     rdfs:label "requires" ;
     rdfs:comment "Declares a dependency: this partition must be loaded after the referenced partition." ;
     rdfs:domain :OntologyPartition ;
     rdfs:range :OntologyPartition .
-
 :partitions a rdf:Property ;
     rdfs:label "partitions" ;
     rdfs:comment "Links a manifest to its constituent partitions." ;
     rdfs:domain :Manifest ;
     rdfs:range :OntologyPartition .
-
 :conceptual a :OntologyPartition ;
     rdfs:label "Conceptual Partition" ;
     rdfs:comment "Classes, properties, semantic domains, and role hierarchy. No SHACL dependencies." ;
     :sourceFile "conceptual.ttl" ;
     :loadOrder 1 .
-
 :structural a :OntologyPartition ;
     rdfs:label "Structural Partition" ;
     rdfs:comment "SHACL shapes, SPARQL inference rules, and ontology metadata. Depends on conceptual." ;
     :sourceFile "structural.ttl" ;
     :requires :conceptual ;
     :loadOrder 2 .
-
 :lexical a :OntologyPartition ;
     rdfs:label "Lexical Partition" ;
     rdfs:comment "VerbNet classes, verb lemmas, and WordNet synsets. Depends on structural." ;
     :sourceFile "lexical.ttl" ;
     :requires :structural ;
     :loadOrder 3 .
-
 :gpe_entity a :OntologyPartition ;
     rdfs:label "Geopolitical Entity Partition" ;
     rdfs:comment "Geopolitical entities, continents, countries, and geographical regions." ;
     :sourceFile "gpe_entity.ttl" ;
     :requires :conceptual ;
     :loadOrder 4 .
-
 :gpe_entry a :OntologyPartition ;
     rdfs:label "Geopolitical Entry Partition" ;
     rdfs:comment "Lexical entries for geopolitical entities mapping terms to their entity forms." ;
     :sourceFile "gpe_entry.ttl" ;
     :requires :gpe_entity ;
     :loadOrder 5 .
-
 :product_entity a :OntologyPartition ;
     rdfs:label "Product Entity Partition" ;
     rdfs:comment "Physical goods, software, and manufactured products extracted from external sources." ;
     :sourceFile "product_entity.ttl" ;
     :requires :conceptual ;
     :loadOrder 6 .
-
 :product_entry a :OntologyPartition ;
     rdfs:label "Product Entry Partition" ;
     rdfs:comment "Lexical entries for products mapping commercial names to their entity forms." ;
     :sourceFile "product_entry.ttl" ;
     :requires :product_entity ;
     :loadOrder 7 .
+:person_entity a :OntologyPartition ;
+    rdfs:label "Person Entity Partition" ;
+    rdfs:comment "Named person entities extracted from Wikidata and other sources." ;
+    :sourceFile "person_entity.ttl" ;
+    :requires :conceptual ;
+    :loadOrder 8 .
+:person_entry a :OntologyPartition ;
+    rdfs:label "Person Entry Partition" ;
+    rdfs:comment "Lexical entries for persons mapping names to their entity forms." ;
+    :sourceFile "person_entry.ttl" ;
+    :requires :person_entity ;
+    :loadOrder 9 .
+:organization_entity a :OntologyPartition ;
+    rdfs:label "Organization Entity Partition" ;
+    rdfs:comment "Named organization entities extracted from Wikidata and other sources." ;
+    :sourceFile "organization_entity.ttl" ;
+    :requires :conceptual ;
+    :loadOrder 10 .
+:organization_entry a :OntologyPartition ;
+    rdfs:label "Organization Entry Partition" ;
+    rdfs:comment "Lexical entries for organizations mapping names to their entity forms." ;
+    :sourceFile "organization_entry.ttl" ;
+    :requires :organization_entity ;
+    :loadOrder 11 .

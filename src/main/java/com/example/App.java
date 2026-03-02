@@ -447,6 +447,10 @@ public class App {
     }
 
     // ── Load ontology ─────────────────────────────────────────────────────────
+    // Directory where Dockerfile copies TTL files (local-first loading)
+    private static final String LOCAL_TTL_DIR =
+        System.getenv().getOrDefault("LOCAL_TTL_DIR", "/app");
+
     static Model loadOntology() throws Exception {
         System.out.println("[startup] Loading manifest from: " + MANIFEST_URL);
 
@@ -492,10 +496,20 @@ public class App {
             }
             int order = partition.getProperty(orderProp).getInt();
             String sourceFile = srcSt.getLiteral().getString();
-            String url = baseUrl + sourceFile;
 
-            System.out.println("[startup] Loading partition " + order + ": " + url);
-            RDFDataMgr.read(combined, url);
+            // Try local file first (Dockerfile copies LFS files here)
+            java.io.File localFile = new java.io.File(LOCAL_TTL_DIR, sourceFile);
+            if (localFile.exists() && localFile.length() > 0) {
+                System.out.println("[startup] Loading partition " + order + " (local): " + localFile.getAbsolutePath());
+                try (java.io.InputStream fis = new java.io.FileInputStream(localFile)) {
+                    RDFDataMgr.read(combined, fis, Lang.TURTLE);
+                }
+            } else {
+                // Fall back to remote URL
+                String url = baseUrl + sourceFile;
+                System.out.println("[startup] Loading partition " + order + " (remote): " + url);
+                RDFDataMgr.read(combined, url);
+            }
 
             long added = combined.size() - running;
             running = combined.size();
