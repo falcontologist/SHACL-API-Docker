@@ -11,8 +11,7 @@ RUN mvn package -DskipTests
 FROM alpine/git:latest AS lfs-fetch
 RUN git lfs install
 WORKDIR /data
-RUN git clone --depth 1 --filter=blob:none --no-checkout https://github.com/falcontologist/SHACL-API-Docker.git . \
-    && git lfs pull --include="*.ttl" \
+RUN git clone --no-checkout https://github.com/falcontologist/SHACL-API-Docker.git . \
     && git checkout main -- \
        lexical.ttl \
        person_entity.ttl \
@@ -22,7 +21,13 @@ RUN git clone --depth 1 --filter=blob:none --no-checkout https://github.com/falc
        gpe_entity.ttl \
        gpe_entry.ttl \
        product_entity.ttl \
-       product_entry.ttl
+       product_entry.ttl \
+    && git lfs pull --include="*.ttl"
+
+# Verify files are real TTL content, not LFS pointers (build fails fast if wrong)
+RUN head -1 /data/gpe_entity.ttl | grep -q "prefix" \
+    && echo "=== LFS pull verified OK ===" \
+    || (echo "ERROR: gpe_entity.ttl is still an LFS pointer!" && cat /data/gpe_entity.ttl && exit 1)
 
 # Step 3: Run the JAR
 FROM eclipse-temurin:17-jre
