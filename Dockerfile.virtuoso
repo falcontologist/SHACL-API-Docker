@@ -1,3 +1,19 @@
 FROM openlink/virtuoso-opensource-7:7.2.16-r23.1-g01a90e1-ubuntu
 
+# -----------------------------------------------------------------------------
+# RENDER PRO TIER MEMORY FIX (512 MB Limit)
+# Overriding default virtuoso.ini settings via VIRT_ environment variables
+# -----------------------------------------------------------------------------
+
+# NumberOfBuffers = 20000 (Caps Virtuoso's base memory footprint to roughly 160 MB)
+ENV VIRT_Parameters_NumberOfBuffers=20000
+
+# MaxDirtyBuffers = 15000 (Set to 75% of NumberOfBuffers)
+ENV VIRT_Parameters_MaxDirtyBuffers=15000
+
+# MaxQueryMem = 50M (Prevents a single complex SPARQL query from spiking RAM and crashing the server)
+ENV VIRT_Parameters_MaxQueryMem=50M
+
+# -----------------------------------------------------------------------------
+
 COPY virtuoso-init/init.sql /opt/virtuoso-opensource/initdb.d/init.sql
