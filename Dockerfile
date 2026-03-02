@@ -7,17 +7,37 @@ COPY src ./src
 COPY roles_shacl.ttl .
 RUN mvn package -DskipTests
 
-# Step 2: Run the JAR
+# Step 2: Fetch LFS-hosted TTL files
+FROM alpine/git:latest AS lfs-fetch
+RUN git lfs install
+WORKDIR /data
+RUN git clone --depth 1 --filter=blob:none --no-checkout https://github.com/falcontologist/SHACL-API-Docker.git . \
+    && git lfs pull --include="*.ttl" \
+    && git checkout main -- \
+       lexical.ttl \
+       person_entity.ttl \
+       person_entry.ttl \
+       organization_entity.ttl \
+       organization_entry.ttl \
+       gpe_entity.ttl \
+       gpe_entry.ttl \
+       product_entity.ttl \
+       product_entry.ttl
+
+# Step 3: Run the JAR
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /app/target/shacl-service-1.0-SNAPSHOT-jar-with-dependencies.jar ./app.jar
 COPY roles_shacl.ttl .
 COPY test2.ttl .
-
-# Cache lexical partition at build time — large file, changes infrequently
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
-    && curl -f -o /app/lexical.ttl https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/main/lexical.ttl \
-    && apt-get purge -y curl && rm -rf /var/lib/apt/lists/*
-
+COPY --from=lfs-fetch /data/lexical.ttl ./lexical.ttl
+COPY --from=lfs-fetch /data/person_entity.ttl ./person_entity.ttl
+COPY --from=lfs-fetch /data/person_entry.ttl ./person_entry.ttl
+COPY --from=lfs-fetch /data/organization_entity.ttl ./organization_entity.ttl
+COPY --from=lfs-fetch /data/organization_entry.ttl ./organization_entry.ttl
+COPY --from=lfs-fetch /data/gpe_entity.ttl ./gpe_entity.ttl
+COPY --from=lfs-fetch /data/gpe_entry.ttl ./gpe_entry.ttl
+COPY --from=lfs-fetch /data/product_entity.ttl ./product_entity.ttl
+COPY --from=lfs-fetch /data/product_entry.ttl ./product_entry.ttl
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
