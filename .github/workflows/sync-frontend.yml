@@ -1,0 +1,25 @@
+name: Sync frontend to shacl-demo repo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'shacl-demo/**'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout SHACL-API-Docker
+        uses: actions/checkout@v4
+
+      - name: Push to shacl-demo repo
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.SHACL_DEMO_DEPLOY_TOKEN }}
+        with:
+          source-directory: 'shacl-demo'
+          destination-github-username: 'falcontologist'
+          destination-repository-name: 'shacl-demo'
+          target-branch: 'main'
+          commit-message: 'sync from SHACL-API-Docker: ${{ github.event.head_commit.message }}'
