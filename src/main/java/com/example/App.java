@@ -15,6 +15,8 @@ import java.net.URLEncoder;
 import java.net.http.*;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class App {
@@ -34,6 +36,10 @@ public class App {
     private static final String VIRTUOSO_GRAPH =
         System.getenv().getOrDefault("VIRTUOSO_GRAPH_IRI",
             "http://shacl-demo.org/type");
+
+    // API key for protected endpoints (should be set in Render environment)
+    private static final String LOAD_API_KEY =
+        System.getenv().getOrDefault("LOAD_API_KEY", "default-change-me");
 
     private static final HttpClient HTTP = HttpClient.newHttpClient();
 
@@ -75,6 +81,9 @@ public class App {
         app.get("/api/entity-senses",   App::entitySenses);
         app.get("/api/entity-stats",    App::entityStats);
 
+        // New endpoint to load all partitions from manifest.ttl into Virtuoso
+        app.post("/api/load-virtuoso-from-manifest", App::loadVirtuosoFromManifest);
+
         // ── Build FST index in background thread ────────────────────────────
         // Server is already accepting requests; suggest returns empty until ready.
         Thread indexThread = new Thread(() -> {
@@ -87,6 +96,113 @@ public class App {
         }, "entity-suggest-builder");
         indexThread.setDaemon(true);
         indexThread.start();
+    }
+
+    // ── Dynamic Virtuoso loader using manifest.ttl ───────────────────────────
+    static void loadVirtuosoFromManifest(Context ctx) {
+        String providedKey = ctx.header("X-API-Key");
+        if (!LOAD_API_KEY.equals(providedKey)) {
+            ctx.status(403).json(Map.of("error", "Unauthorized"));
+            return;
+        }
+
+        try {
+            // 1. Load manifest from local file (copied by Dockerfile)
+            String manifestPath = "/app/manifest.ttl";
+            if (!Files.exists(Paths.get(manifestPath))) {
+                ctx.status(500).json(Map.of("error", "manifest.ttl not found in container at " + manifestPath));
+                return;
+            }
+
+            Model manifest = ModelFactory.createDefaultModel();
+            try (FileInputStream fis = new FileInputStream(manifestPath)) {
+                RDFDataMgr.read(manifest, fis, Lang.TURTLE);
+            }
+
+            // 2. Define properties
+            Property loadOrderProp = manifest.createProperty(ONT_NS + "loadOrder");
+            Property sourceFileProp = manifest.createProperty(ONT_NS + "sourceFile");
+
+            // 3. Collect partitions with loadOrder
+            List<Resource> partitions = manifest.listSubjectsWithProperty(loadOrderProp).toList();
+            if (partitions.isEmpty()) {
+                ctx.status(500).json(Map.of("error", "No partitions with loadOrder found in manifest"));
+                return;
+            }
+
+            // 4. Sort by loadOrder
+            partitions.sort(Comparator.comparingInt(r -> r.getProperty(loadOrderProp).getInt()));
+
+            // 5. Load each file into Virtuoso
+            List<Map<String, Object>> results = new ArrayList<>();
+            int successCount = 0;
+
+            for (Resource partition : partitions) {
+                Statement srcSt = partition.getProperty(sourceFileProp);
+                if (srcSt == null) {
+                    results.add(Map.of("partition", partition.getLocalName(), "status", "skipped (no sourceFile)"));
+                    continue;
+                }
+
+                String sourceFile = srcSt.getLiteral().getString();
+                String filePath = "/app/" + sourceFile; // files are in the container root (from Dockerfile COPY)
+                if (!Files.exists(Paths.get(filePath))) {
+                    results.add(Map.of("file", sourceFile, "status", "skipped (file not found at " + filePath + ")"));
+                    continue;
+                }
+
+                // SPARQL LOAD (using Virtuoso's LOAD <file://...>)
+                String loadQuery = String.format(
+                    "LOAD <file://%s> INTO GRAPH <%s>",
+                    filePath, VIRTUOSO_GRAPH
+                );
+
+                String url = VIRTUOSO_SPARQL + "?query=" +
+                    URLEncoder.encode(loadQuery, StandardCharsets.UTF_8);
+
+                HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/sparql-update")
+                    .POST(HttpRequest.BodyPublishers.ofString(loadQuery))
+                    .build();
+
+                HttpResponse<String> resp = HTTP.send(req, BodyHandlers.ofString());
+                boolean ok = resp.statusCode() == 200;
+
+                results.add(Map.of(
+                    "file", sourceFile,
+                    "order", partition.getProperty(loadOrderProp).getInt(),
+                    "status", ok ? "loaded" : "failed",
+                    "responseCode", resp.statusCode()
+                ));
+                if (ok) successCount++;
+
+                // Small delay to avoid overwhelming Virtuoso
+                Thread.sleep(1000);
+            }
+
+            // 6. Optionally trigger FST rebuild after loading
+            new Thread(() -> {
+                try {
+                    System.out.println("[load] Data loaded, rebuilding FST...");
+                    entitySuggestService.buildIndexFromVirtuoso();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
+            ctx.json(Map.of(
+                "message", "Loading completed from manifest",
+                "successCount", successCount,
+                "totalPartitions", partitions.size(),
+                "details", results,
+                "fstRebuildStarted", true
+            ));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            ctx.status(500).json(Map.of("error", e.getMessage()));
+        }
     }
 
     // ── Entity suggest (autocomplete — hits Lucene FST, sub-10ms) ─────────────
