@@ -538,44 +538,23 @@ public class App {
         ));
     }
 
-    // ── Load ontology (small partitions only) ────────────────────────────────
     static Model loadOntology() throws Exception {
-        System.out.println("[startup] Loading manifest from: " + MANIFEST_URL);
-
-        String baseUrl = MANIFEST_URL.substring(0, MANIFEST_URL.lastIndexOf('/') + 1);
-
-        Model manifest = ModelFactory.createDefaultModel();
-        RDFDataMgr.read(manifest, MANIFEST_URL);
-        System.out.println("[startup] Manifest loaded: " + manifest.size() + " triples");
-
-        Property orderProp  = manifest.createProperty(ONT_NS + "loadOrder");
-        Property sourceProp = manifest.createProperty(ONT_NS + "sourceFile");
-
-        List<Resource> partitions = manifest.listSubjectsWithProperty(orderProp).toList();
-        System.out.println("[startup] Found " + partitions.size() + " partitions");
-
-        partitions.sort(Comparator.comparingInt(r -> r.getProperty(orderProp).getInt()));
-
-        Model combined = ModelFactory.createDefaultModel();
-        long running = 0;
-
-        for (Resource partition : partitions) {
-            Statement srcSt = partition.getProperty(sourceProp);
-            if (srcSt == null) continue;
-
-            int order = partition.getProperty(orderProp).getInt();
-            String sourceFile = srcSt.getLiteral().getString();
-            String url = baseUrl + sourceFile;
-
-            System.out.println("[startup] Loading partition " + order + ": " + url);
-            RDFDataMgr.read(combined, url);
-
-            long added = combined.size() - running;
-            running = combined.size();
-            System.out.println("[startup]   -> +" + added + " triples (total: " + running + ")");
+        // We only load structural.ttl because it contains the SHACL shapes 
+        // needed for the API to validate and generate forms.
+        // The other partitions are in the Virtuoso db. 
+        String shapesUrl = "https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/main/structural.ttl";
+        
+        System.out.println("[startup] Loading SHACL shapes from: " + shapesUrl);
+        Model model = ModelFactory.createDefaultModel();
+        
+        try {
+            RDFDataMgr.read(model, shapesUrl);
+            System.out.println("[startup] SHACL shapes loaded: " + model.size() + " triples.");
+        } catch (Exception e) {
+            System.err.println("[startup] Critical Error: Could not load structural.ttl");
+            throw e;
         }
-
-        System.out.println("[startup] Federated graph loaded: " + combined.size() + " total triples.");
-        return combined;
+        
+        return model;
     }
 }
