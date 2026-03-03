@@ -606,6 +606,22 @@
                 <span class="ex-label">All Named Graphs</span>
                 List all graphs with triple counts
             </button>
+            <button class="example-btn" onclick="loadExample('persons')">
+                <span class="ex-label">Person Entities</span>
+                Browse people with their senses and Wikidata IDs
+            </button>
+            <button class="example-btn" onclick="loadExample('orgs')">
+                <span class="ex-label">Organization Entities</span>
+                Browse organizations with their senses and Wikidata IDs
+            </button>
+            <button class="example-btn" onclick="loadExample('gpes')">
+                <span class="ex-label">Geopolitical Entities</span>
+                Browse GPEs with their senses and Wikidata IDs
+            </button>
+            <button class="example-btn" onclick="loadExample('products')">
+                <span class="ex-label">Product Entities</span>
+                Browse products with their senses and Wikidata IDs
+            </button>
         </div>
 
         <div class="results-section">
@@ -688,7 +704,55 @@ WHERE {
   GRAPH ?graph { ?s ?p ?o }
 }
 GROUP BY ?graph
-ORDER BY DESC(?triples)`
+ORDER BY DESC(?triples)`,
+        persons: `# Browse Person entries → senses → Wikidata IDs
+SELECT ?label ?senseLabel ?wikidataID
+WHERE {
+  GRAPH <${GRAPH_URI}> {
+    ?entry a <${ONT_NS}Person_Entry> ;
+           rdfs:label ?label ;
+           <${ONT_NS}sense> ?sense .
+    ?sense rdfs:label ?senseLabel .
+    OPTIONAL { ?sense <${ONT_NS}identifier> ?wikidataID }
+  }
+}
+ORDER BY ?label`,
+        orgs: `# Browse Organization entries → senses → Wikidata IDs
+SELECT ?label ?senseLabel ?wikidataID
+WHERE {
+  GRAPH <${GRAPH_URI}> {
+    ?entry a <${ONT_NS}Organization_Entry> ;
+           rdfs:label ?label ;
+           <${ONT_NS}sense> ?sense .
+    ?sense rdfs:label ?senseLabel .
+    OPTIONAL { ?sense <${ONT_NS}identifier> ?wikidataID }
+  }
+}
+ORDER BY ?label`,
+        gpes: `# Browse Geopolitical Entity entries → senses → Wikidata IDs
+SELECT ?label ?senseLabel ?wikidataID
+WHERE {
+  GRAPH <${GRAPH_URI}> {
+    ?entry a <${ONT_NS}Geopolitical_Entry> ;
+           rdfs:label ?label ;
+           <${ONT_NS}sense> ?sense .
+    ?sense rdfs:label ?senseLabel .
+    OPTIONAL { ?sense <${ONT_NS}identifier> ?wikidataID }
+  }
+}
+ORDER BY ?label`,
+        products: `# Browse Product entries → senses → Wikidata IDs
+SELECT ?label ?senseLabel ?wikidataID
+WHERE {
+  GRAPH <${GRAPH_URI}> {
+    ?entry a <${ONT_NS}Product_Entry> ;
+           rdfs:label ?label ;
+           <${ONT_NS}sense> ?sense .
+    ?sense rdfs:label ?senseLabel .
+    OPTIONAL { ?sense <${ONT_NS}identifier> ?wikidataID }
+  }
+}
+ORDER BY ?label`
     };
 }
 
