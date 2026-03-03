@@ -30,7 +30,7 @@ public class App {
     // Virtuoso SPARQL endpoint (read-only)
     private static final String VIRTUOSO_SPARQL =
         System.getenv().getOrDefault("VIRTUOSO_SPARQL_URL",
-            "https://virtuoso-sparql-service.onrender.com/sparql");
+            "https://fkg-6htt.onrender.com/sparql");
 
     // Virtuoso graph IRI
     private static final String VIRTUOSO_GRAPH =
@@ -84,16 +84,16 @@ public class App {
         // New endpoint to load all partitions from manifest.ttl into Virtuoso
         app.post("/api/load-virtuoso-from-manifest", App::loadVirtuosoFromManifest);
 
-        // ── Build FST index in background thread ────────────────────────────
+        // ── Load pre-built FST index in background thread ────────────────
         // Server is already accepting requests; suggest returns empty until ready.
         Thread indexThread = new Thread(() -> {
             try {
-                entitySuggestService.buildIndexFromVirtuoso();
+                entitySuggestService.loadPrebuiltIndex();
             } catch (Exception e) {
-                System.err.println("[startup] Entity suggest index build failed: " + e.getMessage());
+                System.err.println("[startup] FST index load failed: " + e.getMessage());
                 e.printStackTrace();
             }
-        }, "entity-suggest-builder");
+        }, "entity-suggest-loader");
         indexThread.setDaemon(true);
         indexThread.start();
     }
@@ -185,7 +185,7 @@ public class App {
             new Thread(() -> {
                 try {
                     System.out.println("[load] Data loaded, rebuilding FST...");
-                    entitySuggestService.buildIndexFromVirtuoso();
+                    entitySuggestService.loadPrebuiltIndex();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

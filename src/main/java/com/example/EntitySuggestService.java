@@ -7,36 +7,40 @@ import org.apache.lucene.index.*;
 import org.apache.lucene.search.*;
 import org.apache.lucene.search.suggest.Lookup;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
-import org.apache.lucene.store.ByteBuffersDirectory;
+import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.*;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.zip.GZIPInputStream;
 
 /**
- * Hybrid entity autocomplete: Lucene FST for sub-10ms suggest, Virtuoso SPARQL for data.
+ * Entity autocomplete backed by a pre-built Lucene FST index.
  *
  * Architecture:
- *   - At startup, paginated SPARQL queries stream entries from Virtuoso
- *   - Per-category AnalyzingInfixSuggester (FST) built in-memory (~100-300MB for 2M+ entities)
- *   - Auxiliary Lucene index for sense lookups by entity IRI
- *   - Runtime autocomplete hits FST (sub-10ms), not Virtuoso
- *   - Sense resolution queries Virtuoso (single-IRI lookup, fast)
+ *   - At startup, downloads fst-index.tar.gz from GCS (~50-100MB compressed)
+ *   - Opens per-category AnalyzingInfixSuggester from disk (FSDirectory)
+ *   - Opens shared sense index for IRI→sense lookups
+ *   - Runtime suggest hits local Lucene (sub-10ms), zero Virtuoso queries
+ *   - Sense resolution falls back to Virtuoso SPARQL if not in local index
  *
- * Memory comparison:
- *   - Jena in-memory model for 3GB TTL: ~4-6GB RAM → OOM
- *   - Lucene FST for same data: ~100-300MB RAM → fits easily
+ * Build the index locally with BuildFSTIndex.java, upload to GCS.
  */
 public class EntitySuggestService {
 
     private static final String ONT_NS = "https://falcontologist.github.io/shacl-demo/ontology/";
+
+    // GCS URL for the pre-built index archive
+    private static final String FST_INDEX_URL =
+        System.getenv().getOrDefault("FST_INDEX_URL",
+            "https://storage.googleapis.com/fkg/fst-index.tar.gz");
 
     public static final List<String> CATEGORIES = List.of(
         "Person_Entity", "Organization_Entity", "Geopolitical_Entity", "Product_Entity"
@@ -49,14 +53,14 @@ public class EntitySuggestService {
         "Product_Entity", "Product_Entry"
     );
 
-    // Per-category FST suggester for sub-10ms autocomplete
+    // Per-category FST suggester
     private final Map<String, AnalyzingInfixSuggester> suggesters = new ConcurrentHashMap<>();
 
-    // Shared Lucene index for sense lookups (entityIRI → senses)
+    // Shared sense index
     private DirectoryReader senseReader;
     private IndexSearcher senseSearcher;
 
-    // Virtuoso SPARQL endpoint for data loading + sense fallback
+    // Virtuoso fallback for sense lookups
     private final String sparqlEndpoint;
     private final String graphIRI;
     private final HttpClient http;
@@ -67,10 +71,10 @@ public class EntitySuggestService {
     private final Map<String, Long> entryCounts = new ConcurrentHashMap<>();
     private long totalSenses = 0;
     private volatile boolean ready = false;
-    private long buildTimeMs = 0;
+    private long loadTimeMs = 0;
 
-    // Page size for SPARQL streaming
-    private static final int PAGE_SIZE = 2000;
+    // Local path for extracted index
+    private static final Path INDEX_DIR = Path.of("/tmp/fst-index");
 
     public EntitySuggestService(String sparqlEndpoint, String graphIRI) {
         this.sparqlEndpoint = sparqlEndpoint;
@@ -80,149 +84,125 @@ public class EntitySuggestService {
     }
 
     /**
-     * Build FST indices by streaming entries from Virtuoso via paginated SPARQL.
-     * Call once at startup. Runs in ~30-120s for millions of entities.
+     * Download and load the pre-built FST index from GCS.
+     * Much faster than building from SPARQL (~10s vs ~5min) and uses minimal memory.
      */
-    public void buildIndexFromVirtuoso() throws Exception {
+    public void loadPrebuiltIndex() throws Exception {
         long startTime = System.currentTimeMillis();
-        System.out.println("[entity-suggest] Building FST indices from Virtuoso SPARQL...");
-        System.out.println("[entity-suggest] Endpoint: " + sparqlEndpoint);
-        System.out.println("[entity-suggest] Graph: " + graphIRI);
+        System.out.println("[entity-suggest] Loading pre-built FST index from GCS...");
+        System.out.println("[entity-suggest] URL: " + FST_INDEX_URL);
 
-        // Sense index (shared across categories)
-        ByteBuffersDirectory senseDir = new ByteBuffersDirectory();
-        IndexWriterConfig senseConfig = new IndexWriterConfig(new StandardAnalyzer());
-        senseConfig.setRAMBufferSizeMB(64);
-        IndexWriter senseWriter = new IndexWriter(senseDir, senseConfig);
+        // Download and extract
+        Path archivePath = Path.of("/tmp/fst-index.tar.gz");
+        downloadFile(FST_INDEX_URL, archivePath);
+        extractTarGz(archivePath, INDEX_DIR);
 
-        for (String category : CATEGORIES) {
-            String entryClass = ENTRY_CLASSES.get(category);
-            System.out.println("[entity-suggest]   Streaming category: " + category
-                + " (entries: " + entryClass + ")");
+        // Load stats
+        Path statsFile = INDEX_DIR.resolve("stats.json");
+        if (Files.exists(statsFile)) {
+            String statsJson = Files.readString(statsFile);
+            JsonObject stats = gson.fromJson(statsJson, JsonObject.class);
 
-            List<SuggestEntry> suggestEntries = new ArrayList<>();
-            Set<String> seenEntityIRIs = new HashSet<>();
-            AtomicLong entryCount = new AtomicLong(0);
-            AtomicLong entityCount = new AtomicLong(0);
-
-            // Paginated SPARQL streaming
-            int offset = 0;
-            boolean hasMore = true;
-
-            while (hasMore) {
-                String sparql = String.format("""
-                    PREFIX : <%s>
-                    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-                    SELECT ?entry ?label ?entityIRI ?entityLabel WHERE {
-                      GRAPH <%s> {
-                        ?entry a :%s ;
-                               rdfs:label ?label ;
-                               :sense ?entityIRI .
-                        ?entityIRI rdfs:label ?entityLabel .
-                      }
-                    }
-                    OFFSET %d LIMIT %d
-                    """, ONT_NS, graphIRI, entryClass, offset, PAGE_SIZE);
-
-                JsonObject json = executeSparqlQuery(sparql);
-                if (json == null) {
-                    System.err.println("[entity-suggest]     SPARQL query failed at offset " + offset);
-                    break;
-                }
-
-                JsonArray bindings = json.getAsJsonObject("results").getAsJsonArray("bindings");
-                int pageSize = bindings.size();
-
-                for (JsonElement el : bindings) {
-                    JsonObject row = el.getAsJsonObject();
-
-                    String label = getVal(row, "label");
-                    String entityIRI = getVal(row, "entityIRI");
-                    String entityLabel = getVal(row, "entityLabel");
-
-                    if (label == null || entityIRI == null) continue;
-
-                    entryCount.incrementAndGet();
-
-                    // Add to FST suggester — search by entry label, payload = entity info
-                    suggestEntries.add(new SuggestEntry(
-                        label,
-                        entityLabel != null ? entityLabel : label,
-                        entityIRI,
-                        category,
-                        null  // gloss fetched on-demand via sense lookup
-                    ));
-
-                    // Index senses (one doc per entry→entity link for sense lookups)
-                    if (seenEntityIRIs.add(entityIRI)) {
-                        entityCount.incrementAndGet();
-                    }
-
-                    // Always index the sense mapping
-                    String senseId = entityIRI;
-                    int pos = Math.max(entityIRI.lastIndexOf('#'), entityIRI.lastIndexOf('/'));
-                    if (pos >= 0) senseId = entityIRI.substring(pos + 1);
-
-                    Document doc = new Document();
-                    doc.add(new StringField("entityIRI", entityIRI, Field.Store.YES));
-                    doc.add(new StringField("senseIRI", entityIRI, Field.Store.YES));
-                    doc.add(new StringField("senseId", senseId, Field.Store.YES));
-                    doc.add(new StoredField("gloss", ""));
-                    doc.add(new StoredField("label", entityLabel != null ? entityLabel : label));
-                    doc.add(new StringField("category", category, Field.Store.YES));
-
-                    try {
-                        senseWriter.addDocument(doc);
-                    } catch (IOException e) {
-                        System.err.println("[entity-suggest] Sense index error: " + e.getMessage());
-                    }
-                }
-
-                offset += PAGE_SIZE;
-                hasMore = pageSize == PAGE_SIZE;
-
-                if (offset % 50000 == 0 || !hasMore) {
-                    System.out.println("[entity-suggest]     " + category + ": "
-                        + entryCount.get() + " entries, "
-                        + entityCount.get() + " unique entities streamed...");
-                }
+            JsonObject ec = stats.getAsJsonObject("entityCounts");
+            if (ec != null) {
+                ec.entrySet().forEach(e ->
+                    entityCounts.put(e.getKey(), e.getValue().getAsLong()));
             }
-
-            // Build the FST suggester for this category
-            AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(
-                new ByteBuffersDirectory(),
-                new StandardAnalyzer()
-            );
-
-            if (!suggestEntries.isEmpty()) {
-                suggester.build(new SuggestEntryIterator(suggestEntries));
-                System.out.println("[entity-suggest]     " + category + " FST built: "
-                    + entityCount.get() + " entities, "
-                    + suggestEntries.size() + " label variants");
-            } else {
-                System.out.println("[entity-suggest]     " + category + ": 0 entries (empty)");
+            JsonObject enc = stats.getAsJsonObject("entryCounts");
+            if (enc != null) {
+                enc.entrySet().forEach(e ->
+                    entryCounts.put(e.getKey(), e.getValue().getAsLong()));
             }
-
-            suggesters.put(category, suggester);
-            entityCounts.put(category, entityCount.get());
-            entryCounts.put(ENTRY_CLASSES.get(category), entryCount.get());
+            System.out.println("[entity-suggest] Stats loaded: " + entityCounts);
         }
 
-        // Finalize sense index
-        senseWriter.commit();
-        senseWriter.close();
-        senseReader = DirectoryReader.open(senseDir);
-        senseSearcher = new IndexSearcher(senseReader);
-        totalSenses = senseReader.numDocs();
+        // Open per-category FST suggesters
+        for (String category : CATEGORIES) {
+            Path fstDir = INDEX_DIR.resolve("fst-" + category);
+            if (Files.exists(fstDir) && Files.list(fstDir).findAny().isPresent()) {
+                AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(
+                    FSDirectory.open(fstDir),
+                    new StandardAnalyzer()
+                );
+                suggesters.put(category, suggester);
+                System.out.println("[entity-suggest]   " + category + ": loaded ("
+                    + entityCounts.getOrDefault(category, 0L) + " entities)");
+            } else {
+                System.out.println("[entity-suggest]   " + category + ": not found, skipping");
+            }
+        }
 
-        buildTimeMs = System.currentTimeMillis() - startTime;
-        System.out.println("[entity-suggest] Index build complete in " + buildTimeMs + "ms");
+        // Open sense index
+        Path senseDir = INDEX_DIR.resolve("sense-index");
+        if (Files.exists(senseDir)) {
+            senseReader = DirectoryReader.open(FSDirectory.open(senseDir));
+            senseSearcher = new IndexSearcher(senseReader);
+            totalSenses = senseReader.numDocs();
+            System.out.println("[entity-suggest]   Sense index: " + totalSenses + " documents");
+        }
+
+        loadTimeMs = System.currentTimeMillis() - startTime;
+        ready = true;
+
+        System.out.println("[entity-suggest] Index loaded in " + loadTimeMs + "ms");
         System.out.println("[entity-suggest]   Total entities: "
             + entityCounts.values().stream().mapToLong(Long::longValue).sum());
-        System.out.println("[entity-suggest]   Total senses indexed: " + totalSenses);
 
-        ready = true;
+        // Clean up archive
+        Files.deleteIfExists(archivePath);
     }
+
+    // ── Download + Extract ────────────────────────────────────────────────────
+
+    private void downloadFile(String url, Path target) throws Exception {
+        System.out.println("[entity-suggest]   Downloading " + url + " ...");
+        HttpRequest req = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .GET()
+            .timeout(java.time.Duration.ofSeconds(300))
+            .build();
+
+        HttpResponse<Path> resp = http.send(req,
+            HttpResponse.BodyHandlers.ofFile(target));
+
+        if (resp.statusCode() != 200) {
+            throw new IOException("Download failed: HTTP " + resp.statusCode());
+        }
+
+        long size = Files.size(target);
+        System.out.printf("[entity-suggest]   Downloaded: %,d bytes%n", size);
+    }
+
+    private void extractTarGz(Path archive, Path targetDir) throws Exception {
+        System.out.println("[entity-suggest]   Extracting to " + targetDir + " ...");
+
+        // Clean target directory
+        if (Files.exists(targetDir)) {
+            try (var walk = Files.walk(targetDir)) {
+                walk.sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+            }
+        }
+        Files.createDirectories(targetDir);
+
+        // Use system tar for efficiency
+        ProcessBuilder pb = new ProcessBuilder("tar", "-xzf", archive.toString(), "-C", targetDir.toString());
+        pb.inheritIO();
+        Process proc = pb.start();
+        int exitCode = proc.waitFor();
+        if (exitCode != 0) {
+            throw new IOException("tar extraction failed with exit code " + exitCode);
+        }
+
+        long fileCount;
+        try (var walk = Files.walk(targetDir)) {
+            fileCount = walk.filter(Files::isRegularFile).count();
+        }
+        System.out.println("[entity-suggest]   Extracted " + fileCount + " files");
+    }
+
+    // ── Suggest ───────────────────────────────────────────────────────────────
 
     /**
      * Sub-10ms autocomplete via Lucene FST.
@@ -235,11 +215,9 @@ public class EntitySuggestService {
 
         List<Lookup.LookupResult> results = suggester.lookup(query, false, limit);
 
-        // Deduplicate by IRI (multiple label variants may match)
         LinkedHashMap<String, Map<String, String>> deduped = new LinkedHashMap<>();
         for (Lookup.LookupResult result : results) {
             String payload = result.payload != null ? result.payload.utf8ToString() : "";
-            // payload format: "primaryLabel\tiri\tgloss"
             String[] parts = payload.split("\t", 3);
             if (parts.length < 2) continue;
 
@@ -255,13 +233,11 @@ public class EntitySuggestService {
                 entry.put("category", category);
                 if (!gloss.isEmpty()) entry.put("gloss", gloss);
 
-                // Extract local name for display
                 String localName = iri;
                 int pos = Math.max(iri.lastIndexOf('#'), iri.lastIndexOf('/'));
                 if (pos >= 0) localName = iri.substring(pos + 1);
                 entry.put("localName", localName);
 
-                // If matched on a different label variant, show it
                 if (!matchedText.equals(primaryLabel)) {
                     entry.put("matchedLabel", matchedText);
                 }
@@ -272,22 +248,17 @@ public class EntitySuggestService {
         return new ArrayList<>(deduped.values());
     }
 
-    /**
-     * Sense lookup: first try local Lucene index, fall back to Virtuoso SPARQL.
-     */
+    // ── Sense lookup ──────────────────────────────────────────────────────────
+
     public List<Map<String, String>> getSenses(String entityIRI) throws Exception {
-        // Try local Lucene index first (fast)
         if (ready && senseSearcher != null) {
             List<Map<String, String>> local = getSensesFromLucene(entityIRI);
             if (!local.isEmpty()) return local;
         }
-
-        // Fallback to Virtuoso SPARQL
         return getSensesFromVirtuoso(entityIRI);
     }
 
     private List<Map<String, String>> getSensesFromLucene(String entityIRI) throws Exception {
-        // Find all entries that share this entity → get their other senses
         TermQuery query = new TermQuery(new Term("entityIRI", entityIRI));
         TopDocs topDocs = senseSearcher.search(query, 50);
 
@@ -303,7 +274,6 @@ public class EntitySuggestService {
             if (identifier != null) sense.put("identifier", identifier);
             senses.add(sense);
         }
-
         return senses;
     }
 
@@ -348,22 +318,21 @@ public class EntitySuggestService {
 
             senses.add(sense);
         }
-
         return senses;
     }
 
-    /**
-     * Index statistics.
-     */
+    // ── Stats ─────────────────────────────────────────────────────────────────
+
     public Map<String, Object> getStats() {
         Map<String, Object> stats = new LinkedHashMap<>();
         stats.put("ready", ready);
+        stats.put("indexSource", FST_INDEX_URL);
         stats.put("sparqlEndpoint", sparqlEndpoint);
         stats.put("graphIRI", graphIRI);
         stats.put("entityCounts", new LinkedHashMap<>(entityCounts));
         stats.put("entryCounts", new LinkedHashMap<>(entryCounts));
         stats.put("totalSenses", totalSenses);
-        stats.put("buildTimeMs", buildTimeMs);
+        stats.put("loadTimeMs", loadTimeMs);
         stats.put("categories", CATEGORIES);
         return stats;
     }
@@ -372,7 +341,7 @@ public class EntitySuggestService {
         return ready;
     }
 
-    // ── SPARQL HTTP client ────────────────────────────────────────────────────
+    // ── SPARQL client (sense fallback only) ───────────────────────────────────
 
     private JsonObject executeSparqlQuery(String sparql) throws Exception {
         String encoded = URLEncoder.encode(sparql, StandardCharsets.UTF_8);
@@ -401,66 +370,5 @@ public class EntitySuggestService {
         if (binding == null) return null;
         JsonElement val = binding.get("value");
         return val != null ? val.getAsString() : null;
-    }
-
-    // ── FST data structures ──────────────────────────────────────────────────
-
-    private static class SuggestEntry {
-        final String searchText;
-        final String primaryLabel;
-        final String iri;
-        final String category;
-        final String gloss;
-
-        SuggestEntry(String searchText, String primaryLabel, String iri,
-                     String category, String gloss) {
-            this.searchText = searchText;
-            this.primaryLabel = primaryLabel;
-            this.iri = iri;
-            this.category = category;
-            this.gloss = gloss;
-        }
-    }
-
-    /**
-     * Iterator adapter for AnalyzingInfixSuggester.build().
-     * Payload: "primaryLabel\tiri\tgloss" — resolved at suggest time, no second lookup.
-     */
-    private static class SuggestEntryIterator implements org.apache.lucene.search.suggest.InputIterator {
-        private final Iterator<SuggestEntry> iter;
-        private SuggestEntry current;
-
-        SuggestEntryIterator(List<SuggestEntry> entries) {
-            this.iter = entries.iterator();
-        }
-
-        @Override
-        public BytesRef next() {
-            if (iter.hasNext()) {
-                current = iter.next();
-                return new BytesRef(current.searchText);
-            }
-            return null;
-        }
-
-        @Override
-        public BytesRef payload() {
-            String gloss = current.gloss != null ? current.gloss : "";
-            // Truncate gloss in payload to save FST memory (full gloss is in sense index)
-            if (gloss.length() > 120) gloss = gloss.substring(0, 120) + "...";
-            return new BytesRef(current.primaryLabel + "\t" + current.iri + "\t" + gloss);
-        }
-
-        @Override
-        public boolean hasPayloads() { return true; }
-
-        @Override
-        public long weight() { return 1; }
-
-        @Override
-        public boolean hasContexts() { return false; }
-
-        @Override
-        public Set<BytesRef> contexts() { return null; }
     }
 }
