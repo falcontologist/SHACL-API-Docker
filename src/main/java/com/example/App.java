@@ -539,22 +539,27 @@ public class App {
     }
 
     static Model loadOntology() throws Exception {
-        // We only load structural.ttl because it contains the SHACL shapes 
-        // needed for the API to validate and generate forms.
-        // The other partitions are in the Virtuoso db. 
-        String shapesUrl = "https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/main/structural.ttl";
-        
-        System.out.println("[startup] Loading SHACL shapes from: " + shapesUrl);
+        // Load structural.ttl (SHACL shapes), conceptual.ttl (synsets + evokes),
+        // and lexical.ttl (lemmas + senses) — all needed for the verb→sense→situation flow.
+        // Entity data (persons, orgs, etc.) stays in Virtuoso.
+        String[] ontologyFiles = {
+            "https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/main/structural.ttl",
+            "https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/main/conceptual.ttl",
+            "https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/main/lexical.ttl"
+        };
+
         Model model = ModelFactory.createDefaultModel();
-        
-        try {
-            RDFDataMgr.read(model, shapesUrl);
-            System.out.println("[startup] SHACL shapes loaded: " + model.size() + " triples.");
-        } catch (Exception e) {
-            System.err.println("[startup] Critical Error: Could not load structural.ttl");
-            throw e;
+
+        for (String url : ontologyFiles) {
+            System.out.println("[startup] Loading: " + url);
+            try {
+                RDFDataMgr.read(model, url);
+            } catch (Exception e) {
+                System.err.println("[startup] Warning: Could not load " + url + " — " + e.getMessage());
+            }
         }
-        
+
+        System.out.println("[startup] Ontology loaded: " + model.size() + " triples.");
         return model;
     }
 }
