@@ -70,7 +70,7 @@ public class EntitySuggestService {
     private long buildTimeMs = 0;
 
     // Page size for SPARQL streaming
-    private static final int PAGE_SIZE = 10000;
+    private static final int PAGE_SIZE = 5000;
 
     public EntitySuggestService(String sparqlEndpoint, String graphIRI) {
         this.sparqlEndpoint = sparqlEndpoint;
@@ -113,17 +113,14 @@ public class EntitySuggestService {
                 String sparql = String.format("""
                     PREFIX : <%s>
                     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-                    SELECT ?entry ?label ?entityIRI ?entityLabel ?gloss ?identifier WHERE {
+                    SELECT ?entry ?label ?entityIRI ?entityLabel WHERE {
                       GRAPH <%s> {
                         ?entry a :%s ;
                                rdfs:label ?label ;
                                :sense ?entityIRI .
                         ?entityIRI rdfs:label ?entityLabel .
-                        OPTIONAL { ?entityIRI :gloss ?gloss . }
-                        OPTIONAL { ?entityIRI :identifier ?identifier . }
                       }
                     }
-                    ORDER BY ?entry
                     OFFSET %d LIMIT %d
                     """, ONT_NS, graphIRI, entryClass, offset, PAGE_SIZE);
 
@@ -142,8 +139,6 @@ public class EntitySuggestService {
                     String label = getVal(row, "label");
                     String entityIRI = getVal(row, "entityIRI");
                     String entityLabel = getVal(row, "entityLabel");
-                    String gloss = getVal(row, "gloss");
-                    String identifier = getVal(row, "identifier");
 
                     if (label == null || entityIRI == null) continue;
 
@@ -155,7 +150,7 @@ public class EntitySuggestService {
                         entityLabel != null ? entityLabel : label,
                         entityIRI,
                         category,
-                        gloss
+                        null  // gloss fetched on-demand via sense lookup
                     ));
 
                     // Index senses (one doc per entry→entity link for sense lookups)
@@ -172,12 +167,9 @@ public class EntitySuggestService {
                     doc.add(new StringField("entityIRI", entityIRI, Field.Store.YES));
                     doc.add(new StringField("senseIRI", entityIRI, Field.Store.YES));
                     doc.add(new StringField("senseId", senseId, Field.Store.YES));
-                    doc.add(new StoredField("gloss", gloss != null ? gloss : ""));
+                    doc.add(new StoredField("gloss", ""));
                     doc.add(new StoredField("label", entityLabel != null ? entityLabel : label));
                     doc.add(new StringField("category", category, Field.Store.YES));
-                    if (identifier != null) {
-                        doc.add(new StoredField("identifier", identifier));
-                    }
 
                     try {
                         senseWriter.addDocument(doc);
