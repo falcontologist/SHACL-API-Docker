@@ -1,21 +1,27 @@
 FROM openlink/virtuoso-opensource-7:7.2.16-r23.1-g01a90e1-ubuntu
 
-# -----------------------------------------------------------------------------
-# RENDER PRO TIER MEMORY FIX (512 MB Limit)
-# -----------------------------------------------------------------------------
-ENV VIRT_Parameters_NumberOfBuffers=20000
-ENV VIRT_Parameters_MaxDirtyBuffers=15000
-ENV VIRT_Parameters_MaxQueryMem=50M
-
-# Install curl so the container can download the master DB on boot
+# Install curl for downloading the master DB on boot
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Copy your existing init script
+# -----------------------------------------------------------------------------
+# RENDER MEMORY FIX — patch virtuoso.ini directly
+# The ENV var approach (VIRT_Parameters_*) only works with the image's own
+# entrypoint script. Since we use a custom entrypoint, we patch the .ini file.
+# -----------------------------------------------------------------------------
+RUN sed -i \
+    '/^\[Parameters\]/a NumberOfBuffers          = 20000\nMaxDirtyBuffers          = 15000' \
+    /opt/virtuoso-opensource/database/virtuoso.ini && \
+    sed -i \
+    's/^MaxQueryMem.*=.*/MaxQueryMem              = 50M/' \
+    /opt/virtuoso-opensource/database/virtuoso.ini
+
+# Copy init SQL (for password setup, permissions, etc.)
 COPY virtuoso-init/init.sql /opt/virtuoso-opensource/initdb.d/init.sql
 
-# Copy the new automated startup script
+# Copy the startup script that downloads the master DB from GCS
 COPY start-virtuoso.sh /start-virtuoso.sh
 RUN chmod +x /start-virtuoso.sh
 
-# This overrides the default startup to run our script first
+# Override the default entrypoint/cmd
+ENTRYPOINT []
 CMD ["/start-virtuoso.sh"]
