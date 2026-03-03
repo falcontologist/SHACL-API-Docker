@@ -70,7 +70,7 @@ public class EntitySuggestService {
     private long buildTimeMs = 0;
 
     // Page size for SPARQL streaming
-    private static final int PAGE_SIZE = 5000;
+    private static final int PAGE_SIZE = 2000;
 
     public EntitySuggestService(String sparqlEndpoint, String graphIRI) {
         this.sparqlEndpoint = sparqlEndpoint;
