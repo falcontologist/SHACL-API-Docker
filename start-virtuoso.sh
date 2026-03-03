@@ -40,6 +40,24 @@ else
     echo "[start-virtuoso] Master database already exists ($(stat -c%s "$DB_PATH") bytes). Skipping download."
 fi
 
+# Patch virtuoso.ini for Render memory limits (512 MB)
+INI_FILE="$DB_DIR/virtuoso.ini"
+if [ -f "$INI_FILE" ]; then
+    echo "[start-virtuoso] Patching virtuoso.ini for Render memory limits..."
+
+    # Set NumberOfBuffers and MaxDirtyBuffers if not already set
+    if ! grep -q "^NumberOfBuffers" "$INI_FILE"; then
+        sed -i '/^\[Parameters\]/a NumberOfBuffers          = 20000\nMaxDirtyBuffers          = 15000' "$INI_FILE"
+    fi
+
+    # Cap MaxQueryMem
+    sed -i 's/^MaxQueryMem.*=.*/MaxQueryMem              = 50M/' "$INI_FILE"
+
+    echo "[start-virtuoso] virtuoso.ini patched."
+else
+    echo "[start-virtuoso] WARNING: virtuoso.ini not found at $INI_FILE — Virtuoso will create defaults."
+fi
+
 # Start Virtuoso in foreground mode (required for Docker)
 echo "[start-virtuoso] Starting Virtuoso..."
 exec /opt/virtuoso-opensource/bin/virtuoso-t -f

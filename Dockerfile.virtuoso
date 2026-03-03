@@ -3,18 +3,6 @@ FROM openlink/virtuoso-opensource-7:7.2.16-r23.1-g01a90e1-ubuntu
 # Install curl for downloading the master DB on boot
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# -----------------------------------------------------------------------------
-# RENDER MEMORY FIX — patch virtuoso.ini directly
-# The ENV var approach (VIRT_Parameters_*) only works with the image's own
-# entrypoint script. Since we use a custom entrypoint, we patch the .ini file.
-# -----------------------------------------------------------------------------
-RUN sed -i \
-    '/^\[Parameters\]/a NumberOfBuffers          = 20000\nMaxDirtyBuffers          = 15000' \
-    /opt/virtuoso-opensource/database/virtuoso.ini && \
-    sed -i \
-    's/^MaxQueryMem.*=.*/MaxQueryMem              = 50M/' \
-    /opt/virtuoso-opensource/database/virtuoso.ini
-
 # Copy init SQL (for password setup, permissions, etc.)
 COPY virtuoso-init/init.sql /opt/virtuoso-opensource/initdb.d/init.sql
 
@@ -22,6 +10,5 @@ COPY virtuoso-init/init.sql /opt/virtuoso-opensource/initdb.d/init.sql
 COPY start-virtuoso.sh /start-virtuoso.sh
 RUN chmod +x /start-virtuoso.sh
 
-# Override the default entrypoint/cmd
 ENTRYPOINT []
 CMD ["/start-virtuoso.sh"]
