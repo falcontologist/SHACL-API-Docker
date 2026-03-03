@@ -1,0 +1,9 @@
+# Large TTL files kept locally only
+gpe_entity.ttl
+gpe_entry.ttl
+organization_entity.ttl
+organization_entry.ttl
+person_entity.ttl
+person_entry.ttl
+product_entity.ttl
+product_entry.ttl
