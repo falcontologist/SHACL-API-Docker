@@ -571,6 +571,17 @@ textarea#ttlInput {
   white-space: nowrap;
 }
 
+.suggest-gloss {
+  font-size: 0.65rem;
+  color: #86efac;
+  opacity: 0.8;
+  flex-basis: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: italic;
+}
+
 .suggest-empty {
   padding: 12px 10px;
   font-size: 0.8rem;

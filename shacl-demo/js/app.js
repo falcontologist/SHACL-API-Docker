@@ -635,6 +635,15 @@ function renderSuggestDropdown(dropdown, results, searchInput, senseSelect, row)
     iriSpan.textContent = decodeURIComponent(localName);
     div.appendChild(iriSpan);
 
+    if (item.gloss) {
+      const glossSpan = document.createElement('span');
+      glossSpan.className = 'suggest-gloss';
+      glossSpan.textContent = item.gloss.length > 80 
+        ? item.gloss.substring(0, 80) + '...' 
+        : item.gloss;
+      div.appendChild(glossSpan);
+    }
+
     div.addEventListener('click', () => {
       handleEntitySelection(item, searchInput, senseSelect, dropdown, row);
     });
@@ -663,10 +672,18 @@ async function handleEntitySelection(item, searchInput, senseSelect, dropdown, r
       data.senses.forEach(sense => {
         const opt = document.createElement('option');
         opt.value = sense.senseIRI;
-        const shortGloss = sense.gloss.length > 50 
-          ? sense.gloss.substring(0, 50) + '...' 
-          : sense.gloss;
-        opt.textContent = `${sense.senseId}: ${shortGloss}`;
+        // Show label + gloss, or just senseId if no gloss
+        const displayLabel = sense.label || sense.senseId;
+        const gloss = sense.gloss && sense.gloss.trim() 
+          ? sense.gloss.trim() : '';
+        if (gloss) {
+          const shortGloss = gloss.length > 60 
+            ? gloss.substring(0, 60) + '...' 
+            : gloss;
+          opt.textContent = `${displayLabel} — ${shortGloss}`;
+        } else {
+          opt.textContent = displayLabel;
+        }
         opt.dataset.senseIri = sense.senseIRI;
         senseSelect.appendChild(opt);
       });

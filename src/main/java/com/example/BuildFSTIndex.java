@@ -120,12 +120,14 @@ public class BuildFSTIndex {
                 String sparql = String.format("""
                     PREFIX : <%s>
                     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-                    SELECT ?entry ?label ?entityIRI ?entityLabel WHERE {
+                    SELECT ?entry ?label ?entityIRI ?entityLabel ?gloss ?identifier WHERE {
                       GRAPH <%s> {
                         ?entry a :%s ;
                                rdfs:label ?label ;
                                :sense ?entityIRI .
                         ?entityIRI rdfs:label ?entityLabel .
+                        OPTIONAL { ?entityIRI :gloss ?gloss . }
+                        OPTIONAL { ?entityIRI :identifier ?identifier . }
                       }
                     }
                     OFFSET %d LIMIT %d
@@ -145,15 +147,22 @@ public class BuildFSTIndex {
                     String label = getVal(row, "label");
                     String entityIRI = getVal(row, "entityIRI");
                     String entityLabel = getVal(row, "entityLabel");
+                    String gloss = getVal(row, "gloss");
+                    String identifier = getVal(row, "identifier");
 
                     if (label == null || entityIRI == null) continue;
 
                     entryCount.incrementAndGet();
 
+                    // Truncate gloss for FST payload (full gloss in sense index)
+                    String shortGloss = gloss != null && gloss.length() > 120
+                        ? gloss.substring(0, 120) + "..." : (gloss != null ? gloss : "");
+
                     suggestEntries.add(new SuggestEntry(
                         label,
                         entityLabel != null ? entityLabel : label,
-                        entityIRI
+                        entityIRI,
+                        shortGloss
                     ));
 
                     if (seenEntityIRIs.add(entityIRI)) {
@@ -169,9 +178,12 @@ public class BuildFSTIndex {
                     doc.add(new StringField("entityIRI", entityIRI, Field.Store.YES));
                     doc.add(new StringField("senseIRI", entityIRI, Field.Store.YES));
                     doc.add(new StringField("senseId", senseId, Field.Store.YES));
-                    doc.add(new StoredField("gloss", ""));
+                    doc.add(new StoredField("gloss", gloss != null ? gloss : ""));
                     doc.add(new StoredField("label", entityLabel != null ? entityLabel : label));
                     doc.add(new StringField("category", category, Field.Store.YES));
+                    if (identifier != null) {
+                        doc.add(new StoredField("identifier", identifier));
+                    }
                     senseWriter.addDocument(doc);
                 }
 
@@ -269,7 +281,7 @@ public class BuildFSTIndex {
 
     // ── Data structures ──────────────────────────────────────────────────────
 
-    private record SuggestEntry(String searchText, String primaryLabel, String iri) {}
+    private record SuggestEntry(String searchText, String primaryLabel, String iri, String gloss) {}
 
     private static class SuggestEntryIterator implements org.apache.lucene.search.suggest.InputIterator {
         private final Iterator<SuggestEntry> iter;
@@ -290,7 +302,8 @@ public class BuildFSTIndex {
 
         @Override
         public BytesRef payload() {
-            return new BytesRef(current.primaryLabel + "\t" + current.iri + "\t");
+            String g = current.gloss != null ? current.gloss : "";
+            return new BytesRef(current.primaryLabel + "\t" + current.iri + "\t" + g);
         }
 
         @Override public boolean hasPayloads() { return true; }

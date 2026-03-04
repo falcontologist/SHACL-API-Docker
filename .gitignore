@@ -7,3 +7,8 @@ person_entity.ttl
 person_entry.ttl
 product_entity.ttl
 product_entry.ttl
+fst-index/
+fst-index.tar.gz
+fst-index/
+fst-index.tar.gz
+._*
