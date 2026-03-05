@@ -43,14 +43,17 @@ public class EntitySuggestService {
             "https://storage.googleapis.com/fkg/fst-index.tar.gz");
 
     public static final List<String> CATEGORIES = List.of(
-        "Person_Entity", "Organization_Entity", "Geopolitical_Entity", "Product_Entity"
+        "Person_Entity", "Organization_Entity", "Geopolitical_Entity", "Product_Entity",
+        "Unit_Entity", "Occupation_Entity"
     );
 
     public static final Map<String, String> ENTRY_CLASSES = Map.of(
         "Person_Entity", "Person_Entry",
         "Organization_Entity", "Organization_Entry",
         "Geopolitical_Entity", "Geopolitical_Entry",
-        "Product_Entity", "Product_Entry"
+        "Product_Entity", "Product_Entry",
+        "Unit_Entity", "Unit_Entry",
+        "Occupation_Entity", "Occupation_Entry"
     );
 
     // Per-category FST suggester
@@ -262,19 +265,23 @@ public class EntitySuggestService {
         TermQuery query = new TermQuery(new Term("entityIRI", entityIRI));
         TopDocs topDocs = senseSearcher.search(query, 50);
 
-        List<Map<String, String>> senses = new ArrayList<>();
+        // Deduplicate by senseIRI — same entity can appear via multiple entries
+        LinkedHashMap<String, Map<String, String>> deduped = new LinkedHashMap<>();
         for (ScoreDoc sd : topDocs.scoreDocs) {
             Document doc = senseSearcher.storedFields().document(sd.doc);
-            Map<String, String> sense = new LinkedHashMap<>();
-            sense.put("senseId", doc.get("senseId"));
-            sense.put("senseIRI", doc.get("senseIRI"));
-            sense.put("gloss", doc.get("gloss"));
-            sense.put("label", doc.get("label"));
-            String identifier = doc.get("identifier");
-            if (identifier != null) sense.put("identifier", identifier);
-            senses.add(sense);
+            String senseIRI = doc.get("senseIRI");
+            if (senseIRI != null && !deduped.containsKey(senseIRI)) {
+                Map<String, String> sense = new LinkedHashMap<>();
+                sense.put("senseId", doc.get("senseId"));
+                sense.put("senseIRI", senseIRI);
+                sense.put("gloss", doc.get("gloss"));
+                sense.put("label", doc.get("label"));
+                String identifier = doc.get("identifier");
+                if (identifier != null) sense.put("identifier", identifier);
+                deduped.put(senseIRI, sense);
+            }
         }
-        return senses;
+        return new ArrayList<>(deduped.values());
     }
 
     private List<Map<String, String>> getSensesFromVirtuoso(String entityIRI) throws Exception {

@@ -44,14 +44,14 @@ public class BuildFSTIndex {
     private static final int PAGE_SIZE = 5000;
 
     private static final List<String> CATEGORIES = List.of(
-        "Person_Entity", "Organization_Entity", "Geopolitical_Entity", "Product_Entity"
+        "Person_Entity", "Organization_Entity", "Geopolitical_Entity", "Product_Entity", "Unit_Entity", "Occupation_Entity"
     );
 
     private static final Map<String, String> ENTRY_CLASSES = Map.of(
         "Person_Entity", "Person_Entry",
         "Organization_Entity", "Organization_Entry",
         "Geopolitical_Entity", "Geopolitical_Entry",
-        "Product_Entity", "Product_Entry"
+        "Product_Entity", "Product_Entry", "Unit_Entity", "Unit_Entry", "Occupation_Entity", "Occupation_Entry"
     );
 
     private static final HttpClient HTTP = HttpClient.newHttpClient();

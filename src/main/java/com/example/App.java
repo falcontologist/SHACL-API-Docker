@@ -231,6 +231,8 @@ public class App {
                 case "organization", "org" -> "Organization_Entity";
                 case "geopoliticalentity", "geopolitical", "gpe" -> "Geopolitical_Entity";
                 case "product" -> "Product_Entity";
+                case "unit" -> "Unit_Entity";
+                case "occupation" -> "Occupation_Entity";
                 default -> null;
             };
             if (resolved != null) {
