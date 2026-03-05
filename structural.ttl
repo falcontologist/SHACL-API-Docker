@@ -1306,31 +1306,83 @@ WHERE {
 
 :Employment_shape a :Situation_shape, sh:NodeShape ;
     rdfs:label "Employment (shape)"@en ;
-    sh:property [ sh:name "employer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :employer ] ;
-    sh:property [ sh:name "employee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :employee ] ;
-    sh:property [ sh:name "industry"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :industry ] ;
-    sh:property [ sh:name "occupation"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :occupation ] ;
+    
+    # Updated: employer allows Organization, Geopolitical, or Person Entities
+    sh:property [ 
+        sh:name "employer"@en ; 
+        sh:nodeKind sh:BlankNodeOrIRI ; 
+        sh:path :employer ;
+        sh:or (
+            [ sh:class :Organization_Entity ]
+            [ sh:class :Geopolitical_Entity ]
+            [ sh:class :Person_Entity ]
+        )
+    ] ;
+    
+    sh:property [ 
+        sh:name "employee"@en ; 
+        sh:nodeKind sh:BlankNodeOrIRI ; 
+        sh:path :employee ;
+        sh:class :Person_Entity 
+    ] ;
+    
+    sh:property [ 
+        sh:name "industry"@en ; 
+        sh:nodeKind sh:BlankNodeOrIRI ; 
+        sh:path :industry ;
+        sh:class :Industry_Entity 
+    ] ;
+    
+    sh:property [ 
+        sh:name "occupation"@en ; 
+        sh:nodeKind sh:BlankNodeOrIRI ; 
+        sh:path :occupation ;
+        sh:class :Occupation_Entity
+    ] ;
+    
     sh:property [ sh:name "start"@en ; sh:nodeKind sh:Literal ; sh:path :start ; sh:datatype xsd:date ] ;
     sh:property [ sh:name "end"@en ; sh:nodeKind sh:Literal ; sh:path :end ; sh:datatype xsd:date ] ;
+    
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
         PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
-            ?employee ?opaqueProperty ?employer .
+            ?employee ?propAt ?employer .
+            ?employee ?propAsA ?occupation .
+            ?employee ?propIn ?industry .
         }
         WHERE {
             ?this a :Employment ;
-                  :lemma ?lemma ;
-                  :synset ?synset ;
-                  :employee ?employee ;
-                  :employer ?employer .
+                  :lemma ?lemmaNode ;
+                  :synset ?synsetNode ;
+                  :employee ?employee .
             
-            ?lemmaNode :lemma ?lemma ;
+            # Look up the literal string and verb form
+            ?lemmaNode :lemma ?lemmaString ;
                        :present3sg ?verbForm .
             
-            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
-            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+            # Generate the base hash just once
+            BIND(SHA256(CONCAT(?lemmaString, "|", STR(?synsetNode))) AS ?hash)
+            BIND(SUBSTR(STR(?hash), 1, 12) AS ?hashSub)
+            
+            # Conditionally match employer and bind the "_at_" property
+            OPTIONAL {
+                ?this :employer ?employer .
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_at_", ?hashSub)) AS ?propAt)
+            }
+            
+            # Conditionally match occupation and bind the "_as_a_" property
+            OPTIONAL {
+                ?this :occupation ?occupation .
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_as_a_", ?hashSub)) AS ?propAsA)
+            }
+            
+            # Conditionally match industry and bind the "_in_" property
+            OPTIONAL {
+                ?this :industry ?industry .
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_in_", ?hashSub)) AS ?propIn)
+            }
         }
         """ ;
             sh:order 2 ] ;
