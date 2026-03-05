@@ -23,7 +23,7 @@ const CONFIG = {
       literal: 10
     }
   },
-  ENTITY_CATEGORIES: ["Person_Entity", "Organization_Entity", "Geopolitical_Entity", "Product_Entity"],
+  ENTITY_CATEGORIES: ["Person_Entity", "Organization_Entity", "Geopolitical_Entity", "Product_Entity", "Unit_Entity", "Occupation_Entity"],
   SUGGEST_DEBOUNCE_MS: 150,
   SUGGEST_MIN_CHARS: 2,
   SUGGEST_MAX_RESULTS: 10
@@ -709,6 +709,8 @@ function formatCategoryLabel(category) {
     case 'Organization_Entity': return 'Organization';
     case 'Person_Entity': return 'Person';
     case 'Product_Entity': return 'Product';
+    case 'Unit_Entity': return 'Unit';
+    case 'Occupation_Entity': return 'Occupation';
     default: return category.replace(/_Entity$/, '');
   }
 }
