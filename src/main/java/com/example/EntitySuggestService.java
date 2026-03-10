@@ -87,7 +87,7 @@ public class EntitySuggestService {
     private long loadTimeMs = 0;
 
     // Local path for extracted index
-    private static final Path INDEX_DIR = Path.of("/tmp/fst-index");
+    private static final Path INDEX_DIR = Path.of("/data/fst-index");
 
     public EntitySuggestService(String sparqlEndpoint, String graphIRI) {
         this.sparqlEndpoint = sparqlEndpoint;
@@ -106,7 +106,7 @@ public class EntitySuggestService {
         System.out.println("[entity-suggest] URL: " + FST_INDEX_URL);
 
         // Download and extract
-        Path archivePath = Path.of("/tmp/fst-index.tar.gz");
+        Path archivePath = Path.of("/data/fst-index.tar.gz");
         downloadFile(FST_INDEX_URL, archivePath);
         extractTarGz(archivePath, INDEX_DIR);
 
