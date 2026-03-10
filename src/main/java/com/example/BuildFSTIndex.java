@@ -16,6 +16,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
+import java.io.BufferedReader;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -41,19 +42,32 @@ import java.util.concurrent.atomic.AtomicLong;
 public class BuildFSTIndex {
 
     private static final String ONT_NS = "https://falcontologist.github.io/shacl-demo/ontology/";
-    private static final int PAGE_SIZE = 5000;
+    private static final int PAGE_SIZE = 2000;
 
     private static final List<String> CATEGORIES = List.of(
-        "Person_Entity", "Organization_Entity", "Geopolitical_Entity", "Product_Entity", "Unit_Entity", "Occupation_Entity"
+        "Person_Entity", "Organization_Entity", "Geopolitical_Entity", "Product_Entity",
+        "Unit_Entity", "Occupation_Entity", "Creative_Work_Entity", "Quantity_Dimension_Entity",
+        "Location_Entity", "Food_Entity", "Language_Entity", "Organism_Entity",
+        "Equity_Entity", "Index_Entity", "Corporate_Bond_Entity", "Government_Bond_Entity"
     );
-
-    private static final Map<String, String> ENTRY_CLASSES = Map.of(
-        "Person_Entity", "Person_Entry",
-        "Organization_Entity", "Organization_Entry",
-        "Geopolitical_Entity", "Geopolitical_Entry",
-        "Product_Entity", "Product_Entry", "Unit_Entity", "Unit_Entry", "Occupation_Entity", "Occupation_Entry"
+    private static final Map<String, String> ENTRY_CLASSES = Map.ofEntries(
+        Map.entry("Person_Entity", "Person_Entry"),
+        Map.entry("Organization_Entity", "Organization_Entry"),
+        Map.entry("Geopolitical_Entity", "Geopolitical_Entry"),
+        Map.entry("Product_Entity", "Product_Entry"),
+        Map.entry("Unit_Entity", "Unit_Entry"),
+        Map.entry("Occupation_Entity", "Occupation_Entry"),
+        Map.entry("Creative_Work_Entity", "Creative_Work_Entry"),
+        Map.entry("Quantity_Dimension_Entity", "Quantity_Dimension_Entry"),
+        Map.entry("Location_Entity", "Location_Entry"),
+        Map.entry("Food_Entity", "Food_Entry"),
+        Map.entry("Language_Entity", "Language_Entry"),
+        Map.entry("Organism_Entity", "Organism_Entry"),
+        Map.entry("Equity_Entity", "Equity_Entry"),
+        Map.entry("Index_Entity", "Index_Entry"),
+        Map.entry("Corporate_Bond_Entity", "Corporate_Bond_Entry"),
+        Map.entry("Government_Bond_Entity", "Government_Bond_Entry")
     );
-
     private static final HttpClient HTTP = HttpClient.newHttpClient();
     private static final Gson GSON = new Gson();
 
@@ -67,6 +81,7 @@ public class BuildFSTIndex {
         String sparqlEndpoint = args[0];
         String graphIRI = args[1];
         Path outputDir = Path.of(args[2]);
+        Path tsvDir = args.length >= 4 ? Path.of(args[3]) : null;
 
         System.out.println("=== FST Index Builder ===");
         System.out.println("Endpoint: " + sparqlEndpoint);
@@ -74,15 +89,7 @@ public class BuildFSTIndex {
         System.out.println("Output:   " + outputDir.toAbsolutePath());
         System.out.println();
 
-        // Clean output directory
-        if (Files.exists(outputDir)) {
-            System.out.println("Cleaning existing output directory...");
-            try (var walk = Files.walk(outputDir)) {
-                walk.sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-            }
-        }
+        // Resume mode: keep existing FST directories, only rebuild missing ones
         Files.createDirectories(outputDir);
 
         long startTime = System.currentTimeMillis();
@@ -103,6 +110,13 @@ public class BuildFSTIndex {
             String entryClass = ENTRY_CLASSES.get(category);
             System.out.println("── " + category + " (" + entryClass + ") ──");
 
+            // Skip if FST directory already has data (resume mode)
+            Path fstCheck = outputDir.resolve("fst-" + category);
+            if (Files.exists(fstCheck) && Files.list(fstCheck).findAny().isPresent()) {
+                System.out.println("  Already built, skipping (delete fst-" + category + "/ to rebuild)");
+                continue;
+            }
+
             // FST directory for this category
             Path fstDir = outputDir.resolve("fst-" + category);
             Files.createDirectories(fstDir);
@@ -112,87 +126,164 @@ public class BuildFSTIndex {
             AtomicLong entryCount = new AtomicLong(0);
             AtomicLong entityCount = new AtomicLong(0);
 
-            // Paginated SPARQL streaming
-            int offset = 0;
-            boolean hasMore = true;
+            // Check for TSV dump file first (faster + no SPARQL issues)
+            String catLower = category.replace("_Entity", "").toLowerCase();
+            Path tsvFile = tsvDir != null ? tsvDir.resolve(catLower + "_dump.tsv") : null;
 
-            while (hasMore) {
-                String sparql = String.format("""
-                    PREFIX : <%s>
-                    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-                    SELECT ?entry ?label ?entityIRI ?entityLabel ?gloss ?identifier WHERE {
-                      GRAPH <%s> {
-                        ?entry a :%s ;
-                               rdfs:label ?label ;
-                               :sense ?entityIRI .
-                        ?entityIRI rdfs:label ?entityLabel .
-                        OPTIONAL { ?entityIRI :gloss ?gloss . }
-                        OPTIONAL { ?entityIRI :identifier ?identifier . }
-                      }
+            if (tsvFile != null && Files.exists(tsvFile)) {
+                System.out.println("  Reading from TSV: " + tsvFile);
+                try (BufferedReader br = Files.newBufferedReader(tsvFile)) {
+                    String header = br.readLine(); // skip header
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        String[] parts = line.split("\t", -1);
+                        if (parts.length < 4) continue;
+
+                        String entryIRI = parts[0];
+                        String label = parts[1];
+                        String entityIRI = parts[2];
+                        String entityLabel = parts[3];
+                        String gloss = parts.length > 4 ? parts[4] : "";
+                        String identifier = parts.length > 5 && !parts[5].isEmpty() ? parts[5] : null;
+
+                        if (label.isEmpty() || entityIRI.isEmpty()) continue;
+
+                        entryCount.incrementAndGet();
+
+                        String shortGloss = !gloss.isEmpty() && gloss.length() > 120
+                            ? gloss.substring(0, 120) + "..." : gloss;
+
+                        suggestEntries.add(new SuggestEntry(
+                            label,
+                            !entityLabel.isEmpty() ? entityLabel : label,
+                            entityIRI,
+                            shortGloss
+                        ));
+
+                        if (seenEntityIRIs.add(entityIRI)) {
+                            entityCount.incrementAndGet();
+                        }
+
+                        String senseId = entityIRI;
+                        int pos = Math.max(entityIRI.lastIndexOf('#'), entityIRI.lastIndexOf('/'));
+                        if (pos >= 0) senseId = entityIRI.substring(pos + 1);
+
+                        Document doc = new Document();
+                        doc.add(new StringField("entityIRI", entityIRI, Field.Store.YES));
+                        doc.add(new StringField("senseIRI", entityIRI, Field.Store.YES));
+                        doc.add(new StringField("senseId", senseId, Field.Store.YES));
+                        doc.add(new StoredField("gloss", gloss));
+                        doc.add(new StoredField("label", !entityLabel.isEmpty() ? entityLabel : label));
+                        doc.add(new StringField("category", category, Field.Store.YES));
+                        if (identifier != null) {
+                            doc.add(new StoredField("identifier", identifier));
+                        }
+                        senseWriter.addDocument(doc);
+
+                        if (entryCount.get() % 500000 == 0) {
+                            System.out.printf("  %,d entries, %,d unique entities%n",
+                                entryCount.get(), entityCount.get());
+                        }
                     }
-                    OFFSET %d LIMIT %d
-                    """, ONT_NS, graphIRI, entryClass, offset, PAGE_SIZE);
-
-                JsonObject json = executeSparqlQuery(sparqlEndpoint, sparql);
-                if (json == null) {
-                    System.err.println("  SPARQL query failed at offset " + offset);
-                    break;
                 }
+                System.out.printf("  %,d entries, %,d unique entities%n",
+                    entryCount.get(), entityCount.get());
+            } else {
+                // SPARQL fallback with keyset pagination
+                boolean hasMore = true;
+                int retryCount = 0;
+                String lastEntryIRI = null;
 
-                JsonArray bindings = json.getAsJsonObject("results").getAsJsonArray("bindings");
-                int pageSize = bindings.size();
+                while (hasMore) {
+                    String filterClause = lastEntryIRI != null
+                        ? "FILTER(?entry > <" + lastEntryIRI + ">)"
+                        : "";
+                    String sparql = String.format("""
+                        PREFIX : <%s>
+                        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                        SELECT ?entry ?label ?entityIRI ?entityLabel ?gloss ?identifier WHERE {
+                          GRAPH <%s> {
+                            ?entry a :%s ;
+                                   rdfs:label ?label ;
+                                   :sense ?entityIRI .
+                            ?entityIRI rdfs:label ?entityLabel .
+                            OPTIONAL { ?entityIRI :gloss ?gloss . }
+                            OPTIONAL { ?entityIRI :identifier ?identifier . }
+                            %s
+                          }
+                        }
+                        ORDER BY ?entry
+                        LIMIT %d
+                        """, ONT_NS, graphIRI, entryClass, filterClause, PAGE_SIZE);
 
-                for (JsonElement el : bindings) {
-                    JsonObject row = el.getAsJsonObject();
-                    String label = getVal(row, "label");
-                    String entityIRI = getVal(row, "entityIRI");
-                    String entityLabel = getVal(row, "entityLabel");
-                    String gloss = getVal(row, "gloss");
-                    String identifier = getVal(row, "identifier");
+                    JsonObject json = executeSparqlQuery(sparqlEndpoint, sparql);
+                    if (json == null) {
+                        retryCount++;
+                        System.err.println("  SPARQL query failed (retry " + retryCount + "/3)");
+                        if (retryCount <= 3) {
+                            try { Thread.sleep(retryCount * 5000L); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                            continue;
+                        }
+                        System.err.println("  Giving up after 3 retries");
+                        break;
+                    }
+                    retryCount = 0;
 
-                    if (label == null || entityIRI == null) continue;
+                    JsonArray bindings = json.getAsJsonObject("results").getAsJsonArray("bindings");
+                    int pageSize = bindings.size();
 
-                    entryCount.incrementAndGet();
+                    for (JsonElement el : bindings) {
+                        JsonObject row = el.getAsJsonObject();
+                        String label = getVal(row, "label");
+                        String entityIRI = getVal(row, "entityIRI");
+                        String entityLabel = getVal(row, "entityLabel");
+                        String gloss = getVal(row, "gloss");
+                        String identifier = getVal(row, "identifier");
 
-                    // Truncate gloss for FST payload (full gloss in sense index)
-                    String shortGloss = gloss != null && gloss.length() > 120
-                        ? gloss.substring(0, 120) + "..." : (gloss != null ? gloss : "");
+                        if (label == null || entityIRI == null) continue;
 
-                    suggestEntries.add(new SuggestEntry(
-                        label,
-                        entityLabel != null ? entityLabel : label,
-                        entityIRI,
-                        shortGloss
-                    ));
+                        String entryIRI = getVal(row, "entry");
+                        if (entryIRI != null) lastEntryIRI = entryIRI;
 
-                    if (seenEntityIRIs.add(entityIRI)) {
-                        entityCount.incrementAndGet();
+                        entryCount.incrementAndGet();
+
+                        String shortGloss = gloss != null && gloss.length() > 120
+                            ? gloss.substring(0, 120) + "..." : (gloss != null ? gloss : "");
+
+                        suggestEntries.add(new SuggestEntry(
+                            label,
+                            entityLabel != null ? entityLabel : label,
+                            entityIRI,
+                            shortGloss
+                        ));
+
+                        if (seenEntityIRIs.add(entityIRI)) {
+                            entityCount.incrementAndGet();
+                        }
+
+                        String senseId = entityIRI;
+                        int pos = Math.max(entityIRI.lastIndexOf('#'), entityIRI.lastIndexOf('/'));
+                        if (pos >= 0) senseId = entityIRI.substring(pos + 1);
+
+                        Document doc = new Document();
+                        doc.add(new StringField("entityIRI", entityIRI, Field.Store.YES));
+                        doc.add(new StringField("senseIRI", entityIRI, Field.Store.YES));
+                        doc.add(new StringField("senseId", senseId, Field.Store.YES));
+                        doc.add(new StoredField("gloss", gloss != null ? gloss : ""));
+                        doc.add(new StoredField("label", entityLabel != null ? entityLabel : label));
+                        doc.add(new StringField("category", category, Field.Store.YES));
+                        if (identifier != null) {
+                            doc.add(new StoredField("identifier", identifier));
+                        }
+                        senseWriter.addDocument(doc);
                     }
 
-                    // Sense index document
-                    String senseId = entityIRI;
-                    int pos = Math.max(entityIRI.lastIndexOf('#'), entityIRI.lastIndexOf('/'));
-                    if (pos >= 0) senseId = entityIRI.substring(pos + 1);
+                    hasMore = pageSize == PAGE_SIZE;
 
-                    Document doc = new Document();
-                    doc.add(new StringField("entityIRI", entityIRI, Field.Store.YES));
-                    doc.add(new StringField("senseIRI", entityIRI, Field.Store.YES));
-                    doc.add(new StringField("senseId", senseId, Field.Store.YES));
-                    doc.add(new StoredField("gloss", gloss != null ? gloss : ""));
-                    doc.add(new StoredField("label", entityLabel != null ? entityLabel : label));
-                    doc.add(new StringField("category", category, Field.Store.YES));
-                    if (identifier != null) {
-                        doc.add(new StoredField("identifier", identifier));
+                    if (entryCount.get() % 50000 == 0 || !hasMore) {
+                        System.out.printf("  %,d entries, %,d unique entities%n",
+                            entryCount.get(), entityCount.get());
                     }
-                    senseWriter.addDocument(doc);
-                }
-
-                offset += PAGE_SIZE;
-                hasMore = pageSize == PAGE_SIZE;
-
-                if (offset % 50000 == 0 || !hasMore) {
-                    System.out.printf("  %,d entries, %,d unique entities%n",
-                        entryCount.get(), entityCount.get());
                 }
             }
 
@@ -258,7 +349,7 @@ public class BuildFSTIndex {
             .uri(URI.create(url))
             .header("Accept", "application/sparql-results+json")
             .GET()
-            .timeout(java.time.Duration.ofSeconds(300))
+            .timeout(java.time.Duration.ofSeconds(1200))
             .build();
 
         HttpResponse<String> resp = HTTP.send(req, BodyHandlers.ofString());

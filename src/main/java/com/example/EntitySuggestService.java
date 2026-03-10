@@ -44,18 +44,28 @@ public class EntitySuggestService {
 
     public static final List<String> CATEGORIES = List.of(
         "Person_Entity", "Organization_Entity", "Geopolitical_Entity", "Product_Entity",
-        "Unit_Entity", "Occupation_Entity"
+        "Unit_Entity", "Occupation_Entity", "Creative_Work_Entity", "Quantity_Dimension_Entity",
+        "Location_Entity", "Food_Entity", "Language_Entity", "Organism_Entity",
+        "Equity_Entity", "Index_Entity", "Corporate_Bond_Entity", "Government_Bond_Entity"
     );
-
-    public static final Map<String, String> ENTRY_CLASSES = Map.of(
-        "Person_Entity", "Person_Entry",
-        "Organization_Entity", "Organization_Entry",
-        "Geopolitical_Entity", "Geopolitical_Entry",
-        "Product_Entity", "Product_Entry",
-        "Unit_Entity", "Unit_Entry",
-        "Occupation_Entity", "Occupation_Entry"
+    public static final Map<String, String> ENTRY_CLASSES = Map.ofEntries(
+        Map.entry("Person_Entity", "Person_Entry"),
+        Map.entry("Organization_Entity", "Organization_Entry"),
+        Map.entry("Geopolitical_Entity", "Geopolitical_Entry"),
+        Map.entry("Product_Entity", "Product_Entry"),
+        Map.entry("Unit_Entity", "Unit_Entry"),
+        Map.entry("Occupation_Entity", "Occupation_Entry"),
+        Map.entry("Creative_Work_Entity", "Creative_Work_Entry"),
+        Map.entry("Quantity_Dimension_Entity", "Quantity_Dimension_Entry"),
+        Map.entry("Location_Entity", "Location_Entry"),
+        Map.entry("Food_Entity", "Food_Entry"),
+        Map.entry("Language_Entity", "Language_Entry"),
+        Map.entry("Organism_Entity", "Organism_Entry"),
+        Map.entry("Equity_Entity", "Equity_Entry"),
+        Map.entry("Index_Entity", "Index_Entry"),
+        Map.entry("Corporate_Bond_Entity", "Corporate_Bond_Entry"),
+        Map.entry("Government_Bond_Entity", "Government_Bond_Entry")
     );
-
     // Per-category FST suggester
     private final Map<String, AnalyzingInfixSuggester> suggesters = new ConcurrentHashMap<>();
 

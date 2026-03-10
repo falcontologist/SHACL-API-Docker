@@ -23,7 +23,7 @@ const CONFIG = {
       literal: 10
     }
   },
-  ENTITY_CATEGORIES: ["Person_Entity", "Organization_Entity", "Geopolitical_Entity", "Product_Entity", "Unit_Entity", "Occupation_Entity"],
+  ENTITY_CATEGORIES: ["Person_Entity", "Organization_Entity", "Geopolitical_Entity", "Product_Entity", "Unit_Entity", "Occupation_Entity", "Creative_Work_Entity", "Quantity_Dimension_Entity", "Location_Entity", "Food_Entity", "Language_Entity", "Organism_Entity", "Equity_Entity", "Index_Entity", "Corporate_Bond_Entity", "Government_Bond_Entity"],
   SUGGEST_DEBOUNCE_MS: 150,
   SUGGEST_MIN_CHARS: 2,
   SUGGEST_MAX_RESULTS: 10
@@ -710,7 +710,7 @@ function formatCategoryLabel(category) {
     case 'Person_Entity': return 'Person';
     case 'Product_Entity': return 'Product';
     case 'Unit_Entity': return 'Unit';
-    case 'Occupation_Entity': return 'Occupation';
+    case 'Occupation_Entity': return 'Occupation';    case 'Creative_Work_Entity': return 'Creative Work';    case 'Quantity_Dimension_Entity': return 'Quantity Dimension';    case 'Location_Entity': return 'Location';    case 'Food_Entity': return 'Food';    case 'Language_Entity': return 'Language';    case 'Organism_Entity': return 'Organism';    case 'Equity_Entity': return 'Equity';    case 'Index_Entity': return 'Index';    case 'Corporate_Bond_Entity': return 'Corporate Bond';    case 'Government_Bond_Entity': return 'Government Bond';
     default: return category.replace(/_Entity$/, '');
   }
 }

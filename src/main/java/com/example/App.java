@@ -233,6 +233,16 @@ public class App {
                 case "product" -> "Product_Entity";
                 case "unit" -> "Unit_Entity";
                 case "occupation" -> "Occupation_Entity";
+                case "creative_work", "creativework" -> "Creative_Work_Entity";
+                case "quantity_dimension", "quantitydimension", "dimension" -> "Quantity_Dimension_Entity";
+                case "location" -> "Location_Entity";
+                case "food" -> "Food_Entity";
+                case "language" -> "Language_Entity";
+                case "organism" -> "Organism_Entity";
+                case "equity" -> "Equity_Entity";
+                case "index" -> "Index_Entity";
+                case "corporate_bond", "corporatebond" -> "Corporate_Bond_Entity";
+                case "government_bond", "governmentbond" -> "Government_Bond_Entity";
                 default -> null;
             };
             if (resolved != null) {
