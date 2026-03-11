@@ -7,7 +7,86 @@
 ### STRUCTURAL PARTITION ###
 ### SHACL Shapes, Rules, Inference, Metadata ###
 
-### SHAPES (112) ###
+### SHAPES ###
+
+### Entity shape
+
+:Entity_shape a sh:NodeShape ;
+    sh:targetClass :Entity ; 
+    sh:property [
+        sh:path :physicalScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :boundedScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :locativeScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :animateScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :sentientScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :volitionalScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :institutionalScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :collectiveScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :telicScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :symbolicScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :scalarScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :temporalScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] .
+
+### Situation shapes
 
 :Absorb_shape a :Situation_shape, sh:NodeShape ;
     rdfs:label "Absorb (shape)"@en ;
@@ -2799,60 +2878,8 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
     sh:targetClass :Weather .
 
-### Entity Shapes ###
 
-:Quantity_Dimension_shape a :Entity_shape, sh:NodeShape ;
-    rdfs:label "Quantity (shape)"@en ;
-    sh:property [
-        sh:minCount 1 ;
-        sh:name "value"@en ;
-        sh:nodeKind sh:Literal ;
-        sh:path :value
-    ] , [
-        sh:name "multiplier"@en ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
-        sh:path :multiplier
-    ] , [
-        sh:name "item"@en ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
-        sh:path :item
-    ] , [
-        sh:minCount 1 ;
-        sh:name "dimension"@en ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
-        sh:path :dimension
-    ] , [
-        sh:name "unit"@en ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
-        sh:path :unit
-    ] ;
-    sh:targetClass :Quantity_Dimension .
-
-:Quality_Dimension_shape a :Entity_shape, sh:NodeShape ;
-    rdfs:label "Quality (shape)"@en ;
-    sh:property [
-        sh:minCount 1 ;
-        sh:name "value"@en ;
-        sh:nodeKind sh:Literal ;
-        sh:path :value
-    ] , [
-        sh:minCount 1 ;
-        sh:name "degree"@en ;
-        sh:nodeKind sh:Literal ;
-        sh:path :degree
-    ] , [
-        sh:name "dimension"@en ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
-        sh:path :attribute
-    ] , [
-        sh:name "item"@en ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
-        sh:path :item
-    ] ;
-    sh:targetClass :Quality_Dimension .
-
-
-### MISC (12) ###
+### MISC (clean up) ###
 
 :Acquisition_Inference_Rule a sh:NodeShape ;
     sh:rule [ a sh:SPARQLRule ;
