@@ -1978,3 +1978,65 @@
 :occupation a rdf:Property ;
     rdfs:label "occupation"@en ;
     rdfs:subPropertyOf :role .
+
+### Feature scores
+
+:physicalScore a rdf:Property ;
+    rdfs:label "physicalScore"@en ;
+    rdfs:comment "This entity is a physical object with material substance and mass."@en ;
+    rdfs:range xsd:float .
+
+:boundedScore a rdf:Property ;
+    rdfs:label "boundedScore"@en ;
+    rdfs:comment "This entity is a discrete, countable, and individuated whole."@en ;
+    rdfs:range xsd:float .
+
+:locativeScore a rdf:Property ;
+    rdfs:label "locativeScore"@en ;
+    rdfs:comment "This entity is a spatial region, place, or location that can be occupied."@en ;
+    rdfs:range xsd:float .
+
+:animateScore a rdf:Property ;
+    rdfs:label "animateScore"@en ;
+    rdfs:comment "This entity is biologically alive and capable of autonomous movement."@en ;
+    rdfs:range xsd:float .
+
+:sentientScore a rdf:Property ;
+    rdfs:label "sentientScore"@en ;
+    rdfs:comment "This entity is a conscious being with subjective experience, perception, and feeling."@en ;
+    rdfs:range xsd:float .
+
+:volitionalScore a rdf:Property ;
+    rdfs:label "volitionalScore"@en ;
+    rdfs:comment "This entity is an agent with the capacity for intention, decision-making, and goal-directed behavior."@en ;
+    rdfs:range xsd:float .
+
+:institutionalScore a rdf:Property ;
+    rdfs:label "institutionalScore"@en ;
+    rdfs:comment "This entity is a socially constructed role, an organization, or a legal reality."@en ;
+    rdfs:range xsd:float .
+
+:collectiveScore a rdf:Property ;
+    rdfs:label "collectiveScore"@en ;
+    rdfs:comment "This entity is a plurality or group composed of multiple distinct members."@en ;
+    rdfs:range xsd:float .
+
+:telicScore a rdf:Property ;
+    rdfs:label "telicScore"@en ;
+    rdfs:comment "This entity is an artifact or concept that has an intrinsic, designed purpose or intended use."@en ;
+    rdfs:range xsd:float .
+
+:symbolicScore a rdf:Property ;
+    rdfs:label "symbolicScore"@en ;
+    rdfs:comment "This entity exists to bear, convey, or represent decodable meaning, data, or information."@en ;
+    rdfs:range xsd:float .
+
+:scalarScore a rdf:Property ;
+    rdfs:label "scalarScore"@en ;
+    rdfs:comment "This entity defines a magnitude, degree, or value within an ordered system."@en ;
+    rdfs:range xsd:float .
+
+:temporalScore a rdf:Property ;
+    rdfs:label "temporalScore"@en ;
+    rdfs:comment "This entity is defined by, or bounded to, a specific time interval or temporal horizon."@en ;
+    rdfs:range xsd:float .
