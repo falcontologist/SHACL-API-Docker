@@ -1321,15 +1321,17 @@ WHERE {
         }
         WHERE {
             ?this a :Employment ;
-                  :lemma ?lemma ;
-                  :synset ?synset ;
+                  :lemma ?lemmaNode ;  # Binds to the URI (e.g., :work.v.lemma)
+                  :synset ?synsetNode ; # Binds to the URI (e.g., :work.v.02)
                   :employee ?employee ;
                   :employer ?employer .
             
-            ?lemmaNode :lemma ?lemma ;
+            # Look up the literal string and verb form directly from the bound URI node
+            ?lemmaNode :lemma ?lemmaString ;
                        :present3sg ?verbForm .
             
-            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            # Use STR() to safely cast URIs to strings for CONCAT
+            BIND(SHA256(CONCAT(?lemmaString, "|", STR(?synsetNode))) AS ?hash)
             BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
         }
         """ ;

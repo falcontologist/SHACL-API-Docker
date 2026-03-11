@@ -1,0 +1,88 @@
+@prefix :        <https://falcontologist.github.io/shacl-demo/ontology/> .
+@prefix dash:    <http://datashapes.org/dash#> .
+@prefix graphql: <http://datashapes.org/graphql#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix swa:     <http://topbraid.org/swa#> .
+@prefix temp:    <https://falcontologist.github.io/shacl-demo/temp/> .
+@prefix tosh:    <http://topbraid.org/tosh#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+temp:s1 a :Dynamic_Possession ;
+    rdfs:label "acquire" ;
+    :lemma "acquire" ;
+    :synset "come into the possession of something concrete or abstract" ;
+    :transactor temp:Alphabet ;
+    :item temp:Wiz .
+temp:Alphabet a :Entity ;
+    rdfs:label "Alphabet" .
+temp:Wiz a :Entity ;
+    rdfs:label "Wiz" .
+
+temp:s3 a :Joint_Statement ;
+    rdfs:label "agree" ;
+    :lemma "agree" ;
+    :synset "be in accord; be in agreement" ;
+    :communicator temp:Wiz ;
+    :communicator temp:Alphabet ;
+    :topic temp:s1 .
+
+temp:s4 a :Statement ;
+    rdfs:label "announce" ;
+    :lemma "announce" ;
+    :synset "make known; make an announcement" ;
+    :communicator temp:Alphabet ;
+    :message temp:s3 .
+
+temp:s5 a :Statement ;
+    rdfs:label "report" ;
+    :lemma "report" ;
+    :synset "to give an account or representation of in words" ;
+    :communicator temp:WSJ ;
+    :message temp:s4 .
+temp:WSJ a :Entity ;
+    rdfs:label "WSJ" .
+
+temp:s6 a :Measurement ;
+    rdfs:label "cost" ;
+    :lemma "cost" ;
+    :synset "be priced at" ;
+    :unit temp:USD ;
+    :multiplier temp:Billion ;
+    :item temp:Wiz ;
+    :value "32" .
+temp:USD a :Entity ;
+    rdfs:label "USD" .
+temp:Billion a :Entity ;
+    rdfs:label "Billion" .
+
+
+
+
+# Employment example
+
+@prefix :        <https://falcontologist.github.io/shacl-demo/ontology/> .
+@prefix dash:    <http://datashapes.org/dash#> .
+@prefix graphql: <http://datashapes.org/graphql#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix swa:     <http://topbraid.org/swa#> .
+@prefix temp:    <https://falcontologist.github.io/shacl-demo/temp/> .
+@prefix tosh:    <http://topbraid.org/tosh#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+temp:Mike_Bloomberg  rdf:type  :Entity;
+        rdfs:label  "Mike Bloomberg" .
+
+temp:s1  rdf:type   :Cause_Employment;
+        rdfs:label  "employ";
+        :employee   temp:Mike_Bloomberg;
+        :employer   temp:Bloomberg .
+
+temp:Bloomberg  rdf:type       :Entity;
+        rdfs:label             "Bloomberg";
+        :employs_4a9c051fe467  temp:Mike_Bloomberg .

@@ -11,8 +11,8 @@ services:
       VIRT_Parameters_NumberOfBuffers: "2000"
       VIRT_Parameters_MaxDirtyBuffers: "1500"
       VIRT_SPARQL_ResultSetMaxRows: "100000"
-      VIRT_SPARQL_MaxQueryExecutionTime: "60"
-      VIRT_HTTPServer_EnabledDavVSP: "0"
+      VIRT_HTTPServer_EnableCORS: "1"
+      VIRT_HTTPServer_CORSAllowOrigin: "*"
     ports:
       - "8890:8890"
       - "1111:1111"

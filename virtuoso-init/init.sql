@@ -21,8 +21,9 @@ DB.DBA.RDF_DEFAULT_USER_PERMS_SET ('sparql_writer', 15);
 DB.DBA.RDF_GRAPH_USER_PERMS_SET ('http://shacl-demo.org/type',  'sparql_writer', 15);
 DB.DBA.RDF_GRAPH_USER_PERMS_SET ('http://shacl-demo.org/token', 'sparql_writer', 15);
 DB.DBA.RDF_DEFAULT_USER_PERMS_SET ('nobody', 1);
-DB.DBA.RDF_GRAPH_USER_PERMS_SET ('http://shacl-demo.org/type',  'nobody', 1);
-DB.DBA.RDF_GRAPH_USER_PERMS_SET ('http://shacl-demo.org/token', 'nobody', 1);
+DB.DBA.RDF_GRAPH_USER_PERMS_SET ('http://shacl-demo.org/type',  'SPARQL', 1);
+DB.DBA.RDF_GRAPH_USER_PERMS_SET ('http://shacl-demo.org/token', 'SPARQL', 1);
+GRANT SPARQL_UPDATE TO "sparql_writer";
 
 -- 3.5 Enable CORS on the /sparql endpoint for frontend access
 DB.DBA.VHOST_DEFINE (
