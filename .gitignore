@@ -1,0 +1,27 @@
+# Large TTL files kept locally only
+gpe_entity.ttl
+gpe_entry.ttl
+organization_entity.ttl
+organization_entry.ttl
+person_entity.ttl
+person_entry.ttl
+product_entity.ttl
+product_entry.ttl
+fst-index/
+fst-index.tar.gz
+fst-index/
+fst-index.tar.gz
+._*
+google-cloud-sdk/
+fst-index/
+fst-index.tar.gz
+._*
+*.ttl
+!structural.ttl
+!conceptual.ttl
+!lexical.ttl
+!manifest.ttl
+logs/
+*.pyc
+__pycache__/
+.venv/

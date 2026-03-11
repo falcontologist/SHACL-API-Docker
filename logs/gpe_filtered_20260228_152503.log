@@ -1,0 +1,145 @@
+PRE_1850_P576  Q19083  Kingdom of Iberia  end=580
+SUBNATIONAL  Q22  Scotland
+SUBNATIONAL  Q1199  Hesse
+SUBNATIONAL  Q3908  Galicia
+PRE_1850_P576  Q70972  Kingdom of France  end=1791
+PRE_1850_P576  Q7313  Yuan dynasty  end=1368
+PRE_1850_P576  Q9903  Ming dynasty  end=1644
+PRE_1850_P576  Q58296  French First Republic  end=1804
+PRE_1850_P576  Q11774  Gupta Empire  end=550
+PRE_1850_P576  Q12548  Holy Roman Empire  end=1806
+PRE_1850_P576  Q15864  United Kingdom of the Netherlands  end=1839
+PRE_1850_P576  Q153080  East Francia  end=962
+SUBNATIONAL  Q39473  Transylvania
+PRE_1850_P576  Q62389  Icelandic Commonwealth  end=1262
+PRE_1850_P576  Q69323  French constitutional monarchy  end=1792
+PRE_1850_P576  Q161885  Kingdom of Great Britain  end=1801
+PRE_1850_P576  Q174306  Republic of Genoa  end=1797
+PRE_1850_P576  Q179293  Kingdom of Castile  end=1833
+PRE_1850_P576  Q173065  Kingdom of Naples  end=1816
+PRE_1850_P576  Q179876  Kingdom of England  end=1707
+PRE_1850_P576  Q186096  Tsardom of Russia  end=1721
+PRE_1850_P576  Q170072  Dutch Republic  end=1795
+PRE_1850_P576  Q200262  Kingdom of Navarre  end=1841
+PRE_1850_P576  Q117020  Free Imperial City of Nuremberg  end=1806
+PRE_1850_P576  Q148540  Republic of Florence  end=1569
+PRE_1850_P576  Q199442  Kingdom of Aragon  end=1707
+PRE_1850_P576  Q204920  Crown of Aragon  end=1715
+PRE_1850_P576  Q217196  Crown of Castile  end=1715
+PRE_1850_P576  Q193152  Great Moravia  end=907
+PRE_1850_P576  Q215530  Kingdom of Ireland  end=1801
+PRE_1850_P576  Q170588  Republic of Texas  end=1846
+PRE_1850_P576  Q172107  Polish–Lithuanian Commonwealth  end=1795
+PRE_1850_P576  Q175276  Kingdom of Leon  end=1833
+PRE_1850_P576  Q185488  Volga Bulgaria  end=1240
+PRE_1850_P576  Q199821  Gran Colombia  end=1831
+PRE_1850_P576  Q151536  Novgorod Republic  end=1478
+PRE_1850_P576  Q162192  Riograndense Republic  end=1845
+PRE_1850_P576  Q188586  Kingdom of Sicily  end=1816
+PRE_1850_P576  Q190025  Federal Republic of Central America  end=1841
+PRE_1850_P576  Q213353  Cisalpine Republic  end=1802
+PRE_1850_P576  Q303421  Kingdom of Galicia  end=1833
+PRE_1850_P576  Q170770  Grand Principality of Moscow  end=1547
+PRE_1850_P576  Q282475  Kingdom of Kartli-Kakheti  end=1801
+PRE_1850_P576  Q230791  Kingdom of Scotland  end=1707
+PRE_1850_P576  Q330362  Commonwealth of England  end=1660
+PRE_1850_P576  Q402145  Mataram Sultanate  end=1755
+PRE_1850_P576  Q335088  Armenian Kingdom of Cilicia  end=1375
+PRE_1850_P576  Q332005  Principality of Achaea  end=1432
+PRE_1850_P576  Q504759  Chu  end=223
+PRE_1850_P576  Q449639  Alodia  end=1504
+PRE_1850_P576  Q549817  Principality of Murom  end=1392
+PRE_1850_P576  Q435583  Old Swiss Confederacy  end=1798
+PRE_1850_P576  Q599613  County of Namur  end=1795
+PRE_1850_P576  Q494625  Usan  end=930
+PRE_1850_P576  Q577867  Kingdom of Poland  end=1385
+PRE_1850_P576  Q671658  Republic of Yucatán  end=1848
+PRE_1850_P576  Q771193  Kingdom of Brittany  end=939
+PRE_1850_P576  Q738144  United Provinces of the Río de la Plata  end=1831
+PRE_1850_GLOSS  Q703695  Great Balhae Kingdom  gloss_max_year=1116  "kingdom (1116 -1116)"
+PRE_1850_P576  Q671362  Principality of Turov and Pinsk  end=1340
+PRE_1850_P576  Q774783  Sovereign Principality of the United Netherlands  end=1815
+PRE_1850_P576  Q707128  Jeong-an kingdom  end=986
+PRE_1850_P576  Q715257  Later Silla  end=935
+PRE_1850_P576  Q736727  Republic of Siena  end=1555
+PRE_1850_P576  Q738264  State of Los Altos  end=1840
+PRE_1850_P576  Q903779  United Kingdom of Portugal, Brazil and the Algarves  end=1825
+PRE_1850_P576  Q912052  Wei  end=225
+PRE_1850_P576  Q842091  Duchy of Normandy  end=1259
+PRE_1850_P576  Q878319  Serbian Despotate  end=1537
+PRE_1850_P576  Q1146786  Señorío of Cuzcatlán  end=1528
+SUBNATIONAL  Q1165546  Mosquitia
+PRE_1850_P576  Q1232887  County of Savoy  end=1416
+PRE_1850_P576  Q1249230  County of Castilla  end=1065
+PRE_1850_P576  Q1470101  Kingdom of Hungary  end=1301
+PRE_1850_P576  Q1392840  Rurik's state  end=882
+PRE_1850_P576  Q1530762  Kingdom of Kandy  end=1815
+PRE_1850_P576  Q1483495  Principality of Smolensk  end=1508
+PRE_1850_P576  Q1649871  Kingdom of Poland  end=1569
+PRE_1850_P576  Q1483430  Principality of Kyiv  end=1471
+PRE_1850_P576  Q1968554  Abazinia  end=1800
+PRE_1850_P576  Q2327097  Imperial City of Windsheim  end=1802
+PRE_1850_P576  Q2415003  Kingdom of Serbia  end=1346
+BLOCKLIST  Q2362063  
+PRE_1850_P576  Q2393278  Republic of Cospaia  end=1826
+PRE_1850_P576  Q2526751  Dál nAraidi  end=1150
+PRE_1850_P576  Q2273304  Moravian Serbia  end=1403
+BLOCKLIST  Q2480041  Italy in the Middle Ages
+PRE_1850_P576  Q2578706  Kingdom of Ceredigion  end=680
+PRE_1850_P576  Q2597352  Kingdom of Norway  end=1814
+PRE_1850_P576  Q2578028  Sikh Confederacy  end=1799
+PRE_1850_P576  Q2712121  Irish Republic  end=1798
+PRE_1850_P576  Q2899771  Principality of Hungary  end=1001
+PRE_1850_P576  Q2940142  Kingdom of Toledo  end=711
+PRE_1850_P576  Q2988343  Portuguese Malacca  end=1641
+PRE_1850_P576  Q3136869  Kingdom of Dambadeniya  end=1345
+PRE_1850_P576  Q3167772  Kingdom of Polonnaruwa  end=1310
+BLOCKLIST  Q3479157  Serendip
+PRE_1850_P576  Q3284315  Samudra Pasai  end=1521
+PRE_1850_P576  Q3307686  Visigothic Kingdom of Tolosa  end=507
+PRE_1850_P576  Q3571951  Royal Lordship of Molina  end=1813
+PRE_1850_P576  Q3572054  Lordship of Albarracin  end=1379
+PRE_1850_P576  Q3267672  Republic of Entre Ríos  end=1821
+PRE_1850_P576  Q3845765  Marquisate of Zuccarello  end=1624
+PRE_1850_P576  Q3892131  Free Province of Guayaquil  end=1822
+PRE_1850_P576  Q3623202  District of Branković  end=1412
+PRE_1850_P576  Q3932086  Kingdom of Trinacria  end=1442
+PRE_1850_P576  Q4147013  Tulunid Emirate  end=905
+PRE_1850_P576  Q3968612  Italian United Provinces  end=1831
+PRE_1850_P576  Q4304392  Russian State  end=1721
+PRE_1850_P576  Q4453003  Tashkent State  end=1808
+PRE_1850_P576  Q4445623  Duchy of Suzdal  end=1341
+PRE_1850_P576  Q4453007  Tashkent Khanate  end=1627
+PRE_1850_P576  Q5124786  Civitas Schinesghe  end=1025
+BLOCKLIST  Q5185064  House of Zhu
+PRE_1850_P576  Q6773257  Eastern Karakhanids Khanate  end=1212
+PRE_1850_P576  Q8575586  Umayyad Caliphate  end=750
+PRE_1850_P576  Q8842943  Estado Libre del Istmo  end=1841
+PRE_1850_P576  Q8890160  Kingdom of Poland  end=1795
+PRE_1850_P576  Q9063401  United Provinces of Central America  end=1824
+PRE_1850_P576  Q10975458  Maramureș  end=1402
+PRE_1850_P576  Q11938308  Nabhani dynasty  end=1624
+PRE_1850_P576  Q11681694  Republic of Spanish Haiti  end=1822
+PRE_1850_P576  Q12491044  Negara Dipa  end=1495
+PRE_1850_P576  Q13411328  Moscovia  end=1547
+PRE_1850_P576  Q16056854  Kingdom of Hungary  end=1526
+PRE_1850_P576  Q18285930  German Empire of 1848/1849  end=1849
+PRE_1850_P576  Q18590086  County of Loano  end=1770
+PRE_1850_P576  Q20507218  Kingdom of Artaxerxes  end=1
+PRE_1850_P576  Q20949725  Principality of Sperlinga  end=1658
+PRE_1850_P576  Q23366230  Republic of Geneva  end=1815
+PRE_1850_P576  Q30890672  Kingdom of Sicily  end=1849
+PRE_1850_P576  Q96051590  Republic „Otto Luoghi“  end=1797
+PRE_1850_P576  Q110362913  Chacha Empire  end=712
+PRE_1850_P576  Q113411770  Grand Duchy of Yaroslavl  end=1471
+BLOCKLIST  Q126282254  Joseon Cybernation
+PRE_1850_P576  Q131839713  Kingdom of Patones  end=1769
+BLOCKLIST  Q131588685  
+PRE_1850_P576  Q12536  Abbasid Caliphate  end=1517
+SUBNATIONAL  Q21  England
+PRE_1850_P576  Q4948  Republic of Venice  end=1797
+SUBNATIONAL  Q25  Wales
+SUBNATIONAL  Q26  Northern Ireland
+PRE_1850_GLOSS  Q114  Kenya  gloss_max_year=646  "Kenya is a country in the East African Community on the African continent. With an area of ​​582,646"
+SUBNATIONAL  Q5705  Catalonia
+PRE_1850_P576  Q15581  Principality of Catalonia  end=1714

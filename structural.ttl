@@ -7,7 +7,86 @@
 ### STRUCTURAL PARTITION ###
 ### SHACL Shapes, Rules, Inference, Metadata ###
 
-### SHAPES (112) ###
+### SHAPES ###
+
+### Entity shape
+
+:Entity_shape a sh:NodeShape ;
+    sh:targetClass :Entity ; 
+    sh:property [
+        sh:path :physicalScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :boundedScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :locativeScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :animateScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :sentientScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :volitionalScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :institutionalScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :collectiveScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :telicScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :symbolicScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :scalarScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path :temporalScore ;
+        sh:datatype xsd:float ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] .
+
+### Situation shapes
 
 :Absorb_shape a :Situation_shape, sh:NodeShape ;
     rdfs:label "Absorb (shape)"@en ;
@@ -727,7 +806,7 @@ WHERE {
             sh:order 2 ] ;
     sh:targetClass :Causative_Incremental .
 
-:CauseEmployment_shape a :Situation_shape, sh:NodeShape ;
+:Cause_Employment_shape a :Situation_shape, sh:NodeShape ;
     rdfs:label "Cause Employment (shape)"@en ;
     sh:property [ sh:name "employer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :employer ] ;
     sh:property [ sh:name "employee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :employee ] ;
@@ -743,7 +822,7 @@ WHERE {
             ?employer ?opaqueProperty ?employee .
         }
         WHERE {
-            ?this a :CauseEmployment ;
+            ?this a :Cause_Employment ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :employer ?employer ;
@@ -757,7 +836,7 @@ WHERE {
         }
         """ ;
             sh:order 2 ] ;
-    sh:targetClass :CauseEmployment .
+    sh:targetClass :Cause_Employment .
 
 :Cause_Membership_shape a :Situation_shape, sh:NodeShape ;
     rdfs:label "Cause Membership (shape)"@en ;
@@ -1306,33 +1385,83 @@ WHERE {
 
 :Employment_shape a :Situation_shape, sh:NodeShape ;
     rdfs:label "Employment (shape)"@en ;
-    sh:property [ sh:name "employer"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :employer ] ;
-    sh:property [ sh:name "employee"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :employee ] ;
-    sh:property [ sh:name "industry"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :industry ] ;
-    sh:property [ sh:name "occupation"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :occupation ] ;
+    
+    # Updated: employer allows Organization, Geopolitical, or Person Entities
+    sh:property [ 
+        sh:name "employer"@en ; 
+        sh:nodeKind sh:BlankNodeOrIRI ; 
+        sh:path :employer ;
+        sh:or (
+            [ sh:class :Organization_Entity ]
+            [ sh:class :Geopolitical_Entity ]
+            [ sh:class :Person_Entity ]
+        )
+    ] ;
+    
+    sh:property [ 
+        sh:name "employee"@en ; 
+        sh:nodeKind sh:BlankNodeOrIRI ; 
+        sh:path :employee ;
+        sh:class :Person_Entity 
+    ] ;
+    
+    sh:property [ 
+        sh:name "industry"@en ; 
+        sh:nodeKind sh:BlankNodeOrIRI ; 
+        sh:path :industry ;
+        sh:class :Industry_Entity 
+    ] ;
+    
+    sh:property [ 
+        sh:name "occupation"@en ; 
+        sh:nodeKind sh:BlankNodeOrIRI ; 
+        sh:path :occupation ;
+        sh:class :Occupation_Entity
+    ] ;
+    
     sh:property [ sh:name "start"@en ; sh:nodeKind sh:Literal ; sh:path :start ; sh:datatype xsd:date ] ;
     sh:property [ sh:name "end"@en ; sh:nodeKind sh:Literal ; sh:path :end ; sh:datatype xsd:date ] ;
+    
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
         PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
-            ?employee ?opaqueProperty ?employer .
+            ?employee ?propAt ?employer .
+            ?employee ?propAsA ?occupation .
+            ?employee ?propIn ?industry .
         }
         WHERE {
             ?this a :Employment ;
-                  :lemma ?lemmaNode ;  # Binds to the URI (e.g., :work.v.lemma)
-                  :synset ?synsetNode ; # Binds to the URI (e.g., :work.v.02)
-                  :employee ?employee ;
-                  :employer ?employer .
+                  :lemma ?lemmaNode ;
+                  :synset ?synsetNode ;
+                  :employee ?employee .
             
-            # Look up the literal string and verb form directly from the bound URI node
+            # Look up the literal string and verb form
             ?lemmaNode :lemma ?lemmaString ;
                        :present3sg ?verbForm .
             
-            # Use STR() to safely cast URIs to strings for CONCAT
+            # Generate the base hash just once
             BIND(SHA256(CONCAT(?lemmaString, "|", STR(?synsetNode))) AS ?hash)
-            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+            BIND(SUBSTR(STR(?hash), 1, 12) AS ?hashSub)
+            
+            # Conditionally match employer and bind the "_at_" property
+            OPTIONAL {
+                ?this :employer ?employer .
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_at_", ?hashSub)) AS ?propAt)
+            }
+            
+            # Conditionally match occupation and bind the "_as_a_" property
+            OPTIONAL {
+                ?this :occupation ?occupation .
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_as_a_", ?hashSub)) AS ?propAsA)
+            }
+            
+            # Conditionally match industry and bind the "_in_" property
+            OPTIONAL {
+                ?this :industry ?industry .
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_in_", ?hashSub)) AS ?propIn)
+            }
         }
         """ ;
             sh:order 2 ] ;
@@ -2749,60 +2878,8 @@ WHERE {
     sh:property [ sh:name "trajectory"@en ; sh:nodeKind sh:BlankNodeOrIRI ; sh:path :trajectory ] ;
     sh:targetClass :Weather .
 
-### Entity Shapes ###
 
-:Quantity_Dimension_shape a :Entity_shape, sh:NodeShape ;
-    rdfs:label "Quantity (shape)"@en ;
-    sh:property [
-        sh:minCount 1 ;
-        sh:name "value"@en ;
-        sh:nodeKind sh:Literal ;
-        sh:path :value
-    ] , [
-        sh:name "multiplier"@en ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
-        sh:path :multiplier
-    ] , [
-        sh:name "item"@en ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
-        sh:path :item
-    ] , [
-        sh:minCount 1 ;
-        sh:name "dimension"@en ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
-        sh:path :dimension
-    ] , [
-        sh:name "unit"@en ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
-        sh:path :unit
-    ] ;
-    sh:targetClass :Quantity_Dimension .
-
-:Quality_Dimension_shape a :Entity_shape, sh:NodeShape ;
-    rdfs:label "Quality (shape)"@en ;
-    sh:property [
-        sh:minCount 1 ;
-        sh:name "value"@en ;
-        sh:nodeKind sh:Literal ;
-        sh:path :value
-    ] , [
-        sh:minCount 1 ;
-        sh:name "degree"@en ;
-        sh:nodeKind sh:Literal ;
-        sh:path :degree
-    ] , [
-        sh:name "dimension"@en ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
-        sh:path :attribute
-    ] , [
-        sh:name "item"@en ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
-        sh:path :item
-    ] ;
-    sh:targetClass :Quality_Dimension .
-
-
-### MISC (12) ###
+### MISC (clean up) ###
 
 :Acquisition_Inference_Rule a sh:NodeShape ;
     sh:rule [ a sh:SPARQLRule ;

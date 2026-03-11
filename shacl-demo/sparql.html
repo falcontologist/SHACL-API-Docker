@@ -82,6 +82,30 @@
             font-family: var(--mono);
         }
 
+        .graph-toggle {
+            background: #020617;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            padding: 2px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .graph-toggle:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .graph-toggle.active {
+            background: var(--accent);
+            color: #0f172a;
+            border-color: var(--accent);
+            font-weight: 700;
+        }
+
         .nav-links {
             font-size: 0.75rem;
             color: var(--text-muted);
@@ -524,7 +548,10 @@
         <h1>SPARQL Query</h1>
         <div class="meta">
             <span class="badge">Jena · Virtuoso</span>
-            <span class="source-link">Source: <code>http://shacl-demo.org/token</code></span>
+            <span class="source-link">Source:
+                <button class="graph-toggle active" id="toggleType" onclick="switchGraph('type')">reference</button>
+                <button class="graph-toggle" id="toggleToken" onclick="switchGraph('token')">materialization</button>
+            </span>
         </div>
     </div>
     <div class="nav-links">
@@ -575,6 +602,26 @@
                 <span class="ex-label">Bloomberg Employment</span>
                 What is Mike Bloomberg's employment history?
             </button>
+            <button class="example-btn" onclick="loadExample('allGraphs')">
+                <span class="ex-label">All Named Graphs</span>
+                List all graphs with triple counts
+            </button>
+            <button class="example-btn" onclick="loadExample('persons')">
+                <span class="ex-label">Person Entities</span>
+                Browse people with their senses and Wikidata IDs
+            </button>
+            <button class="example-btn" onclick="loadExample('orgs')">
+                <span class="ex-label">Organization Entities</span>
+                Browse organizations with their senses and Wikidata IDs
+            </button>
+            <button class="example-btn" onclick="loadExample('gpes')">
+                <span class="ex-label">Geopolitical Entities</span>
+                Browse GPEs with their senses and Wikidata IDs
+            </button>
+            <button class="example-btn" onclick="loadExample('products')">
+                <span class="ex-label">Product Entities</span>
+                Browse products with their senses and Wikidata IDs
+            </button>
         </div>
 
         <div class="results-section">
@@ -615,12 +662,21 @@ const API_BASE_URL = (window.location.hostname === 'localhost' ||
     : "https://shacl-api-docker.onrender.com/api";
 
 const SPARQL_ENDPOINT = API_BASE_URL + "/sparql";
-const GRAPH_URI       = "http://shacl-demo.org/token";
+let   GRAPH_URI       = "http://shacl-demo.org/type";
 const ONT_NS          = "https://falcontologist.github.io/shacl-demo/ontology/";
 const TEMP_NS         = "https://falcontologist.github.io/shacl-demo/temp/";
 
-const EXAMPLES = {
-    nvidia: `# Which companies did NVIDIA acquire?
+function switchGraph(name) {
+    GRAPH_URI = `http://shacl-demo.org/${name}`;
+    document.getElementById('toggleType').classList.toggle('active', name === 'type');
+    document.getElementById('toggleToken').classList.toggle('active', name === 'token');
+    checkConnection();
+    loadStats();
+}
+
+function getExamples() {
+    return {
+        nvidia: `# Which companies did NVIDIA acquire?
 SELECT ?acquiredCompany
 WHERE {
   GRAPH <${GRAPH_URI}> {
@@ -630,7 +686,7 @@ WHERE {
     ?targetNode <http://www.w3.org/2000/01/rdf-schema#label> ?acquiredCompany .
   }
 }`,
-    bloomberg: `# What is Mike Bloomberg's employment history?
+        bloomberg: `# What is Mike Bloomberg's employment history?
 SELECT ?situation ?employer ?role
 WHERE {
   GRAPH <${GRAPH_URI}> {
@@ -641,15 +697,71 @@ WHERE {
       ?employerNode <http://www.w3.org/2000/01/rdf-schema#label> ?employer .
     }
   }
-}`
-};
+}`,
+        allGraphs: `# List all named graphs with triple counts
+SELECT ?graph (COUNT(*) AS ?triples)
+WHERE {
+  GRAPH ?graph { ?s ?p ?o }
+}
+GROUP BY ?graph
+ORDER BY DESC(?triples)`,
+        persons: `# Browse Person entries → senses → Wikidata IDs
+SELECT ?label ?senseLabel ?wikidataID
+WHERE {
+  GRAPH <${GRAPH_URI}> {
+    ?entry a <${ONT_NS}Person_Entry> ;
+           rdfs:label ?label ;
+           <${ONT_NS}sense> ?sense .
+    ?sense rdfs:label ?senseLabel .
+    OPTIONAL { ?sense <${ONT_NS}identifier> ?wikidataID }
+  }
+}
+ORDER BY ?label`,
+        orgs: `# Browse Organization entries → senses → Wikidata IDs
+SELECT ?label ?senseLabel ?wikidataID
+WHERE {
+  GRAPH <${GRAPH_URI}> {
+    ?entry a <${ONT_NS}Organization_Entry> ;
+           rdfs:label ?label ;
+           <${ONT_NS}sense> ?sense .
+    ?sense rdfs:label ?senseLabel .
+    OPTIONAL { ?sense <${ONT_NS}identifier> ?wikidataID }
+  }
+}
+ORDER BY ?label`,
+        gpes: `# Browse Geopolitical Entity entries → senses → Wikidata IDs
+SELECT ?label ?senseLabel ?wikidataID
+WHERE {
+  GRAPH <${GRAPH_URI}> {
+    ?entry a <${ONT_NS}Geopolitical_Entry> ;
+           rdfs:label ?label ;
+           <${ONT_NS}sense> ?sense .
+    ?sense rdfs:label ?senseLabel .
+    OPTIONAL { ?sense <${ONT_NS}identifier> ?wikidataID }
+  }
+}
+ORDER BY ?label`,
+        products: `# Browse Product entries → senses → Wikidata IDs
+SELECT ?label ?senseLabel ?wikidataID
+WHERE {
+  GRAPH <${GRAPH_URI}> {
+    ?entry a <${ONT_NS}Product_Entry> ;
+           rdfs:label ?label ;
+           <${ONT_NS}sense> ?sense .
+    ?sense rdfs:label ?senseLabel .
+    OPTIONAL { ?sense <${ONT_NS}identifier> ?wikidataID }
+  }
+}
+ORDER BY ?label`
+    };
+}
 
 let lastResults = [];
 let simulation, svg, g, zoom;
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    loadExample('all');
+    loadExample('allGraphs');
     checkConnection();
     loadStats();
     initGraph();
@@ -659,7 +771,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function loadExample(key) {
-    document.getElementById('queryEditor').value = EXAMPLES[key];
+    document.getElementById('queryEditor').value = getExamples()[key] || '';
 }
 
 function clearAll() {
@@ -694,7 +806,7 @@ async function checkConnection() {
 // ── Stats ─────────────────────────────────────────────────────────────────────
 async function loadStats() {
     const queries = {
-        countInstances: `SELECT (COUNT(DISTINCT ?s) AS ?n) WHERE { GRAPH <${GRAPH_URI}> { ?s a ?t . FILTER(STRSTARTS(STR(?s), "${TEMP_NS}s")) } }`,
+        countInstances: `SELECT (COUNT(DISTINCT ?s) AS ?n) WHERE { GRAPH <${GRAPH_URI}> { ?s a ?t . FILTER(STRSTARTS(STR(?s), "${TEMP_NS}")) } }`,
         countTriples:   `SELECT (COUNT(*) AS ?n) WHERE { GRAPH <${GRAPH_URI}> { ?s ?p ?o } }`
     };
     for (const [id, q] of Object.entries(queries)) {

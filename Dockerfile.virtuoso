@@ -1,3 +1,17 @@
 FROM openlink/virtuoso-opensource-7:7.2.16-r23.1-g01a90e1-ubuntu
 
+# Install curl for downloading the master DB on boot
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Copy pre-configured virtuoso.ini with Render memory caps
+COPY virtuoso.ini /opt/virtuoso-opensource/database/virtuoso.ini
+
+# Copy init SQL (for password setup, permissions, etc.)
 COPY virtuoso-init/init.sql /opt/virtuoso-opensource/initdb.d/init.sql
+
+# Copy the startup script that downloads the master DB from GCS
+COPY start-virtuoso.sh /start-virtuoso.sh
+RUN chmod +x /start-virtuoso.sh
+
+ENTRYPOINT []
+CMD ["/start-virtuoso.sh"]
