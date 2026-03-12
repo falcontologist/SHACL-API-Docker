@@ -181,12 +181,13 @@ public class SaveRoute {
                        :symbolicScore ?newSym ; :scalarScore ?newScal ; :temporalScore ?newTemp .
             }
             WHERE {
-                # 1. Fetch the actual scores of the entity acting as the filler
-                # (Assuming entity data is in the default graph or accessible globally)
-                <%4$s> :physicalScore ?fPhys ; :boundedScore ?fBound ; :locativeScore ?fLoc ;
-                       :animateScore ?fAnim ; :sentientScore ?fSent ; :volitionalScore ?fVol ;
-                       :institutionalScore ?fInst ; :collectiveScore ?fColl ; :telicScore ?fTelic ;
-                       :symbolicScore ?fSym ; :scalarScore ?fScal ; :temporalScore ?fTemp .
+                # 1. Fetch the actual scores of the entity acting as the filler from the token graph
+                GRAPH <%5$s> {
+                    <%4$s> :physicalScore ?fPhys ; :boundedScore ?fBound ; :locativeScore ?fLoc ;
+                           :animateScore ?fAnim ; :sentientScore ?fSent ; :volitionalScore ?fVol ;
+                           :institutionalScore ?fInst ; :collectiveScore ?fColl ; :telicScore ?fTelic ;
+                           :symbolicScore ?fSym ; :scalarScore ?fScal ; :temporalScore ?fTemp .
+                }
 
                 # 2. Fetch the current running averages for the role
                 OPTIONAL { <%3$s> :observationCount ?rawCount . }
@@ -227,6 +228,6 @@ public class SaveRoute {
                 BIND(((?cScal * ?N) + xsd:float(?fScal)) / ?newCount AS ?newScal)
                 BIND(((?cTemp * ?N) + xsd:float(?fTemp)) / ?newCount AS ?newTemp)
             }
-            """, ONTOLOGY_NS, CONCEPTUAL_GRAPH, roleUri, fillerUri);
+            """, ONTOLOGY_NS, CONCEPTUAL_GRAPH, roleUri, fillerUri, TOKEN_GRAPH);
     }
 }

@@ -499,7 +499,7 @@
         sh:or (
             [ sh:class :Volitional_Entity ]
             [ sh:class :Symbolic_Entity ]
-            [ sh:class :Dynamic_Entity ]
+            [ sh:class :Animate_Entity ]
             [ sh:class :Situation ]
             [ sh:class :Unknown_Entity ]
         )
@@ -514,9 +514,9 @@
         sh:order 2 ;
         dash:editor dash:AutoCompleteEditor ;
         dash:viewer dash:LabelViewer ;
-        # Anything individuated, or situations
+        # Anything sentient, or situations
         sh:or (
-            [ sh:class :Bounded_Entity ]
+            [ sh:class :Sentient_Entity ]
             [ sh:class :Situation ]
             [ sh:class :Unknown_Entity ]
         )
