@@ -32,10 +32,10 @@ public class App {
         System.getenv().getOrDefault("VIRTUOSO_SPARQL_URL",
             "https://fkg-6htt.onrender.com/sparql");
 
-    // Virtuoso graph IRI
-    private static final String VIRTUOSO_GRAPH =
-        System.getenv().getOrDefault("VIRTUOSO_GRAPH_IRI",
-            "http://shacl-demo.org/type");
+    // Virtuoso graph IRIs: Conceptual is so that the roles can learn the weights
+    private static final String VIRTUOSO_GRAPH = System.getenv().getOrDefault("VIRTUOSO_GRAPH_IRI", "http://shacl-demo.org/type");
+    private static final String CONCEPTUAL_GRAPH = System.getenv().getOrDefault("VIRTUOSO_CONCEPTUAL_GRAPH", "http://shacl-demo.org/conceptual");
+    private static final String TOKEN_GRAPH = System.getenv().getOrDefault("VIRTUOSO_INSTANCE_GRAPH", "http://shacl-demo.org/token");
 
     // API key for protected endpoints (should be set in Render environment)
     private static final String LOAD_API_KEY =
@@ -157,8 +157,8 @@ public class App {
                     filePath, VIRTUOSO_GRAPH
                 );
 
-                String url = VIRTUOSO_SPARQL + "?query=" +
-                    URLEncoder.encode(loadQuery, StandardCharsets.UTF_8);
+                // In App.java, ensure the proxy isn't adding a default-graph-uri that excludes your other graphs
+                String url = VIRTUOSO_SPARQL + "?query=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&format=json";
 
                 HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(url))
