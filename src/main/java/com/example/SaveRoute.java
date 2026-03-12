@@ -1,5 +1,8 @@
 package com.example;
 
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
@@ -105,8 +108,11 @@ public class SaveRoute {
 
                 // Execute Main Instance Save
                 HttpPost post = new HttpPost(SPARQL_UPDATE_URL);
-                post.setEntity(new StringEntity(instanceInsert, ContentType.create("application/sparql-update", StandardCharsets.UTF_8)));
-                
+
+                List<NameValuePair> params = new ArrayList<>();
+                params.add(new BasicNameValuePair("query", instanceInsert));
+                post.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));
+
                 int statusCode = client.execute(post, response -> response.getCode());
 
                 if (statusCode >= 200 && statusCode < 300) {
@@ -116,8 +122,13 @@ public class SaveRoute {
                     int learningSuccesses = 0;
                     for (String learningQuery : learningQueries) {
                         HttpPost learnPost = new HttpPost(SPARQL_UPDATE_URL);
-                        learnPost.setEntity(new StringEntity(learningQuery, ContentType.create("application/sparql-update", StandardCharsets.UTF_8)));
+
+                        List<NameValuePair> learnParams = new ArrayList<>();
+                        learnParams.add(new BasicNameValuePair("query", learningQuery));
+                        learnPost.setEntity(new UrlEncodedFormEntity(learnParams, StandardCharsets.UTF_8));
+
                         int learnStatus = client.execute(learnPost, response -> response.getCode());
+
                         if (learnStatus >= 200 && learnStatus < 300) {
                             learningSuccesses++;
                         } else {
