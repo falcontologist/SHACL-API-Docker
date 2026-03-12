@@ -962,16 +962,18 @@ function renderGraph(data) {
     const nodeMap = new Map();
     const links = [];
 
-    const getNode = (cell, role) => {
+    const getNode = (cell) => {
         if (!cell) return null;
         const id = cell.value;
         if (!nodeMap.has(id)) {
             const isLiteral = cell.type === 'literal' || cell.type === 'typed-literal';
+            const isOntology = id.startsWith(ONT_NS); // Detect if it's a property/class
+            
             nodeMap.set(id, {
                 id,
                 label: isLiteral ? `"${cell.value}"` : abbreviate(cell.value),
-                group: isLiteral ? 'literal' : role,
-                r: isLiteral ? 10 : (role === 'subject' ? 20 : 14)
+                group: isLiteral ? 'literal' : (isOntology ? 'ontology' : 'instance'),
+                r: isLiteral ? 10 : (isOntology ? 18 : 15)
             });
         }
         return nodeMap.get(id);
@@ -990,7 +992,11 @@ function renderGraph(data) {
     });
 
     const nodes = Array.from(nodeMap.values());
-    const COLORS = { subject: '#f59e0b', object: '#38bdf8', literal: '#3b82f6' };
+    const COLORS = { 
+        instance: '#f59e0b',  // Orange for things like :TestEvent_001
+        ontology: '#10b981',  // Green for things like :acquirer
+        literal: '#3b82f6'    // Blue for the numeric scores
+    };
 
     g.selectAll('*').remove();
 
