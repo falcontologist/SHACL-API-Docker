@@ -27,7 +27,7 @@ import java.util.Map;
 public class SaveRoute {
 
     private static final String SPARQL_UPDATE_URL =
-        System.getenv().getOrDefault("VIRTUOSO_SPARQL_UPDATE_URL", "https://virtuoso-sparql-service.onrender.com/sparql-auth");
+        System.getenv().getOrDefault("VIRTUOSO_SPARQL_UPDATE_URL", "https://fkg-6htt.onrender.com/sparql-auth");
 
     private static final String VIRTUOSO_USER =
         System.getenv().getOrDefault("VIRTUOSO_USER", "sparql_writer");
