@@ -18,10 +18,17 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class App {
 
     private static final String ONT_NS   = "https://falcontologist.github.io/shacl-demo/ontology/";
+    private static final String SH_NS    = "http://www.w3.org/ns/shacl#";
+    private static final String DASH_NS  = "http://datashapes.org/dash#";
+    private static final String XSD_NS   = "http://www.w3.org/2001/XMLSchema#";
+    private static final String SKOS_NS  = "http://www.w3.org/2004/02/skos/core#";
+    private static final String RDFS_NS  = "http://www.w3.org/2000/01/rdf-schema#";
+    private static final String RDF_NS   = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 
     private static final String MANIFEST_URL =
         System.getenv().getOrDefault("ONTOLOGY_MANIFEST",
@@ -32,12 +39,12 @@ public class App {
         System.getenv().getOrDefault("VIRTUOSO_SPARQL_URL",
             "https://fkg-6htt.onrender.com/sparql");
 
-    // Virtuoso graph IRIs: Conceptual is so that the roles can learn the weights
+    // Virtuoso graph IRIs
     private static final String VIRTUOSO_GRAPH = System.getenv().getOrDefault("VIRTUOSO_GRAPH_IRI", "http://shacl-demo.org/type");
     private static final String CONCEPTUAL_GRAPH = System.getenv().getOrDefault("VIRTUOSO_CONCEPTUAL_GRAPH", "http://shacl-demo.org/conceptual");
     private static final String TOKEN_GRAPH = System.getenv().getOrDefault("VIRTUOSO_INSTANCE_GRAPH", "http://shacl-demo.org/token");
 
-    // API key for protected endpoints (should be set in Render environment)
+    // API key for protected endpoints
     private static final String LOAD_API_KEY =
         System.getenv().getOrDefault("LOAD_API_KEY", "default-change-me");
 
@@ -85,7 +92,6 @@ public class App {
         app.post("/api/load-virtuoso-from-manifest", App::loadVirtuosoFromManifest);
 
         // ── Load pre-built FST index in background thread ────────────────
-        // Server is already accepting requests; suggest returns empty until ready.
         Thread indexThread = new Thread(() -> {
             try {
                 entitySuggestService.loadPrebuiltIndex();
@@ -107,7 +113,6 @@ public class App {
         }
 
         try {
-            // 1. Load manifest from local file (copied by Dockerfile)
             String manifestPath = "/app/manifest.ttl";
             if (!Files.exists(Paths.get(manifestPath))) {
                 ctx.status(500).json(Map.of("error", "manifest.ttl not found in container at " + manifestPath));
@@ -119,21 +124,17 @@ public class App {
                 RDFDataMgr.read(manifest, fis, Lang.TURTLE);
             }
 
-            // 2. Define properties
             Property loadOrderProp = manifest.createProperty(ONT_NS + "loadOrder");
             Property sourceFileProp = manifest.createProperty(ONT_NS + "sourceFile");
 
-            // 3. Collect partitions with loadOrder
             List<Resource> partitions = manifest.listSubjectsWithProperty(loadOrderProp).toList();
             if (partitions.isEmpty()) {
                 ctx.status(500).json(Map.of("error", "No partitions with loadOrder found in manifest"));
                 return;
             }
 
-            // 4. Sort by loadOrder
             partitions.sort(Comparator.comparingInt(r -> r.getProperty(loadOrderProp).getInt()));
 
-            // 5. Load each file into Virtuoso
             List<Map<String, Object>> results = new ArrayList<>();
             int successCount = 0;
 
@@ -145,20 +146,18 @@ public class App {
                 }
 
                 String sourceFile = srcSt.getLiteral().getString();
-                String filePath = "/app/" + sourceFile; // files are in the container root (from Dockerfile COPY)
+                String filePath = "/app/" + sourceFile;
                 if (!Files.exists(Paths.get(filePath))) {
                     results.add(Map.of("file", sourceFile, "status", "skipped (file not found at " + filePath + ")"));
                     continue;
                 }
 
-                // SPARQL LOAD (using Virtuoso's LOAD <file://...>)
                 String loadQuery = String.format(
                     "LOAD <file://%s> INTO GRAPH <%s>",
                     filePath, VIRTUOSO_GRAPH
                 );
 
-                // In App.java, ensure the proxy isn't adding a default-graph-uri that excludes your other graphs
-                String url = VIRTUOSO_SPARQL + "?query=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&format=json";
+                String url = VIRTUOSO_SPARQL + "?query=" + URLEncoder.encode(loadQuery, StandardCharsets.UTF_8) + "&format=json";
 
                 HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -177,11 +176,9 @@ public class App {
                 ));
                 if (ok) successCount++;
 
-                // Small delay to avoid overwhelming Virtuoso
                 Thread.sleep(1000);
             }
 
-            // 6. Optionally trigger FST rebuild after loading
             new Thread(() -> {
                 try {
                     System.out.println("[load] Data loaded, rebuilding FST...");
@@ -333,8 +330,8 @@ public class App {
 
     // ── Stats ─────────────────────────────────────────────────────────────────
     static void stats(Context ctx) {
-        Property typeProp  = ontologyModel.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-        Property subPropOf = ontologyModel.createProperty("http://www.w3.org/2000/01/rdf-schema#subPropertyOf");
+        Property typeProp  = ontologyModel.createProperty(RDF_NS + "type");
+        Property subPropOf = ontologyModel.createProperty(RDFS_NS + "subPropertyOf");
 
         long shapes = ontologyModel.listSubjectsWithProperty(
             typeProp,
@@ -343,7 +340,7 @@ public class App {
 
         long rules = ontologyModel.listSubjectsWithProperty(
             typeProp,
-            ontologyModel.createResource("http://www.w3.org/ns/shacl#SPARQLRule")
+            ontologyModel.createResource(SH_NS + "SPARQLRule")
         ).toList().size();
 
         Set<Resource> rolesSet = new HashSet<>();
@@ -381,42 +378,436 @@ public class App {
         ctx.json(result);
     }
 
-    // ── Forms ─────────────────────────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    // DASH-COMPLIANT FORMS ENDPOINT
+    // Extracts full SHACL + DASH metadata from property shapes so the frontend
+    // can render widgets conforming to the DASH Forms specification.
+    // ══════════════════════════════════════════════════════════════════════════
     static void forms(Context ctx) {
+        Property typeProp     = ontologyModel.createProperty(RDF_NS + "type");
+        Property shProperty   = ontologyModel.createProperty(SH_NS + "property");
+        Property shName       = ontologyModel.createProperty(SH_NS + "name");
+        Property shPath       = ontologyModel.createProperty(SH_NS + "path");
+        Property shMinCount   = ontologyModel.createProperty(SH_NS + "minCount");
+        Property shMaxCount   = ontologyModel.createProperty(SH_NS + "maxCount");
+        Property shOrder      = ontologyModel.createProperty(SH_NS + "order");
+        Property shDescription= ontologyModel.createProperty(SH_NS + "description");
+        Property shNodeKind   = ontologyModel.createProperty(SH_NS + "nodeKind");
+        Property shOr         = ontologyModel.createProperty(SH_NS + "or");
+        Property shClass      = ontologyModel.createProperty(SH_NS + "class");
+        Property shDatatype   = ontologyModel.createProperty(SH_NS + "datatype");
+        Property shNode       = ontologyModel.createProperty(SH_NS + "node");
+        Property shIn         = ontologyModel.createProperty(SH_NS + "in");
+        Property shMinLength  = ontologyModel.createProperty(SH_NS + "minLength");
+        Property shMaxLength  = ontologyModel.createProperty(SH_NS + "maxLength");
+        Property shPattern    = ontologyModel.createProperty(SH_NS + "pattern");
+        Property dashEditor   = ontologyModel.createProperty(DASH_NS + "editor");
+        Property dashViewer   = ontologyModel.createProperty(DASH_NS + "viewer");
+        Property dashSingleLine = ontologyModel.createProperty(DASH_NS + "singleLine");
+        Property skosExample  = ontologyModel.createProperty(SKOS_NS + "example");
+        Property rdfsLabel    = ontologyModel.createProperty(RDFS_NS + "label");
+        Property shTargetClass= ontologyModel.createProperty(SH_NS + "targetClass");
+
+        Resource situationShapeType = ontologyModel.createResource(ONT_NS + "Situation_shape");
+
         Map<String, Object> forms = new LinkedHashMap<>();
 
-        ontologyModel.listSubjectsWithProperty(
-            ontologyModel.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            ontologyModel.createResource(ONT_NS + "Situation_shape")
-        ).forEach(shape -> {
+        ontologyModel.listSubjectsWithProperty(typeProp, situationShapeType).forEach(shape -> {
             String shapeId = shape.getLocalName();
+            Map<String, Object> shapeMap = new LinkedHashMap<>();
+
+            // ── Shape-level metadata ────────────────────────────────────────
+            Statement labelSt = shape.getProperty(rdfsLabel);
+            if (labelSt != null) shapeMap.put("label", getLiteralString(labelSt));
+
+            Statement descSt = shape.getProperty(shDescription);
+            if (descSt != null) shapeMap.put("description", getLiteralString(descSt));
+
+            Statement exampleSt = shape.getProperty(skosExample);
+            if (exampleSt != null) shapeMap.put("example", getLiteralString(exampleSt));
+
+            Statement targetSt = shape.getProperty(shTargetClass);
+            if (targetSt != null) shapeMap.put("targetClass", targetSt.getObject().asResource().getLocalName());
+
+            // ── Property shapes (fields) ────────────────────────────────────
             List<Map<String, Object>> fields = new ArrayList<>();
 
-            shape.listProperties(ontologyModel.createProperty("http://www.w3.org/ns/shacl#property"))
-                .forEach(propStmt -> {
-                    Resource prop = propStmt.getObject().asResource();
-                    Statement nameSt = prop.getProperty(
-                        ontologyModel.createProperty("http://www.w3.org/ns/shacl#name"));
-                    Statement pathSt = prop.getProperty(
-                        ontologyModel.createProperty("http://www.w3.org/ns/shacl#path"));
-                    Statement minSt  = prop.getProperty(
-                        ontologyModel.createProperty("http://www.w3.org/ns/shacl#minCount"));
+            shape.listProperties(shProperty).forEach(propStmt -> {
+                Resource prop = propStmt.getObject().asResource();
+                Map<String, Object> field = new LinkedHashMap<>();
 
-                    if (nameSt != null && pathSt != null) {
-                        fields.add(Map.of(
-                            "label",    nameSt.getLiteral().getString(),
-                            "path",     pathSt.getObject().toString(),
-                            "required", minSt != null && minSt.getLiteral().getInt() > 0
-                        ));
+                // sh:name — display label
+                Statement nameSt = prop.getProperty(shName);
+                if (nameSt == null) return; // Skip unnamed properties
+                field.put("label", getLiteralString(nameSt));
+
+                // sh:path — the RDF property
+                Statement pathSt = prop.getProperty(shPath);
+                if (pathSt == null) return;
+                field.put("path", pathSt.getObject().toString());
+
+                // sh:minCount / sh:maxCount — cardinality
+                Statement minSt = prop.getProperty(shMinCount);
+                field.put("required", minSt != null && minSt.getLiteral().getInt() > 0);
+                if (minSt != null) field.put("minCount", minSt.getLiteral().getInt());
+
+                Statement maxSt = prop.getProperty(shMaxCount);
+                if (maxSt != null) field.put("maxCount", maxSt.getLiteral().getInt());
+
+                // sh:order — display order
+                Statement orderSt = prop.getProperty(shOrder);
+                if (orderSt != null) {
+                    field.put("order", orderSt.getLiteral().getFloat());
+                }
+
+                // sh:description — help text / tooltip
+                Statement fieldDescSt = prop.getProperty(shDescription);
+                if (fieldDescSt != null) field.put("description", getLiteralString(fieldDescSt));
+
+                // sh:nodeKind — BlankNodeOrIRI, Literal, IRI, BlankNode
+                Statement nodeKindSt = prop.getProperty(shNodeKind);
+                if (nodeKindSt != null) {
+                    field.put("nodeKind", nodeKindSt.getObject().asResource().getLocalName());
+                }
+
+                // dash:editor — the DASH editor widget URI
+                Statement editorSt = prop.getProperty(dashEditor);
+                if (editorSt != null) {
+                    field.put("editor", editorSt.getObject().asResource().getLocalName());
+                }
+
+                // dash:viewer — the DASH viewer widget URI
+                Statement viewerSt = prop.getProperty(dashViewer);
+                if (viewerSt != null) {
+                    field.put("viewer", viewerSt.getObject().asResource().getLocalName());
+                }
+
+                // dash:singleLine
+                Statement singleLineSt = prop.getProperty(dashSingleLine);
+                if (singleLineSt != null) {
+                    field.put("singleLine", singleLineSt.getLiteral().getBoolean());
+                }
+
+                // sh:datatype (direct, not inside sh:or)
+                Statement datatypeSt = prop.getProperty(shDatatype);
+                if (datatypeSt != null) {
+                    field.put("datatype", datatypeSt.getObject().asResource().getLocalName());
+                }
+
+                // sh:class (direct, not inside sh:or)
+                Statement classSt = prop.getProperty(shClass);
+                if (classSt != null) {
+                    field.put("class", classSt.getObject().asResource().getLocalName());
+                }
+
+                // sh:pattern
+                Statement patternSt = prop.getProperty(shPattern);
+                if (patternSt != null) field.put("pattern", patternSt.getLiteral().getString());
+
+                // sh:minLength / sh:maxLength
+                Statement minLenSt = prop.getProperty(shMinLength);
+                if (minLenSt != null) field.put("minLength", minLenSt.getLiteral().getInt());
+                Statement maxLenSt = prop.getProperty(shMaxLength);
+                if (maxLenSt != null) field.put("maxLength", maxLenSt.getLiteral().getInt());
+
+                // sh:in — enumerated values
+                Statement inSt = prop.getProperty(shIn);
+                if (inSt != null) {
+                    List<String> enumValues = new ArrayList<>();
+                    try {
+                        RDFList rdfList = inSt.getObject().as(RDFList.class);
+                        rdfList.iterator().forEachRemaining(node -> {
+                            if (node.isLiteral()) enumValues.add(node.asLiteral().getString());
+                            else if (node.isResource()) enumValues.add(node.asResource().getLocalName());
+                        });
+                    } catch (Exception e) { /* not a valid list */ }
+                    if (!enumValues.isEmpty()) field.put("in", enumValues);
+                }
+
+                // ── sh:or — parse constraint alternatives ───────────────────
+                Statement orSt = prop.getProperty(shOr);
+                if (orSt != null) {
+                    List<Map<String, Object>> orConstraints = parseShOrList(orSt.getObject(), shClass, shDatatype, shNode);
+                    if (!orConstraints.isEmpty()) {
+                        field.put("or", orConstraints);
+
+                        // Extract convenience lists for the frontend
+                        List<String> allowedClasses = new ArrayList<>();
+                        List<String> allowedDatatypes = new ArrayList<>();
+                        List<String> allowedNodes = new ArrayList<>();
+
+                        for (Map<String, Object> constraint : orConstraints) {
+                            if (constraint.containsKey("class")) {
+                                allowedClasses.add((String) constraint.get("class"));
+                            }
+                            if (constraint.containsKey("datatype")) {
+                                allowedDatatypes.add((String) constraint.get("datatype"));
+                            }
+                            if (constraint.containsKey("node")) {
+                                allowedNodes.add((String) constraint.get("node"));
+                            }
+                        }
+
+                        if (!allowedClasses.isEmpty()) field.put("allowedClasses", allowedClasses);
+                        if (!allowedDatatypes.isEmpty()) field.put("allowedDatatypes", allowedDatatypes);
+                        if (!allowedNodes.isEmpty()) field.put("allowedNodes", allowedNodes);
                     }
-                });
+                }
+
+                // ── sh:node — for DetailsEditor, extract nested shape fields ──
+                Statement nodeSt = prop.getProperty(shNode);
+                if (nodeSt != null && nodeSt.getObject().isResource()) {
+                    Resource nestedShape = nodeSt.getObject().asResource();
+                    String nestedShapeId = nestedShape.isURIResource()
+                        ? nestedShape.getLocalName() : null;
+                    if (nestedShapeId != null) {
+                        field.put("nodeShape", nestedShapeId);
+
+                        // Extract nested shape's fields recursively (one level)
+                        List<Map<String, Object>> nestedFields = extractPropertyFields(
+                            nestedShape, shProperty, shName, shPath, shMinCount, shMaxCount,
+                            shOrder, shDescription, shNodeKind, dashEditor, dashViewer,
+                            dashSingleLine, shDatatype, shClass, shOr, shNode, shIn,
+                            shPattern, shMinLength, shMaxLength
+                        );
+                        if (!nestedFields.isEmpty()) {
+                            field.put("nestedFields", nestedFields);
+                        }
+                    }
+                }
+
+                fields.add(field);
+            });
+
+            // Sort fields by sh:order
+            fields.sort((a, b) -> {
+                float oa = a.containsKey("order") ? ((Number) a.get("order")).floatValue() : Float.MAX_VALUE;
+                float ob = b.containsKey("order") ? ((Number) b.get("order")).floatValue() : Float.MAX_VALUE;
+                return Float.compare(oa, ob);
+            });
+
+            shapeMap.put("fields", fields);
 
             if (!fields.isEmpty()) {
-                forms.put(shapeId, Map.of("fields", fields));
+                forms.put(shapeId, shapeMap);
             }
         });
 
-        ctx.json(Map.of("forms", forms));
+        // Also extract non-Situation shapes that may be referenced as nested (e.g. Cost_shape)
+        Map<String, Object> nestedShapes = new LinkedHashMap<>();
+        extractNonSituationShapes(nestedShapes, typeProp, situationShapeType,
+            shProperty, shName, shPath, shMinCount, shMaxCount,
+            shOrder, shDescription, shNodeKind, dashEditor, dashViewer,
+            dashSingleLine, shDatatype, shClass, shOr, shNode, shIn,
+            shPattern, shMinLength, shMaxLength, rdfsLabel, shDescription);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("forms", forms);
+        if (!nestedShapes.isEmpty()) {
+            response.put("nestedShapes", nestedShapes);
+        }
+
+        ctx.json(response);
+    }
+
+    /**
+     * Extract property fields from a shape node (used for both top-level and nested shapes).
+     */
+    private static List<Map<String, Object>> extractPropertyFields(
+            Resource shape, Property shProperty, Property shName, Property shPath,
+            Property shMinCount, Property shMaxCount, Property shOrder, Property shDescription,
+            Property shNodeKind, Property dashEditor, Property dashViewer, Property dashSingleLine,
+            Property shDatatype, Property shClass, Property shOr, Property shNode,
+            Property shIn, Property shPattern, Property shMinLength, Property shMaxLength) {
+
+        List<Map<String, Object>> fields = new ArrayList<>();
+
+        shape.listProperties(shProperty).forEach(propStmt -> {
+            Resource prop = propStmt.getObject().asResource();
+            Map<String, Object> field = new LinkedHashMap<>();
+
+            Statement nameSt = prop.getProperty(shName);
+            if (nameSt == null) return;
+            field.put("label", getLiteralString(nameSt));
+
+            Statement pathSt = prop.getProperty(shPath);
+            if (pathSt == null) return;
+            field.put("path", pathSt.getObject().toString());
+
+            Statement minSt = prop.getProperty(shMinCount);
+            field.put("required", minSt != null && minSt.getLiteral().getInt() > 0);
+            if (minSt != null) field.put("minCount", minSt.getLiteral().getInt());
+
+            Statement maxSt = prop.getProperty(shMaxCount);
+            if (maxSt != null) field.put("maxCount", maxSt.getLiteral().getInt());
+
+            Statement orderSt = prop.getProperty(shOrder);
+            if (orderSt != null) field.put("order", orderSt.getLiteral().getFloat());
+
+            Statement fieldDescSt = prop.getProperty(shDescription);
+            if (fieldDescSt != null) field.put("description", getLiteralString(fieldDescSt));
+
+            Statement nodeKindSt = prop.getProperty(shNodeKind);
+            if (nodeKindSt != null) field.put("nodeKind", nodeKindSt.getObject().asResource().getLocalName());
+
+            Statement editorSt = prop.getProperty(dashEditor);
+            if (editorSt != null) field.put("editor", editorSt.getObject().asResource().getLocalName());
+
+            Statement viewerSt = prop.getProperty(dashViewer);
+            if (viewerSt != null) field.put("viewer", viewerSt.getObject().asResource().getLocalName());
+
+            Statement singleLineSt = prop.getProperty(dashSingleLine);
+            if (singleLineSt != null) field.put("singleLine", singleLineSt.getLiteral().getBoolean());
+
+            Statement datatypeSt = prop.getProperty(shDatatype);
+            if (datatypeSt != null) field.put("datatype", datatypeSt.getObject().asResource().getLocalName());
+
+            Statement classSt = prop.getProperty(shClass);
+            if (classSt != null) field.put("class", classSt.getObject().asResource().getLocalName());
+
+            Statement patternSt = prop.getProperty(shPattern);
+            if (patternSt != null) field.put("pattern", patternSt.getLiteral().getString());
+
+            Statement minLenSt = prop.getProperty(shMinLength);
+            if (minLenSt != null) field.put("minLength", minLenSt.getLiteral().getInt());
+            Statement maxLenSt = prop.getProperty(shMaxLength);
+            if (maxLenSt != null) field.put("maxLength", maxLenSt.getLiteral().getInt());
+
+            Statement inSt = prop.getProperty(shIn);
+            if (inSt != null) {
+                List<String> enumValues = new ArrayList<>();
+                try {
+                    RDFList rdfList = inSt.getObject().as(RDFList.class);
+                    rdfList.iterator().forEachRemaining(node -> {
+                        if (node.isLiteral()) enumValues.add(node.asLiteral().getString());
+                        else if (node.isResource()) enumValues.add(node.asResource().getLocalName());
+                    });
+                } catch (Exception e) { /* ignore */ }
+                if (!enumValues.isEmpty()) field.put("in", enumValues);
+            }
+
+            Statement orSt = prop.getProperty(shOr);
+            if (orSt != null) {
+                List<Map<String, Object>> orConstraints = parseShOrList(orSt.getObject(), shClass, shDatatype, shNode);
+                if (!orConstraints.isEmpty()) {
+                    field.put("or", orConstraints);
+                    List<String> allowedClasses = new ArrayList<>();
+                    List<String> allowedDatatypes = new ArrayList<>();
+                    for (Map<String, Object> c : orConstraints) {
+                        if (c.containsKey("class")) allowedClasses.add((String) c.get("class"));
+                        if (c.containsKey("datatype")) allowedDatatypes.add((String) c.get("datatype"));
+                    }
+                    if (!allowedClasses.isEmpty()) field.put("allowedClasses", allowedClasses);
+                    if (!allowedDatatypes.isEmpty()) field.put("allowedDatatypes", allowedDatatypes);
+                }
+            }
+
+            fields.add(field);
+        });
+
+        fields.sort((a, b) -> {
+            float oa = a.containsKey("order") ? ((Number) a.get("order")).floatValue() : Float.MAX_VALUE;
+            float ob = b.containsKey("order") ? ((Number) b.get("order")).floatValue() : Float.MAX_VALUE;
+            return Float.compare(oa, ob);
+        });
+
+        return fields;
+    }
+
+    /**
+     * Extract non-Situation NodeShapes (like Cost_shape) that may be used as nested forms.
+     */
+    private static void extractNonSituationShapes(
+            Map<String, Object> nestedShapes,
+            Property typeProp, Resource situationShapeType,
+            Property shProperty, Property shName, Property shPath,
+            Property shMinCount, Property shMaxCount, Property shOrder, Property shDescription,
+            Property shNodeKind, Property dashEditor, Property dashViewer, Property dashSingleLine,
+            Property shDatatype, Property shClass, Property shOr, Property shNode,
+            Property shIn, Property shPattern, Property shMinLength, Property shMaxLength,
+            Property rdfsLabel, Property shDesc) {
+
+        Resource nodeShapeType = ontologyModel.createResource(SH_NS + "NodeShape");
+
+        ontologyModel.listSubjectsWithProperty(typeProp, nodeShapeType).forEach(shape -> {
+            // Skip Situation shapes (already handled above)
+            if (shape.hasProperty(typeProp, situationShapeType)) return;
+            if (!shape.isURIResource()) return;
+
+            String shapeId = shape.getLocalName();
+            // Only include shapes that have sh:property declarations
+            if (!shape.hasProperty(shProperty)) return;
+
+            Map<String, Object> shapeMap = new LinkedHashMap<>();
+
+            Statement labelSt = shape.getProperty(rdfsLabel);
+            if (labelSt != null) shapeMap.put("label", getLiteralString(labelSt));
+
+            Statement descSt = shape.getProperty(shDesc);
+            if (descSt != null) shapeMap.put("description", getLiteralString(descSt));
+
+            List<Map<String, Object>> fields = extractPropertyFields(
+                shape, shProperty, shName, shPath, shMinCount, shMaxCount,
+                shOrder, shDescription, shNodeKind, dashEditor, dashViewer,
+                dashSingleLine, shDatatype, shClass, shOr, shNode, shIn,
+                shPattern, shMinLength, shMaxLength
+            );
+
+            if (!fields.isEmpty()) {
+                shapeMap.put("fields", fields);
+                nestedShapes.put(shapeId, shapeMap);
+            }
+        });
+    }
+
+    /**
+     * Parse an sh:or RDF list into a list of constraint maps.
+     * Each element may have sh:class, sh:datatype, or sh:node.
+     */
+    private static List<Map<String, Object>> parseShOrList(
+            RDFNode orNode, Property shClass, Property shDatatype, Property shNode) {
+
+        List<Map<String, Object>> constraints = new ArrayList<>();
+        try {
+            RDFList rdfList = orNode.as(RDFList.class);
+            rdfList.iterator().forEachRemaining(member -> {
+                if (!member.isResource()) return;
+                Resource memberRes = member.asResource();
+                Map<String, Object> constraint = new LinkedHashMap<>();
+
+                Statement classSt = memberRes.getProperty(shClass);
+                if (classSt != null && classSt.getObject().isResource()) {
+                    constraint.put("class", classSt.getObject().asResource().getLocalName());
+                }
+
+                Statement datatypeSt = memberRes.getProperty(shDatatype);
+                if (datatypeSt != null && datatypeSt.getObject().isResource()) {
+                    constraint.put("datatype", datatypeSt.getObject().asResource().getLocalName());
+                }
+
+                Statement nodeSt = memberRes.getProperty(shNode);
+                if (nodeSt != null && nodeSt.getObject().isResource()) {
+                    constraint.put("node", nodeSt.getObject().asResource().getLocalName());
+                }
+
+                if (!constraint.isEmpty()) {
+                    constraints.add(constraint);
+                }
+            });
+        } catch (Exception e) {
+            // Not a valid list — ignore
+        }
+        return constraints;
+    }
+
+    /**
+     * Get string value from a literal statement, stripping any language tag.
+     */
+    private static String getLiteralString(Statement st) {
+        if (st == null) return null;
+        RDFNode obj = st.getObject();
+        if (obj.isLiteral()) return obj.asLiteral().getString();
+        return obj.toString();
     }
 
     // ── Lookup ────────────────────────────────────────────────────────────────
@@ -492,8 +883,8 @@ public class App {
         dataModel.add(lemmaModel);
         dataModel.setNsPrefix("",     ONT_NS);
         dataModel.setNsPrefix("temp", "https://falcontologist.github.io/shacl-demo/temp/");
-        dataModel.setNsPrefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
-        dataModel.setNsPrefix("rdf",  "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+        dataModel.setNsPrefix("rdfs", RDFS_NS);
+        dataModel.setNsPrefix("rdf",  RDF_NS);
 
         Model inferredModel;
         try {
@@ -538,7 +929,7 @@ public class App {
 
         Resource report = ValidationUtil.validateModel(dataModel, ontologyModel, true);
         boolean conforms = report.getProperty(
-            report.getModel().createProperty("http://www.w3.org/ns/shacl#conforms")
+            report.getModel().createProperty(SH_NS + "conforms")
         ).getBoolean();
 
         StringWriter sw = new StringWriter();
@@ -551,9 +942,6 @@ public class App {
     }
 
     static Model loadOntology() throws Exception {
-        // Load structural.ttl (SHACL shapes), conceptual.ttl (synsets + evokes),
-        // and lexical.ttl (lemmas + senses) — all needed for the verb→sense→situation flow.
-        // Entity data (persons, orgs, etc.) stays in Virtuoso.
         String[] ontologyFiles = {
             "https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/main/structural.ttl",
             "https://raw.githubusercontent.com/falcontologist/SHACL-API-Docker/main/conceptual.ttl",

@@ -37,17 +37,127 @@ const PREFIXES = `@prefix :    <https://falcontologist.github.io/shacl-demo/onto
 `;
 
 // ============================================
+// DASH WIDGET REGISTRY
+// Maps DASH editor/viewer local names to rendering strategies.
+// Follows the DASH Forms spec scoring & widget selection logic.
+// ============================================
+const DASH = {
+  // Editor types from the DASH namespace
+  EDITORS: {
+    AutoCompleteEditor: 'autocomplete',  // Entity search with FST suggest
+    DetailsEditor: 'details',            // Nested sub-form (blank node)
+    TextFieldEditor: 'textfield',        // Single-line literal input
+    TextAreaEditor: 'textarea',          // Multi-line text
+    TextAreaWithLangEditor: 'textarea',  // Multi-line with lang tag
+    TextFieldWithLangEditor: 'textfield',// Single-line with lang tag
+    DatePickerEditor: 'datepicker',      // xsd:date calendar
+    DateTimePickerEditor: 'datetimepicker',
+    BooleanSelectEditor: 'boolean',      // true/false dropdown
+    EnumSelectEditor: 'enum',            // sh:in dropdown
+    InstancesSelectEditor: 'instances',  // All instances of sh:class
+    RichTextEditor: 'richtext',          // rdf:HTML
+    URIEditor: 'uri',                    // Raw IRI input
+    SubClassEditor: 'subclass',          // Class hierarchy picker
+    BlankNodeEditor: 'blanknode',        // Read-only blank node
+  },
+
+  // Viewer types
+  VIEWERS: {
+    LabelViewer: 'label',
+    LiteralViewer: 'literal',
+    DetailsViewer: 'details',
+    HTMLViewer: 'html',
+    HyperlinkViewer: 'hyperlink',
+    ImageViewer: 'image',
+    URIViewer: 'uri',
+    BlankNodeViewer: 'blanknode',
+    LangStringViewer: 'langstring',
+    ValueTableViewer: 'table',
+  },
+
+  /**
+   * Determine the widget type for a field based on DASH metadata.
+   * Follows the DASH scoring algorithm: explicit dash:editor wins,
+   * then infer from sh:nodeKind + sh:or constraints.
+   */
+  resolveWidgetType(field) {
+    // 1. Explicit dash:editor takes priority
+    if (field.editor) {
+      const mapped = this.EDITORS[field.editor];
+      if (mapped) return mapped;
+    }
+
+    // 2. sh:in present → EnumSelectEditor (score 10)
+    if (field.in && field.in.length > 0) return 'enum';
+
+    // 3. Infer from nodeKind + constraints
+    const nodeKind = field.nodeKind;
+    const hasDatatypes = field.allowedDatatypes && field.allowedDatatypes.length > 0;
+    const hasClasses = field.allowedClasses && field.allowedClasses.length > 0;
+
+    // Literal fields
+    if (nodeKind === 'Literal') {
+      if (hasDatatypes) {
+        const dts = field.allowedDatatypes;
+        if (dts.includes('date') || dts.includes('gYearMonth') || dts.includes('gYear')) {
+          return 'datepicker';
+        }
+        if (dts.includes('dateTime')) return 'datetimepicker';
+        if (dts.includes('boolean')) return 'boolean';
+        if (dts.includes('decimal') || dts.includes('integer') || dts.includes('float') || dts.includes('double')) {
+          return 'number';
+        }
+      }
+      // Default literal → textfield
+      if (field.singleLine === false) return 'textarea';
+      return 'textfield';
+    }
+
+    // BlankNode → DetailsEditor for nested forms
+    if (nodeKind === 'BlankNode') return 'details';
+
+    // BlankNodeOrIRI with classes → AutoCompleteEditor
+    if (nodeKind === 'BlankNodeOrIRI' || nodeKind === 'IRI') {
+      if (hasClasses) return 'autocomplete';
+      return 'uri';
+    }
+
+    // Fallback: if there are allowed classes, use autocomplete
+    if (hasClasses) return 'autocomplete';
+
+    // Final fallback: textfield
+    return 'textfield';
+  },
+
+  /**
+   * Extract entity category options from sh:or class constraints.
+   * Filters to only include categories that exist in the FST index.
+   */
+  extractEntityCategories(field) {
+    if (!field.allowedClasses) return CONFIG.ENTITY_CATEGORIES;
+
+    // Filter to entity categories that are in the allowed list
+    const allowed = new Set(field.allowedClasses);
+    const categories = CONFIG.ENTITY_CATEGORIES.filter(c => allowed.has(c));
+
+    // If none match the standard entity categories, return all
+    return categories.length > 0 ? categories : CONFIG.ENTITY_CATEGORIES;
+  }
+};
+
+// ============================================
 // STATE MANAGEMENT
 // ============================================
 const State = {
   situationMap: new Map(),
+  nestedShapes: {},         // Non-situation shapes for DetailsEditor
   currentSenses: [],
   globalCount: 0,
   selectedSituation: null,
   currentVerb: "",
   
   // Entity suggest state (per-row, keyed by row index)
-  entitySuggestControllers: new Map(), // AbortControllers for in-flight requests
+  entitySuggestControllers: new Map(),
   
   // Graph state
   simulation: null,
@@ -59,7 +169,6 @@ const State = {
     this.currentSenses = [];
     this.selectedSituation = null;
     this.currentVerb = "";
-    // Abort any in-flight suggest requests
     this.entitySuggestControllers.forEach(c => c.abort());
     this.entitySuggestControllers.clear();
   }
@@ -111,7 +220,6 @@ function init() {
 // EVENT LISTENERS
 // ============================================
 function setupEventListeners() {
-  // Verb lookup
   const lookupBtn = getElement('lookupBtn');
   const verbInput = getElement('verbInput');
   if (lookupBtn) lookupBtn.addEventListener('click', handleLookup);
@@ -121,13 +229,11 @@ function setupEventListeners() {
     });
   }
 
-  // Sense and situation selection
   const senseSelect = getElement('senseSelect');
   const sitSelect = getElement('situationSelect');
   if (senseSelect) senseSelect.addEventListener('change', handleSenseSelect);
   if (sitSelect) sitSelect.addEventListener('change', handleSituationSelect);
 
-  // Actions
   const addBtn = getElement('addEntryBtn');
   const inferBtn = getElement('inferBtn');
   const validateBtn = getElement('validateBtn');
@@ -135,7 +241,6 @@ function setupEventListeners() {
   if (inferBtn) inferBtn.addEventListener('click', runInference);
   if (validateBtn) validateBtn.addEventListener('click', validateGraph);
 
-  // Utilities
   const templateBtn = getElement('templateBtn');
   const cancelBtn = getElement('cancelBtn');
   const downloadBtn = getElement('downloadBtn');
@@ -171,13 +276,11 @@ async function fetchStats() {
   updateStatus(apiText, "Connecting...", "#94a3b8");
 
   try {
-    // Fetch stats
     const statsResp = await fetch(`${CONFIG.API_BASE_URL}/stats`);
     if (!statsResp.ok) throw new Error(`Stats endpoint returned ${statsResp.status}`);
     
     const stats = await statsResp.json();
     
-    // Update UI
     updateStatus(apiText, "Online", "#10b981");
     if (apiDot) apiDot.classList.add('online');
     
@@ -186,14 +289,25 @@ async function fetchStats() {
       if (el) el.textContent = stats[key.toLowerCase()] || 0;
     });
 
-    // Fetch form definitions
+    // Fetch DASH-compliant form definitions
     const formResp = await fetch(`${CONFIG.API_BASE_URL}/forms`);
     if (formResp.ok) {
       const formData = await formResp.json();
-      Object.entries(formData.forms).forEach(([domain, roles]) => {
-        State.situationMap.set(domain, roles);
+
+      // Store full shape definitions (with DASH metadata)
+      Object.entries(formData.forms).forEach(([shapeId, shapeDef]) => {
+        State.situationMap.set(shapeId, shapeDef);
       });
-      console.log(`✓ Loaded ${State.situationMap.size} situation definitions`);
+
+      // Store nested shapes (e.g. Cost_shape) for DetailsEditor
+      if (formData.nestedShapes) {
+        State.nestedShapes = formData.nestedShapes;
+      }
+
+      console.log(`✓ Loaded ${State.situationMap.size} DASH-compliant shape definitions`);
+      if (Object.keys(State.nestedShapes).length > 0) {
+        console.log(`  └── ${Object.keys(State.nestedShapes).length} nested shapes (DetailsEditor targets)`);
+      }
     }
   } catch (err) {
     console.error("API connection failed:", err);
@@ -228,7 +342,6 @@ async function handleLookup() {
       populateSenseSelect(senseSelect, data.senses);
       showElement('step2');
       
-      // Auto-select if only one sense
       if (data.senses.length === 1) {
         senseSelect.value = 0;
         handleSenseSelect();
@@ -317,11 +430,6 @@ async function validateGraph() {
 // ============================================
 // ENTITY SUGGEST API
 // ============================================
-
-/**
- * Query the entity suggest endpoint.
- * Returns {results: [{label, iri, category, matchedLabel?}], count, latencyMicros}
- */
 async function fetchEntitySuggestions(category, query, signal) {
   const url = `${CONFIG.API_BASE_URL}/entity-suggest?type=${encodeURIComponent(category)}&q=${encodeURIComponent(query)}&limit=${CONFIG.SUGGEST_MAX_RESULTS}`;
   const resp = await fetch(url, { signal });
@@ -329,10 +437,6 @@ async function fetchEntitySuggestions(category, query, signal) {
   return resp.json();
 }
 
-/**
- * Fetch senses for a given entity IRI.
- * Returns {iri, senses: [{senseId, senseIRI, gloss, label}], count}
- */
 async function fetchEntitySenses(iri) {
   const url = `${CONFIG.API_BASE_URL}/entity-senses?iri=${encodeURIComponent(iri)}`;
   const resp = await fetch(url);
@@ -369,7 +473,6 @@ function handleSenseSelect() {
 
     showElement('step3');
 
-    // Auto-select if only one situation
     if (sense.situations.length === 1) {
       sitSelect.value = sense.situations[0];
     }
@@ -387,107 +490,187 @@ function handleSituationSelect() {
   if (!selectedShapeID) return;
   
   State.selectedSituation = selectedShapeID;
-  const shapeData = State.situationMap.get(selectedShapeID);
+  const shapeDef = State.situationMap.get(selectedShapeID);
   
   const hint = getElement('domainHint');
-  if (hint) {
-    hint.textContent = shapeData 
-      ? `Shape: ${selectedShapeID}` 
-      : "No SHACL definition found";
+  if (hint && shapeDef) {
+    // Show shape description + example from DASH metadata
+    let hintText = `Shape: ${selectedShapeID}`;
+    if (shapeDef.description) {
+      hintText = shapeDef.description;
+    }
+    hint.textContent = hintText;
+    hint.title = shapeDef.example || '';
+  } else if (hint) {
+    hint.textContent = "No SHACL definition found";
   }
     
-  renderForm(shapeData ? shapeData.fields : null);
+  renderForm(shapeDef);
 }
 
-function renderForm(fields) {
+// ============================================
+// DASH-DRIVEN FORM RENDERER
+// Reads SHACL + DASH metadata and renders the
+// appropriate widget for each property shape.
+// ============================================
+function renderForm(shapeDef) {
   const form = getElement('dynamicForm');
   if (!form) return;
   
   form.innerHTML = '';
   
-  if (!fields) {
+  if (!shapeDef || !shapeDef.fields) {
     hideElement('stepForm');
     return;
   }
-  
-  fields.forEach((field, index) => {
-    const row = createRoleRow(field, index);
+
+  // Show example sentence if available (skos:example)
+  if (shapeDef.example) {
+    const exampleDiv = document.createElement('div');
+    exampleDiv.className = 'shape-example';
+    exampleDiv.innerHTML = `<span class="example-label">Example:</span> ${escapeHtml(shapeDef.example)}`;
+    form.appendChild(exampleDiv);
+  }
+
+  // Fields are already sorted by sh:order from the backend
+  shapeDef.fields.forEach((field, index) => {
+    const widgetType = DASH.resolveWidgetType(field);
+    const row = createDashRow(field, index, widgetType);
     form.appendChild(row);
   });
   
   showElement('stepForm');
 }
 
-// ============================================
-// ENTITY AUTOCOMPLETE ROW BUILDER
-// ============================================
-
 /**
- * Creates a form row for a SHACL property slot.
- * When "Entity" is selected as the type, shows:
- *   [Category dropdown] [Search input with autocomplete] [Sense dropdown (after selection)]
+ * Creates a form row driven by DASH widget type.
+ * Each field's widget is determined by its dash:editor, sh:nodeKind, and sh:or constraints.
  */
-function createRoleRow(field, rowIndex) {
+function createDashRow(field, rowIndex, widgetType) {
   const row = document.createElement('div');
   row.className = 'role-row';
   row.dataset.rowIndex = rowIndex;
-  
-  row.innerHTML = `
-    <label class="role-label">${field.label}${field.required ? ' *' : ''}</label>
-    <div class="compact-row">
-      <select class="type-select">
-        <option value="Entity">Entity</option>
-        <option value="Instance">Instance</option>
-        <option value="Literal">Literal</option>
-        <option value="IRI">IRI</option>
-        <option value="BNode">_:</option>
+  row.dataset.widgetType = widgetType;
+  row.dataset.path = field.path || '';
+
+  // Label with required indicator
+  const labelEl = document.createElement('label');
+  labelEl.className = 'role-label';
+  labelEl.textContent = field.label + (field.required ? ' *' : '');
+  if (field.description) {
+    labelEl.title = field.description;
+    labelEl.classList.add('has-tooltip');
+  }
+  row.appendChild(labelEl);
+
+  // Description hint (sh:description)
+  if (field.description) {
+    const descEl = document.createElement('div');
+    descEl.className = 'field-description';
+    descEl.textContent = field.description;
+    row.appendChild(descEl);
+  }
+
+  // Render the appropriate widget
+  const widgetContainer = document.createElement('div');
+  widgetContainer.className = 'compact-row';
+
+  switch (widgetType) {
+    case 'autocomplete':
+      renderAutoCompleteWidget(widgetContainer, field, rowIndex);
+      break;
+    case 'details':
+      renderDetailsWidget(widgetContainer, field, rowIndex);
+      break;
+    case 'datepicker':
+      renderDateWidget(widgetContainer, field, rowIndex);
+      break;
+    case 'datetimepicker':
+      renderDateTimeWidget(widgetContainer, field, rowIndex);
+      break;
+    case 'number':
+      renderNumberWidget(widgetContainer, field, rowIndex);
+      break;
+    case 'enum':
+      renderEnumWidget(widgetContainer, field, rowIndex);
+      break;
+    case 'boolean':
+      renderBooleanWidget(widgetContainer, field, rowIndex);
+      break;
+    case 'textarea':
+      renderTextAreaWidget(widgetContainer, field, rowIndex);
+      break;
+    case 'uri':
+      renderURIWidget(widgetContainer, field, rowIndex);
+      break;
+    case 'textfield':
+    default:
+      renderTextFieldWidget(widgetContainer, field, rowIndex);
+      break;
+  }
+
+  row.appendChild(widgetContainer);
+  return row;
+}
+
+// ============================================
+// DASH WIDGET RENDERERS
+// Each corresponds to a dash:Editor from the spec.
+// ============================================
+
+/**
+ * dash:AutoCompleteEditor — entity search with FST suggest.
+ * Shows a category dropdown filtered by sh:or class constraints,
+ * a search input with autocomplete, and a sense selector.
+ */
+function renderAutoCompleteWidget(container, field, rowIndex) {
+  const categories = DASH.extractEntityCategories(field);
+
+  container.innerHTML = `
+    <select class="type-select">
+      <option value="Entity">Entity</option>
+      <option value="Instance">Instance</option>
+      <option value="Literal">Literal</option>
+      <option value="IRI">IRI</option>
+      <option value="BNode">_:</option>
+    </select>
+    <div class="entity-suggest-wrapper">
+      <select class="entity-category-select">
+        ${categories.map(c => 
+          `<option value="${c}">${formatCategoryLabel(c)}</option>`
+        ).join('')}
       </select>
-
-      <!-- Entity mode: category + autocomplete + sense selector -->
-      <div class="entity-suggest-wrapper">
-        <select class="entity-category-select">
-          ${CONFIG.ENTITY_CATEGORIES.map(c => 
-            `<option value="${c}">${formatCategoryLabel(c)}</option>`
-          ).join('')}
-        </select>
-        <div class="suggest-input-container">
-          <input class="entity-search-input" type="text" 
-                 placeholder="Search entities..." 
-                 autocomplete="off"
-                 data-role="${field.label}" 
-                 data-path="${field.path}">
-          <div class="suggest-spinner hidden"></div>
-          <div class="suggest-dropdown hidden"></div>
-        </div>
-        <select class="entity-sense-select hidden">
-          <option value="">-- Select Sense --</option>
-        </select>
+      <div class="suggest-input-container">
+        <input class="entity-search-input" type="text" 
+               placeholder="Search entities..." 
+               autocomplete="off"
+               data-role="${field.label}" 
+               data-path="${field.path}">
+        <div class="suggest-spinner hidden"></div>
+        <div class="suggest-dropdown hidden"></div>
       </div>
-
-      <!-- Plain text input (for Literal, IRI, BNode modes) -->
-      <input class="role-input hidden" type="text" 
-             data-role="${field.label}" 
-             data-path="${field.path}" 
-             placeholder="Value..." 
-             ${field.required ? 'required' : ''}>
-
-      <!-- Instance reference select -->
-      <select class="instance-select hidden" style="flex: 1;">
-        <option value="">-- Select Instance --</option>
+      <select class="entity-sense-select hidden">
+        <option value="">-- Select Sense --</option>
       </select>
     </div>
+    <input class="role-input hidden" type="text" 
+           data-role="${field.label}" 
+           data-path="${field.path}" 
+           placeholder="Value..." 
+           ${field.required ? 'required' : ''}>
+    <select class="instance-select hidden" style="flex: 1;">
+      <option value="">-- Select Instance --</option>
+    </select>
   `;
-  
-  // --- Wire up type switching ---
-  const typeSelect = row.querySelector('.type-select');
-  const entityWrapper = row.querySelector('.entity-suggest-wrapper');
-  const textInput = row.querySelector('.role-input');
-  const instanceSelect = row.querySelector('.instance-select');
-  
+
+  // Wire type switching
+  const typeSelect = container.querySelector('.type-select');
+  const entityWrapper = container.querySelector('.entity-suggest-wrapper');
+  const textInput = container.querySelector('.role-input');
+  const instanceSelect = container.querySelector('.instance-select');
+
   typeSelect.addEventListener('change', () => {
     const val = typeSelect.value;
-    
-    // Hide all first
     entityWrapper.classList.add('hidden');
     textInput.classList.add('hidden');
     instanceSelect.classList.add('hidden');
@@ -502,19 +685,228 @@ function createRoleRow(field, rowIndex) {
     }
   });
 
-  // Default: show entity wrapper
   entityWrapper.classList.remove('hidden');
   textInput.classList.add('hidden');
   instanceSelect.classList.add('hidden');
 
-  // --- Wire up entity autocomplete ---
-  const searchInput = row.querySelector('.entity-search-input');
-  const categorySelect = row.querySelector('.entity-category-select');
-  const dropdown = row.querySelector('.suggest-dropdown');
-  const spinner = row.querySelector('.suggest-spinner');
-  const senseSelect = row.querySelector('.entity-sense-select');
+  // Wire entity autocomplete
+  wireAutoComplete(container, rowIndex, field);
+}
 
-  // Debounced suggest handler
+/**
+ * dash:DetailsEditor — nested sub-form for blank nodes.
+ * Renders fields from the sh:node shape inline.
+ */
+function renderDetailsWidget(container, field, rowIndex) {
+  container.className = 'details-widget-container';
+
+  // Check for nested shape definition
+  const nestedFields = field.nestedFields;
+  const nestedShapeId = field.nodeShape;
+  const shapeDef = nestedFields ? { fields: nestedFields }
+    : (nestedShapeId && State.nestedShapes[nestedShapeId])
+      ? State.nestedShapes[nestedShapeId] : null;
+
+  if (!shapeDef || !shapeDef.fields || shapeDef.fields.length === 0) {
+    // Fallback: plain text input
+    container.innerHTML = `
+      <input class="role-input" type="text" 
+             data-role="${field.label}" 
+             data-path="${field.path}" 
+             placeholder="${field.label} value..." 
+             ${field.required ? 'required' : ''}>
+    `;
+    return;
+  }
+
+  const nestedForm = document.createElement('div');
+  nestedForm.className = 'nested-form';
+  nestedForm.dataset.nodeShape = nestedShapeId || '';
+  nestedForm.dataset.parentPath = field.path || '';
+
+  const header = document.createElement('div');
+  header.className = 'nested-form-header';
+  header.textContent = shapeDef.label || field.label || nestedShapeId;
+  if (shapeDef.description) header.title = shapeDef.description;
+  nestedForm.appendChild(header);
+
+  // Render each nested field with its own DASH widget
+  shapeDef.fields.forEach((nestedField, nestedIndex) => {
+    const nestedWidgetType = DASH.resolveWidgetType(nestedField);
+    const nestedRow = createDashRow(nestedField, rowIndex * 100 + nestedIndex, nestedWidgetType);
+    nestedRow.classList.add('nested-role-row');
+    nestedForm.appendChild(nestedRow);
+  });
+
+  container.appendChild(nestedForm);
+}
+
+/**
+ * dash:LiteralViewer with date datatypes — date input.
+ * Supports xsd:date, xsd:gYearMonth, xsd:gYear.
+ */
+function renderDateWidget(container, field, rowIndex) {
+  const dts = field.allowedDatatypes || [];
+  
+  // Determine most specific date type
+  let inputType = 'date';
+  let placeholder = 'YYYY-MM-DD';
+  
+  if (dts.includes('gYear') && !dts.includes('date') && !dts.includes('gYearMonth')) {
+    inputType = 'number';
+    placeholder = 'YYYY';
+  } else if (dts.includes('gYearMonth') && !dts.includes('date')) {
+    inputType = 'month';
+    placeholder = 'YYYY-MM';
+  }
+
+  // Show a type switcher for mixed date constraints
+  if (dts.length > 1) {
+    container.innerHTML = `
+      <select class="date-type-select">
+        ${dts.includes('date') ? '<option value="date">Date (YYYY-MM-DD)</option>' : ''}
+        ${dts.includes('gYearMonth') ? '<option value="month">Month (YYYY-MM)</option>' : ''}
+        ${dts.includes('gYear') ? '<option value="year">Year (YYYY)</option>' : ''}
+      </select>
+      <input class="role-input date-input" type="${inputType}" 
+             data-role="${field.label}" 
+             data-path="${field.path}" 
+             placeholder="${placeholder}">
+    `;
+
+    const typeSelect = container.querySelector('.date-type-select');
+    const input = container.querySelector('.date-input');
+    
+    typeSelect.addEventListener('change', () => {
+      const val = typeSelect.value;
+      if (val === 'date') { input.type = 'date'; input.placeholder = 'YYYY-MM-DD'; }
+      else if (val === 'month') { input.type = 'month'; input.placeholder = 'YYYY-MM'; }
+      else { input.type = 'number'; input.placeholder = 'YYYY'; input.min = '0'; input.max = '9999'; }
+    });
+  } else {
+    container.innerHTML = `
+      <input class="role-input date-input" type="${inputType}" 
+             data-role="${field.label}" 
+             data-path="${field.path}" 
+             placeholder="${placeholder}"
+             ${inputType === 'number' ? 'min="0" max="9999"' : ''}>
+    `;
+  }
+}
+
+/**
+ * dash:DateTimePickerEditor — datetime input.
+ */
+function renderDateTimeWidget(container, field, rowIndex) {
+  container.innerHTML = `
+    <input class="role-input" type="datetime-local" 
+           data-role="${field.label}" 
+           data-path="${field.path}">
+  `;
+}
+
+/**
+ * dash:TextFieldEditor for numeric types — number input.
+ */
+function renderNumberWidget(container, field, rowIndex) {
+  const step = (field.allowedDatatypes || []).some(d => d === 'integer') ? '1' : 'any';
+  container.innerHTML = `
+    <input class="role-input" type="number" step="${step}"
+           data-role="${field.label}" 
+           data-path="${field.path}" 
+           placeholder="${field.label}..."
+           ${field.required ? 'required' : ''}>
+  `;
+}
+
+/**
+ * dash:EnumSelectEditor — dropdown from sh:in values.
+ */
+function renderEnumWidget(container, field, rowIndex) {
+  container.innerHTML = `
+    <select class="role-input enum-select"
+            data-role="${field.label}" 
+            data-path="${field.path}"
+            ${field.required ? 'required' : ''}>
+      <option value="">-- Select --</option>
+      ${(field.in || []).map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('')}
+    </select>
+  `;
+}
+
+/**
+ * dash:BooleanSelectEditor — true/false dropdown.
+ */
+function renderBooleanWidget(container, field, rowIndex) {
+  container.innerHTML = `
+    <select class="role-input"
+            data-role="${field.label}" 
+            data-path="${field.path}">
+      <option value="">-- Select --</option>
+      <option value="true">true</option>
+      <option value="false">false</option>
+    </select>
+  `;
+}
+
+/**
+ * dash:TextAreaEditor — multi-line text input.
+ */
+function renderTextAreaWidget(container, field, rowIndex) {
+  container.innerHTML = `
+    <textarea class="role-input textarea-widget" rows="3"
+              data-role="${field.label}" 
+              data-path="${field.path}" 
+              placeholder="${field.label}..."
+              ${field.required ? 'required' : ''}
+              ${field.maxLength ? `maxlength="${field.maxLength}"` : ''}></textarea>
+  `;
+}
+
+/**
+ * dash:URIEditor — raw IRI input.
+ */
+function renderURIWidget(container, field, rowIndex) {
+  container.innerHTML = `
+    <input class="role-input uri-input" type="url" 
+           data-role="${field.label}" 
+           data-path="${field.path}" 
+           placeholder="https://..."
+           ${field.required ? 'required' : ''}>
+  `;
+}
+
+/**
+ * dash:TextFieldEditor — single-line text input (default fallback).
+ */
+function renderTextFieldWidget(container, field, rowIndex) {
+  const attrs = [];
+  if (field.pattern) attrs.push(`pattern="${escapeHtml(field.pattern)}"`);
+  if (field.minLength) attrs.push(`minlength="${field.minLength}"`);
+  if (field.maxLength) attrs.push(`maxlength="${field.maxLength}"`);
+  if (field.required) attrs.push('required');
+
+  container.innerHTML = `
+    <input class="role-input" type="text" 
+           data-role="${field.label}" 
+           data-path="${field.path}" 
+           placeholder="${field.label}..."
+           ${attrs.join(' ')}>
+  `;
+}
+
+// ============================================
+// AUTOCOMPLETE WIRING (for AutoCompleteEditor)
+// ============================================
+function wireAutoComplete(container, rowIndex, field) {
+  const searchInput = container.querySelector('.entity-search-input');
+  const categorySelect = container.querySelector('.entity-category-select');
+  const dropdown = container.querySelector('.suggest-dropdown');
+  const spinner = container.querySelector('.suggest-spinner');
+  const senseSelect = container.querySelector('.entity-sense-select');
+
+  if (!searchInput || !categorySelect || !dropdown) return;
+
   const debouncedSuggest = debounce(async () => {
     const query = searchInput.value.trim();
     const category = categorySelect.value;
@@ -524,30 +916,29 @@ function createRoleRow(field, rowIndex) {
       return;
     }
 
-    // Abort previous request for this row
     const prevController = State.entitySuggestControllers.get(rowIndex);
     if (prevController) prevController.abort();
     
     const controller = new AbortController();
     State.entitySuggestControllers.set(rowIndex, controller);
 
-    spinner.classList.remove('hidden');
+    if (spinner) spinner.classList.remove('hidden');
 
     try {
       const data = await fetchEntitySuggestions(category, query, controller.signal);
-      renderSuggestDropdown(dropdown, data.results, searchInput, senseSelect, row);
-      spinner.classList.add('hidden');
+      renderSuggestDropdown(dropdown, data.results, searchInput, senseSelect, container.closest('.role-row'));
+      if (spinner) spinner.classList.add('hidden');
     } catch (err) {
       if (err.name !== 'AbortError') {
         console.error('Suggest error:', err);
-        spinner.classList.add('hidden');
+        if (spinner) spinner.classList.add('hidden');
       }
     }
   }, CONFIG.SUGGEST_DEBOUNCE_MS);
 
   searchInput.addEventListener('input', debouncedSuggest);
 
-  // Keyboard navigation for dropdown
+  // Keyboard navigation
   searchInput.addEventListener('keydown', (e) => {
     if (dropdown.classList.contains('hidden')) return;
     const items = dropdown.querySelectorAll('.suggest-item');
@@ -576,24 +967,21 @@ function createRoleRow(field, rowIndex) {
     }
   });
 
-  // Close dropdown on blur (with delay for click to register)
   searchInput.addEventListener('blur', () => {
     setTimeout(() => dropdown.classList.add('hidden'), 200);
   });
-  
-  // Re-query when category changes
+
   categorySelect.addEventListener('change', () => {
     searchInput.value = '';
-    senseSelect.classList.add('hidden');
-    senseSelect.innerHTML = '<option value="">-- Select Sense --</option>';
+    if (senseSelect) {
+      senseSelect.classList.add('hidden');
+      senseSelect.innerHTML = '<option value="">-- Select Sense --</option>';
+    }
     dropdown.classList.add('hidden');
-    // Clear resolved entity data
     delete searchInput.dataset.resolvedIri;
     delete searchInput.dataset.resolvedLabel;
     searchInput.focus();
   });
-
-  return row;
 }
 
 /**
@@ -626,7 +1014,6 @@ function renderSuggestDropdown(dropdown, results, searchInput, senseSelect, row)
 
     const iriSpan = document.createElement('span');
     iriSpan.className = 'suggest-iri';
-    // Show just the local name from the IRI
     const localName = item.iri.includes('/') 
       ? item.iri.substring(item.iri.lastIndexOf('/') + 1) 
       : item.iri.includes('#')
@@ -663,7 +1050,8 @@ async function handleEntitySelection(item, searchInput, senseSelect, dropdown, r
   searchInput.dataset.resolvedLabel = item.label;
   dropdown.classList.add('hidden');
 
-  // Fetch senses for this entity
+  if (!senseSelect) return;
+
   try {
     const data = await fetchEntitySenses(item.iri);
     
@@ -672,10 +1060,8 @@ async function handleEntitySelection(item, searchInput, senseSelect, dropdown, r
       data.senses.forEach(sense => {
         const opt = document.createElement('option');
         opt.value = sense.senseIRI;
-        // Show label + gloss, or just senseId if no gloss
         const displayLabel = sense.label || sense.senseId;
-        const gloss = sense.gloss && sense.gloss.trim() 
-          ? sense.gloss.trim() : '';
+        const gloss = sense.gloss && sense.gloss.trim() ? sense.gloss.trim() : '';
         if (gloss) {
           const shortGloss = gloss.length > 60 
             ? gloss.substring(0, 60) + '...' 
@@ -689,12 +1075,10 @@ async function handleEntitySelection(item, searchInput, senseSelect, dropdown, r
       });
       senseSelect.classList.remove('hidden');
 
-      // Auto-select if only one sense
       if (data.senses.length === 1) {
         senseSelect.value = data.senses[0].senseIRI;
       }
     } else {
-      // No senses — just use the IRI directly
       senseSelect.classList.add('hidden');
     }
   } catch (err) {
@@ -710,7 +1094,17 @@ function formatCategoryLabel(category) {
     case 'Person_Entity': return 'Person';
     case 'Product_Entity': return 'Product';
     case 'Unit_Entity': return 'Unit';
-    case 'Occupation_Entity': return 'Occupation';    case 'Creative_Work_Entity': return 'Creative Work';    case 'Quantity_Dimension_Entity': return 'Quantity Dimension';    case 'Location_Entity': return 'Location';    case 'Food_Entity': return 'Food';    case 'Language_Entity': return 'Language';    case 'Organism_Entity': return 'Organism';    case 'Equity_Entity': return 'Equity';    case 'Index_Entity': return 'Index';    case 'Corporate_Bond_Entity': return 'Corporate Bond';    case 'Government_Bond_Entity': return 'Government Bond';
+    case 'Occupation_Entity': return 'Occupation';
+    case 'Creative_Work_Entity': return 'Creative Work';
+    case 'Quantity_Dimension_Entity': return 'Quantity Dimension';
+    case 'Location_Entity': return 'Location';
+    case 'Food_Entity': return 'Food';
+    case 'Language_Entity': return 'Language';
+    case 'Organism_Entity': return 'Organism';
+    case 'Equity_Entity': return 'Equity';
+    case 'Index_Entity': return 'Index';
+    case 'Corporate_Bond_Entity': return 'Corporate Bond';
+    case 'Government_Bond_Entity': return 'Government Bond';
     default: return category.replace(/_Entity$/, '');
   }
 }
@@ -719,7 +1113,6 @@ function populateInstanceSelect(selectElement) {
   const ttl = getElement('ttlInput')?.value || '';
   const instances = [];
   
-  // Parse existing temp: instances
   const pattern = /temp:s(\d+)\s+a\s+:(\w+)\s*;[\s\S]*?rdfs:label\s+"([^"]+)"/g;
   let match;
   
@@ -731,7 +1124,6 @@ function populateInstanceSelect(selectElement) {
     });
   }
   
-  // Populate select
   selectElement.innerHTML = '<option value="">-- Select Instance --</option>';
   
   if (instances.length === 0) {
@@ -747,7 +1139,7 @@ function populateInstanceSelect(selectElement) {
 }
 
 // ============================================
-// ADD ENTRY (updated for Entity mode)
+// ADD ENTRY (DASH-aware)
 // ============================================
 async function addEntry() {
   State.globalCount++;
@@ -756,11 +1148,9 @@ async function addEntry() {
   
   if (!ttlArea) return;
   
-  // Get synset
   const selectedIndex = getElement('senseSelect')?.value;
   const sense = State.currentSenses[selectedIndex];
   
-  // Build main block
   const className = State.selectedSituation.replace('_shape', '');
   let mainBlock = `${sitId} a :${className} ;\n    rdfs:label "${State.currentVerb}" ;\n    :lemma "${State.currentVerb}"`;
   
@@ -770,47 +1160,13 @@ async function addEntry() {
   
   let entityBlock = "";
 
-  // Process roles
-  document.querySelectorAll('.role-row').forEach(row => {
-    const type = row.querySelector('.type-select').value;
-    const textInput = row.querySelector('.role-input');
-    const instanceSelect = row.querySelector('.instance-select');
-    const entitySearchInput = row.querySelector('.entity-search-input');
-    const entitySenseSelect = row.querySelector('.entity-sense-select');
-    
-    let value = '';
-    let resolvedIri = null;
-    
-    if (type === 'Entity') {
-      // Entity mode: use resolved IRI if available
-      resolvedIri = entitySearchInput?.dataset.resolvedIri;
-      value = entitySearchInput?.value.trim() || '';
-      
-      if (!value) return;
-    } else if (type === 'Instance') {
-      value = instanceSelect.value;
-    } else {
-      value = textInput.value.trim();
-    }
-    
-    if (!value) return;
-    
-    // Determine predicate
-    const dataInput = type === 'Entity' ? entitySearchInput : textInput;
-    let predicate = `:${dataInput.dataset.role}`;
-    if (dataInput.dataset.path && dataInput.dataset.path !== 'unknown') {
-      const parts = dataInput.dataset.path.split(/[#/]/);
-      predicate = `:${parts[parts.length - 1]}`;
-    }
-    
-    if (type === 'Entity' && resolvedIri) {
-      // Use the resolved IRI from the suggest service
-      const iriRef = `<${resolvedIri}>`;
-      mainBlock += ` ;\n    ${predicate} ${iriRef}`;
-    } else {
-      const triple = buildTriple(type, value, predicate, ttlArea.value);
-      mainBlock += triple.main;
-      entityBlock += triple.entity;
+  // Process all role rows (including nested forms)
+  document.querySelectorAll('#dynamicForm > .role-row').forEach(row => {
+    const widgetType = row.dataset.widgetType;
+    const result = collectRowValue(row, widgetType, ttlArea.value);
+    if (result) {
+      mainBlock += result.main;
+      entityBlock += result.entity;
     }
   });
 
@@ -819,6 +1175,136 @@ async function addEntry() {
   
   updateGraph();
   showSuccess('addEntryBtn', "✓ Added");
+}
+
+/**
+ * Collect the value from a form row based on its DASH widget type.
+ */
+function collectRowValue(row, widgetType, existingTTL) {
+  const path = row.dataset.path;
+  if (!path) return null;
+  
+  const pathLocal = path.split(/[#/]/).pop();
+  const predicate = `:${pathLocal}`;
+
+  if (widgetType === 'autocomplete') {
+    return collectAutoCompleteValue(row, predicate, existingTTL);
+  }
+  
+  if (widgetType === 'details') {
+    return collectDetailsValue(row, predicate, existingTTL);
+  }
+
+  // All other widgets: read from .role-input
+  const input = row.querySelector('.role-input');
+  if (!input) return null;
+  
+  const value = (input.value || '').trim();
+  if (!value) return null;
+
+  // Date types → xsd:date / xsd:gYearMonth / xsd:gYear
+  if (widgetType === 'datepicker') {
+    const dtSelect = row.querySelector('.date-type-select');
+    const dtType = dtSelect ? dtSelect.value : 'date';
+    const xsdType = dtType === 'year' ? 'xsd:gYear' : dtType === 'month' ? 'xsd:gYearMonth' : 'xsd:date';
+    return { main: ` ;\n    ${predicate} "${value}"^^${xsdType}`, entity: '' };
+  }
+
+  if (widgetType === 'number') {
+    return { main: ` ;\n    ${predicate} "${value}"^^xsd:decimal`, entity: '' };
+  }
+
+  if (widgetType === 'boolean') {
+    return { main: ` ;\n    ${predicate} "${value}"^^xsd:boolean`, entity: '' };
+  }
+
+  if (widgetType === 'uri') {
+    const iri = value.startsWith('<') ? value : value.includes(':') ? value : `<${value}>`;
+    return { main: ` ;\n    ${predicate} ${iri}`, entity: '' };
+  }
+
+  // Default: literal string
+  return { main: ` ;\n    ${predicate} "${value}"`, entity: '' };
+}
+
+/**
+ * Collect value from an AutoCompleteEditor row.
+ */
+function collectAutoCompleteValue(row, predicate, existingTTL) {
+  const typeSelect = row.querySelector('.type-select');
+  const type = typeSelect ? typeSelect.value : 'Entity';
+
+  if (type === 'Entity') {
+    const searchInput = row.querySelector('.entity-search-input');
+    const resolvedIri = searchInput?.dataset.resolvedIri;
+    const value = searchInput?.value.trim() || '';
+    if (!value) return null;
+
+    if (resolvedIri) {
+      return { main: ` ;\n    ${predicate} <${resolvedIri}>`, entity: '' };
+    } else {
+      const slug = toSlug(value);
+      const tempIRI = `temp:${slug}`;
+      let entity = '';
+      if (!existingTTL.includes(`${tempIRI} a :Entity`)) {
+        entity = `${tempIRI} a :Entity ;\n    rdfs:label "${value}" .\n`;
+      }
+      return { main: ` ;\n    ${predicate} ${tempIRI}`, entity };
+    }
+  }
+
+  if (type === 'Instance') {
+    const instanceSelect = row.querySelector('.instance-select');
+    const value = instanceSelect?.value;
+    if (!value) return null;
+    return { main: ` ;\n    ${predicate} ${value}`, entity: '' };
+  }
+
+  // Literal, IRI, BNode
+  const textInput = row.querySelector('.role-input');
+  const value = textInput?.value.trim();
+  if (!value) return null;
+
+  return buildTriple(type, value, predicate, existingTTL);
+}
+
+/**
+ * Collect value from a DetailsEditor (nested form) row.
+ * Creates a blank node with the nested properties.
+ */
+function collectDetailsValue(row, predicate, existingTTL) {
+  const nestedForm = row.querySelector('.nested-form');
+  if (!nestedForm) {
+    // Fallback: simple input
+    const input = row.querySelector('.role-input');
+    const value = input?.value.trim();
+    if (!value) return null;
+    return { main: ` ;\n    ${predicate} "${value}"`, entity: '' };
+  }
+
+  // Collect nested field values
+  const nestedRows = nestedForm.querySelectorAll('.nested-role-row');
+  let bnodeBody = '';
+  let nestedEntities = '';
+  const nodeShape = nestedForm.dataset.nodeShape;
+
+  nestedRows.forEach(nestedRow => {
+    const nestedWidgetType = nestedRow.dataset.widgetType;
+    const result = collectRowValue(nestedRow, nestedWidgetType, existingTTL);
+    if (result) {
+      bnodeBody += result.main;
+      nestedEntities += result.entity;
+    }
+  });
+
+  if (!bnodeBody) return null;
+
+  // Emit as a blank node
+  const bnodeTriples = bnodeBody.replace(/^ ;\n    /, '');
+  return {
+    main: ` ;\n    ${predicate} [\n        ${bnodeTriples.replace(/\n/g, '\n        ')}\n    ]`,
+    entity: nestedEntities
+  };
 }
 
 function buildTriple(type, value, predicate, existingTTL) {
@@ -920,16 +1406,13 @@ function initGraph() {
   const container = getElement('graph-container');
   if (!container) return;
 
-  // Clear existing
   d3.select("#graph-container").selectAll("*").remove();
 
-  // Create SVG
   State.svg = d3.select("#graph-container")
     .append("svg")
     .attr("width", "100%")
     .attr("height", "100%");
 
-  // Setup zoom
   State.zoom = d3.zoom()
     .scaleExtent([0.1, 4])
     .on("zoom", (event) => {
@@ -938,7 +1421,6 @@ function initGraph() {
   
   State.svg.call(State.zoom);
 
-  // Add arrow marker
   State.svg.append("defs")
     .append("marker")
     .attr("id", "arrowhead")
@@ -952,10 +1434,8 @@ function initGraph() {
     .attr("d", "M 0,-5 L 10 ,0 L 0,5")
     .attr("fill", "#334155");
 
-  // Create main group
   State.g = State.svg.append("g");
 
-  // Create force simulation
   State.simulation = d3.forceSimulation()
     .force("link", d3.forceLink().id(d => d.id).distance(CONFIG.GRAPH.LINK_DISTANCE))
     .force("charge", d3.forceManyBody().strength(CONFIG.GRAPH.CHARGE_STRENGTH))
@@ -977,21 +1457,18 @@ function updateGraph() {
   const text = ttlInput.value;
   const { nodes, links } = parseTurtle(text);
   
-  // Clear
   State.g.selectAll(".link").remove();
   State.g.selectAll(".node").remove();
   State.g.selectAll(".link-label-group").remove();
   
   if (nodes.length === 0) return;
 
-  // Create links
   const link = State.g.selectAll(".link")
     .data(links)
     .join("line")
     .attr("class", d => `link${d.inferred ? ' inferred' : ''}`)
     .attr("marker-end", "url(#arrowhead)");
 
-  // Create link labels
   const linkLabel = State.g.selectAll(".link-label-group")
     .data(links)
     .join("g")
@@ -1008,7 +1485,6 @@ function updateGraph() {
     .attr("dy", "0.35em")
     .text(d => d.label);
 
-  // Create nodes
   const node = State.g.selectAll(".node")
     .data(nodes)
     .join("g")
@@ -1024,7 +1500,6 @@ function updateGraph() {
     .attr("stroke", "#0f172a")
     .attr("stroke-width", 2);
 
-  // Node labels
   const labelGroup = node.append("g").attr("transform", "translate(0, 25)");
   
   labelGroup.append("rect")
@@ -1038,7 +1513,6 @@ function updateGraph() {
     .attr("dy", "0.35em")
     .text(d => d.label);
 
-  // Update simulation
   State.simulation.nodes(nodes).on("tick", () => {
     link
       .attr("x1", d => d.source.x)
@@ -1071,7 +1545,6 @@ function updateGraph() {
     });
   });
 
-  // Enable Save button if there is meaningful content
   const saveBtn = getElement('saveBtn');
   if (saveBtn) {
     const hasMeaningfulContent = (getElement('ttlInput')?.value || '').replace(/^@prefix[^\n]*\n/gm, '').trim().length > 0;
@@ -1081,7 +1554,6 @@ function updateGraph() {
   State.simulation.force("link").links(links);
   State.simulation.alpha(1).restart();
   
-  // Auto zoom to fit
   setTimeout(zoomToFit, 150);
 }
 
@@ -1100,7 +1572,6 @@ function parseTurtle(text) {
   const clean = text.replace(/@prefix[^\n]+\n/g, '').trim();
   if (!clean) return { nodes, links };
   
-  // Split into blocks by ".\n"
   const blocks = clean.split(/\.\s*\n/).filter(b => b.trim());
   
   blocks.forEach(block => {
@@ -1114,11 +1585,9 @@ function parseTurtle(text) {
     const subject = firstParts[1];
     let subjectLabel = subject;
     
-    // Find label
     const labelMatch = block.match(/rdfs:label\s+"([^"]+)"/);
     if (labelMatch) subjectLabel = labelMatch[1];
     
-    // Determine type
     const typeMatch = block.match(/a\s+:(\w+)/);
     const nodeType = typeMatch ? 'instance' : 'class';
     
@@ -1127,7 +1596,6 @@ function parseTurtle(text) {
       nodes.push(nodeMap.get(subject));
     }
     
-    // Parse predicates
     lines.forEach((line, i) => {
       const parts = i === 0 
         ? [firstParts[2], firstParts[3]]
@@ -1145,7 +1613,6 @@ function parseTurtle(text) {
       
       const predLabel = predicate.replace(/^:/, '').replace(/^.*[#/]/, '');
       
-      // Determine object type
       let objType = 'instance';
       let objLabel = object;
       
@@ -1153,7 +1620,6 @@ function parseTurtle(text) {
         objType = 'literal';
         objLabel = object.replace(/^"|"$/g, '');
       } else if (object.startsWith('<') && object.endsWith('>')) {
-        // Full IRI reference — show just the local name
         objLabel = object.replace(/^<|>$/g, '');
         if (objLabel.includes('/')) objLabel = objLabel.substring(objLabel.lastIndexOf('/') + 1);
         if (objLabel.includes('#')) objLabel = objLabel.substring(objLabel.lastIndexOf('#') + 1);
@@ -1286,6 +1752,12 @@ function toSlug(value) {
   return value.trim()
     .replace(/\s+/g, '_')
     .replace(/[<>"{}|\\^`]/g, '');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
 }
 
 function debounce(func, wait) {

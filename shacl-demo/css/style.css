@@ -13,6 +13,8 @@
   --col-instance: #f59e0b;
   --col-literal: #3b82f6;
   --mono: 'Fira Code', monospace;
+  --nested-bg: #162032;
+  --nested-border: #2d4a6f;
 }
 
 body { 
@@ -186,7 +188,6 @@ h1 {
   text-transform: uppercase; 
 }
 
-/* Stat item hover effect */
 .stat-item:hover strong {
   color: var(--accent);
 }
@@ -256,6 +257,13 @@ input:focus, select:focus, textarea:focus {
   margin-bottom: 4px; 
 }
 
+/* Tooltip indicator for fields with sh:description */
+.role-label.has-tooltip {
+  cursor: help;
+  border-bottom: 1px dotted var(--text-muted);
+  display: inline-block;
+}
+
 .compact-row { 
   display: flex; 
   gap: 8px; 
@@ -277,6 +285,129 @@ input:focus, select:focus, textarea:focus {
   color: var(--accent);
   font-style: italic;
   margin-top: 0.25rem;
+}
+
+/* ============================================
+   DASH WIDGET STYLES
+   ============================================ */
+
+/* Shape-level example sentence (skos:example) */
+.shape-example {
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.shape-example .example-label {
+  color: var(--accent);
+  font-weight: 600;
+  font-style: normal;
+  margin-right: 4px;
+}
+
+/* Field description (sh:description) */
+.field-description {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  line-height: 1.4;
+  opacity: 0.8;
+  font-style: italic;
+}
+
+/* ── dash:DetailsEditor — Nested form ──────────────── */
+.details-widget-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.nested-form {
+  background: var(--nested-bg);
+  border: 1px solid var(--nested-border);
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 2px;
+}
+
+.nested-form-header {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--nested-border);
+}
+
+.nested-role-row {
+  margin-bottom: 8px;
+}
+
+.nested-role-row .role-label {
+  font-size: 0.75rem;
+  color: #93c5fd;
+}
+
+.nested-role-row .field-description {
+  font-size: 0.65rem;
+}
+
+.nested-role-row .compact-row {
+  gap: 6px;
+}
+
+.nested-role-row input,
+.nested-role-row select,
+.nested-role-row textarea {
+  font-size: 0.85rem;
+  padding: 0.45rem;
+}
+
+/* ── dash:DatePickerEditor — Date type selector ────── */
+.date-type-select {
+  flex: 0 0 140px;
+  background: var(--panel);
+  font-size: 0.8rem;
+}
+
+.date-input {
+  flex: 1;
+}
+
+/* Date input color scheme for dark mode */
+input[type="date"],
+input[type="month"],
+input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+/* ── dash:TextAreaEditor ───────────────────────────── */
+.textarea-widget {
+  min-height: 60px;
+  resize: vertical;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* ── dash:URIEditor ────────────────────────────────── */
+.uri-input {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+
+/* ── dash:EnumSelectEditor ─────────────────────────── */
+.enum-select {
+  background: var(--panel);
 }
 
 /* ============================================
@@ -305,7 +436,6 @@ button:disabled {
   display: block;
 }
 
-/* The 4-button aligned grid */
 .action-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -423,9 +553,9 @@ textarea#ttlInput {
   background: #1a1500; 
   border: 1px solid #422006; 
   border-radius: 6px; 
-  overflow: visible;      /* was 'hidden' — caused the pre to be clipped to zero height */
+  overflow: visible;
   margin-top: 10px;
-  flex-shrink: 0;         /* prevents flex from crushing it */
+  flex-shrink: 0;
   animation: fadeIn 0.3s ease;
 }
 
@@ -442,7 +572,7 @@ textarea#ttlInput {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-radius: 6px 6px 0 0;  /* re-applied since overflow is no longer hidden */
+  border-radius: 6px 6px 0 0;
 }
 
 #reportContent { 
@@ -451,8 +581,8 @@ textarea#ttlInput {
   font-size: 0.7rem; 
   color: #fcd34d; 
   white-space: pre-wrap; 
-  display: block;         /* ensures pre doesn't collapse in flex context */
-  min-height: 2rem;       /* guarantees it never collapses to zero */
+  display: block;
+  min-height: 2rem;
   max-height: 150px; 
   overflow-y: auto; 
   margin: 0;
@@ -938,6 +1068,15 @@ textarea:focus-visible {
     font-size: 11px;
     padding: 10px 15px;
   }
+
+  /* Nested forms on mobile */
+  .nested-form {
+    padding: 8px;
+  }
+
+  .date-type-select {
+    flex: 0 0 100px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1027,4 +1166,3 @@ textarea::-webkit-scrollbar-thumb:hover {
 .project-summary-mini a:hover {
   color: var(--accent);
 }
-/* updated Tue Mar  3 20:38:33 EST 2026 */
