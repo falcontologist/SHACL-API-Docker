@@ -644,1399 +644,2415 @@
 
 :shape_element a rdf:Property ;
     rdfs:label "shape element"@en ;
-    rdfs:comment "The root superproperty for all semantic role and modifier properties."@en .
+    rdfs:comment "The root superproperty for all semantic role and modifier properties ."@en .
 
 :proto_role a rdf:Property ;
     rdfs:label "proto-role"@en ;
-    rdfs:comment "Superproperty for all proto-role properties."@en ;
+    rdfs:comment "Superproperty for all proto-role properties ."@en ;
     rdfs:subPropertyOf :shape_element .
 
 :modifier a rdf:Property ;
     rdfs:label "modifier"@en ;
-    rdfs:comment "Superproperty for all modifier properties."@en ;
+    rdfs:comment "Superproperty for all modifier properties ."@en ;
     rdfs:subPropertyOf :shape_element .
 
 ### PROTO-ROLES ###
 
 :proto_agent a rdf:Property ;
     rdfs:label "proto-agent"@en ;
-    rdfs:comment "Proto-role for initiator/agent participants."@en ;
+    rdfs:comment "Proto-role for initiator/agent participants ."@en ;
     rdfs:subPropertyOf :proto_role .
 
 :proto_instrument a rdf:Property ;
     rdfs:label "proto-instrument"@en ;
-    rdfs:comment "Proto-role for resource/instrument participants."@en ;
+    rdfs:comment "Proto-role for resource/instrument participants ."@en ;
     rdfs:subPropertyOf :proto_role .
 
 :proto_patient a rdf:Property ;
     rdfs:label "proto-patient"@en ;
-    rdfs:comment "Proto-role for essence/patient participants."@en ;
+    rdfs:comment "Proto-role for essence/patient participants ."@en ;
     rdfs:subPropertyOf :proto_role .
 
 :proto_source a rdf:Property ;
     rdfs:label "proto-source"@en ;
-    rdfs:comment "Proto-role for source-oriented participants (stub for future expansion)."@en ;
+    rdfs:comment "Proto-role for source-oriented participants (stub for future expansion) ."@en ;
     rdfs:subPropertyOf :proto_role .
 
 :proto_path a rdf:Property ;
     rdfs:label "proto-path"@en ;
-    rdfs:comment "Proto-role for path-oriented participants (stub for future expansion)."@en ;
+    rdfs:comment "Proto-role for path-oriented participants (stub for future expansion) ."@en ;
     rdfs:subPropertyOf :proto_role .
 
 :proto_goal a rdf:Property ;
     rdfs:label "proto-goal"@en ;
-    rdfs:comment "Proto-role for goal-oriented participants."@en ;
+    rdfs:comment "Proto-role for goal-oriented participants ."@en ;
     rdfs:subPropertyOf :proto_role .
 
 ### Basic Roles (Ring 3) ###
 
 :agonist a rdf:Property ;
     rdfs:label "agonist"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Force ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Agonist_Role_Player .
 
 :antagonist a rdf:Property ;
     rdfs:label "antagonist"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Force ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Antagonist_Role_Player .
 
 :means a rdf:Property ;
     rdfs:label "means"@en ;
+    rdfs:subPropertyOf :proto_instrument ;
     rdfs:domain :Force ;
-    rdfs:subPropertyOf :proto_instrument .
+    rdfs:range :Means_Role_Player .
 
 ## Creation Domain ##
 :maker a rdf:Property ;
     rdfs:label "maker"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Creation ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Maker_Role_Player .
 
 :instrument a rdf:Property ;
     rdfs:label "instrument"@en ;
+    rdfs:subPropertyOf :proto_instrument ;
     rdfs:domain :Creation ;
-    rdfs:subPropertyOf :proto_instrument .
+    rdfs:range :Instrument_Role_Player .
 
 :work a rdf:Property ;
     rdfs:label "work"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Creation ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Work_Role_Player .
 
 :product a rdf:Property ;
     rdfs:label "product"@en ;
+    rdfs:subPropertyOf :proto_goal ;
     rdfs:domain :Creation ;
-    rdfs:subPropertyOf :proto_goal .
+    rdfs:range :Product_Role_Player .
 
 :material a rdf:Property ;
     rdfs:label "material"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Creation ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Material_Role_Player .
 
 ## Existence Domain ##
 :being a rdf:Property ;
     rdfs:label "being"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Existence ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Being_Role_Player .
 
 :mode a rdf:Property ;
     rdfs:label "mode"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Existence ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Mode_Role_Player .
 
 ## Transformation Domain ##
 :transformer a rdf:Property ;
     rdfs:label "transformer"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Transformation ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Transformer_Role_Player .
 
 :catalyst a rdf:Property ;
     rdfs:label "catalyst"@en ;
+    rdfs:subPropertyOf :proto_instrument ;
     rdfs:domain :Transformation ;
-    rdfs:subPropertyOf :proto_instrument .
+    rdfs:range :Catalyst_Role_Player .
 
 :undergoer a rdf:Property ;
     rdfs:label "undergoer"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Transformation ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Undergoer_Role_Player .
 
 :result a rdf:Property ;
     rdfs:label "result"@en ;
+    rdfs:subPropertyOf :proto_goal ;
     rdfs:domain :Transformation ;
-    rdfs:subPropertyOf :proto_goal .
+    rdfs:range :Result_Role_Player .
 
 ## Motion Domain ##
 :mover a rdf:Property ;
     rdfs:label "mover"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Motion ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Mover_Role_Player .
 
 :conveyance a rdf:Property ;
     rdfs:label "conveyance"@en ;
+    rdfs:subPropertyOf :proto_instrument ;
     rdfs:domain :Motion ;
-    rdfs:subPropertyOf :proto_instrument .
+    rdfs:range :Conveyance_Role_Player .
 
 :theme a rdf:Property ;
     rdfs:label "theme"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Motion ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Theme_Role_Player .
 
 :orientation a rdf:Property ;
     rdfs:label "orientation"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Motion ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Orientation_Role_Player .
 
 ## Location Domain ##
 :trajector a rdf:Property ;
     rdfs:label "trajector"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Location ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Trajector_Role_Player .
 
 :landmark a rdf:Property ;
     rdfs:label "landmark"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Location ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Landmark_Role_Player .
 
 ## Occurrence Domain ##
 :situation a rdf:Property ;
     rdfs:label "situation"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Occurrence ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Situation_Role_Player .
 
 :time a rdf:Property ;
     rdfs:label "time"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Occurrence ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Time_Role_Player .
 
 :order a rdf:Property ;
     rdfs:label "order"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Occurrence ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Order_Role_Player .
 
 :manner a rdf:Property ;
     rdfs:label "manner"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Occurrence ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Manner_Role_Player .
 
 ## Continuation Domain ##
 :entity a rdf:Property ;
     rdfs:label "entity"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Continuation ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Entity_Role_Player .
 
 :state a rdf:Property ;
     rdfs:label "state"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Continuation ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :State_Role_Player .
 
 ### MENTAL REALM - BASIC ROLES (Ring 3) ###
 
 ## Perception Domain ##
 :perceiver a rdf:Property ;
     rdfs:label "perceiver"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Perception ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Perceiver_Role_Player .
 
 :sense a rdf:Property ;
     rdfs:label "sense"@en ;
+    rdfs:subPropertyOf :proto_instrument ;
     rdfs:domain :Perception ;
-    rdfs:subPropertyOf :proto_instrument .
+    rdfs:range :Sense_Role_Player .
 
 :percept a rdf:Property ;
     rdfs:label "percept"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Perception ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Percept_Role_Player .
 
 ## Affect Domain ##
 :affecter a rdf:Property ;
     rdfs:label "affecter"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Affect ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Affecter_Role_Player .
 
 :affectee a rdf:Property ;
     rdfs:label "affectee"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Affect ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Affectee_Role_Player .
 
 :reaction a rdf:Property ;
     rdfs:label "reaction"@en ;
+    rdfs:subPropertyOf :proto_goal ;
     rdfs:domain :Affect ;
-    rdfs:subPropertyOf :proto_goal .
+    rdfs:range :Reaction_Role_Player .
 
 ## Experience Domain ##
 :experiencer a rdf:Property ;
     rdfs:label "experiencer"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Experience ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Experiencer_Role_Player .
 
 :stimulus a rdf:Property ;
     rdfs:label "stimulus"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Experience ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Stimulus_Role_Player .
 
 ## Memory Domain ##
 :witness a rdf:Property ;
     rdfs:label "witness"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Memory ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Witness_Role_Player .
 
 :impression a rdf:Property ;
     rdfs:label "impression"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Memory ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Impression_Role_Player .
 
 ## Volition Domain ##
 :intender a rdf:Property ;
     rdfs:label "intender"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Volition ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Intender_Role_Player .
 
 :stratagem a rdf:Property ;
     rdfs:label "stratagem"@en ;
+    rdfs:subPropertyOf :proto_instrument ;
     rdfs:domain :Volition ;
-    rdfs:subPropertyOf :proto_instrument .
+    rdfs:range :Stratagem_Role_Player .
 
 :object a rdf:Property ;
     rdfs:label "object"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Volition ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Object_Role_Player .
 
 :aversion a rdf:Property ;
     rdfs:label "aversion"@en ;
+    rdfs:subPropertyOf :proto_goal ;
     rdfs:domain :Volition ;
-    rdfs:subPropertyOf :proto_goal .
+    rdfs:range :Aversion_Role_Player .
 
 :aim a rdf:Property ;
     rdfs:label "aim"@en ;
+    rdfs:subPropertyOf :proto_goal ;
     rdfs:domain :Volition ;
-    rdfs:subPropertyOf :proto_goal .
+    rdfs:range :Aim_Role_Player .
 
 ## Desire Domain ##
 :wisher a rdf:Property ;
     rdfs:label "wisher"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Desire ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Wisher_Role_Player .
 
 :wish a rdf:Property ;
     rdfs:label "wish"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Desire ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Wish_Role_Player .
 
 ## Cognition Domain ##
 :educator a rdf:Property ;
     rdfs:label "educator"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Cognition ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Educator_Role_Player .
 
 :method a rdf:Property ;
     rdfs:label "method"@en ;
+    rdfs:subPropertyOf :proto_instrument ;
     rdfs:domain :Cognition ;
-    rdfs:subPropertyOf :proto_instrument .
+    rdfs:range :Method_Role_Player .
 
 :concept a rdf:Property ;
     rdfs:label "concept"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Cognition ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Concept_Role_Player .
 
 :student a rdf:Property ;
     rdfs:label "student"@en ;
+    rdfs:subPropertyOf :proto_goal ;
     rdfs:domain :Cognition ;
-    rdfs:subPropertyOf :proto_goal .
+    rdfs:range :Student_Role_Player .
 
 :field a rdf:Property ;
     rdfs:label "field"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Cognition ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Field_Role_Player .
 
 ## Knowledge Domain ##
 :knower a rdf:Property ;
     rdfs:label "knower"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Knowledge ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Knower_Role_Player .
 
 :knowledge a rdf:Property ;
     rdfs:label "knowledge"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Knowledge ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Knowledge_Role_Player .
 
 ## Evaluation Domain ##
 :evaluator a rdf:Property ;
     rdfs:label "evaluator"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Evaluation ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Evaluator_Role_Player .
 
 :standard a rdf:Property ;
     rdfs:label "standard"@en ;
+    rdfs:subPropertyOf :proto_instrument ;
     rdfs:domain :Evaluation ;
-    rdfs:subPropertyOf :proto_instrument .
+    rdfs:range :Standard_Role_Player .
 
 :phenomenon a rdf:Property ;
     rdfs:label "phenomenon"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Evaluation ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Phenomenon_Role_Player .
 
 :conclusion a rdf:Property ;
     rdfs:label "conclusion"@en ;
+    rdfs:subPropertyOf :proto_goal ;
     rdfs:domain :Evaluation ;
-    rdfs:subPropertyOf :proto_goal .
+    rdfs:range :Conclusion_Role_Player .
 
 :value a rdf:Property ;
     rdfs:label "value"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Evaluation ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Value_Role_Player .
 
 :multiplier a rdf:Property ;
     rdfs:label "multiplier"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Evaluation ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Multiplier_Role_Player .
 
 :attribute a rdf:Property ;
     rdfs:label "attribute"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Evaluation ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Attribute_Role_Player .
 
 :sentiment a rdf:Property ;
     rdfs:label "sentiment"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Evaluation ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Sentiment_Role_Player .
 
 ## Attitude Domain ##
 :adherent a rdf:Property ;
     rdfs:label "adherent"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Attitude ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Adherent_Role_Player .
 
 :proposition a rdf:Property ;
     rdfs:label "proposition"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Attitude ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Proposition_Role_Player .
 
 :polarity a rdf:Property ;
     rdfs:label "polarity"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Attitude ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Polarity_Role_Player .
 
 :modality a rdf:Property ;
     rdfs:label "modality"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Attitude ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Modality_Role_Player .
 
 :certainty a rdf:Property ;
     rdfs:label "certainty"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Attitude ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Certainty_Role_Player .
 
 :attitude a rdf:Property ;
     rdfs:label "attitude"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Attitude ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Attitude_Role_Player .
 
 ## Execution Domain ##
 :executor a rdf:Property ;
     rdfs:label "executor"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Execution ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Executor_Role_Player .
 
 :task a rdf:Property ;
     rdfs:label "task"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Execution ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Task_Role_Player .
 
 :modulation a rdf:Property ;
     rdfs:label "modulation"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Execution ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Modulation_Role_Player .
 
 :phase a rdf:Property ;
     rdfs:label "phase"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Execution ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Phase_Role_Player .
 
 ## Causation Domain ##
 :cause a rdf:Property ;
     rdfs:label "cause"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Causation ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Cause_Role_Player .
 
 :causee a rdf:Property ;
     rdfs:label "causee"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Causation ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Causee_Role_Player .
 
 :effect a rdf:Property ;
     rdfs:label "effect"@en ;
+    rdfs:subPropertyOf :proto_goal ;
     rdfs:domain :Causation ;
-    rdfs:subPropertyOf :proto_goal .
+    rdfs:range :Effect_Role_Player .
 
 ### SOCIAL REALM - BASIC ROLES (Ring 3) ###
 
 ## Communication Domain ##
 :communicator a rdf:Property ;
     rdfs:label "communicator"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Communication ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Communicator_Role_Player .
 
 :medium a rdf:Property ;
     rdfs:label "medium"@en ;
+    rdfs:subPropertyOf :proto_instrument ;
     rdfs:domain :Communication ;
-    rdfs:subPropertyOf :proto_instrument .
+    rdfs:range :Medium_Role_Player .
 
 :message a rdf:Property ;
     rdfs:label "message"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Communication ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Message_Role_Player .
 
 :addressee a rdf:Property ;
     rdfs:label "addressee"@en ;
+    rdfs:subPropertyOf :proto_goal ;
     rdfs:domain :Communication ;
-    rdfs:subPropertyOf :proto_goal .
+    rdfs:range :Addressee_Role_Player .
 
 :characterization a rdf:Property ;
     rdfs:label "characterization"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Communication ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Characterization_Role_Player .
 
 :language a rdf:Property ;
     rdfs:label "language"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Communication ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Language_Role_Player .
 
 :signal a rdf:Property ;
     rdfs:label "signal"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Communication ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Signal_Role_Player .
 
 :topic a rdf:Property ;
     rdfs:label "topic"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Communication ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Topic_Role_Player .
 
 ## Information Domain ##
 :content a rdf:Property ;
     rdfs:label "content"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Information ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Content_Role_Player .
 
 :source a rdf:Property ;
     rdfs:label "source"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Information ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Source_Role_Player .
 
 ## Transaction Domain ##
 :transactor a rdf:Property ;
     rdfs:label "transactor"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Transaction ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Transactor_Role_Player .
 
 :asset a rdf:Property ;
     rdfs:label "asset"@en ;
+    rdfs:subPropertyOf :proto_instrument ;
     rdfs:domain :Transaction ;
-    rdfs:subPropertyOf :proto_instrument .
+    rdfs:range :Asset_Role_Player .
 
 :item a rdf:Property ;
     rdfs:label "item"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Transaction ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Item_Role_Player .
 
 :recipient a rdf:Property ;
     rdfs:label "recipient"@en ;
+    rdfs:subPropertyOf :proto_goal ;
     rdfs:domain :Transaction ;
-    rdfs:subPropertyOf :proto_goal .
+    rdfs:range :Recipient_Role_Player .
 
 ## Possession Domain ##
 :possessor a rdf:Property ;
     rdfs:label "possessor"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Possession ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Possessor_Role_Player .
 
 :possession a rdf:Property ;
     rdfs:label "possession"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Possession ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Possession_Role_Player .
 
 ## Action Domain ##
 :actor a rdf:Property ;
     rdfs:label "actor"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Action ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Actor_Role_Player .
 
 :implement a rdf:Property ;
     rdfs:label "implement"@en ;
+    rdfs:subPropertyOf :proto_instrument ;
     rdfs:domain :Action ;
-    rdfs:subPropertyOf :proto_instrument .
+    rdfs:range :Implement_Role_Player .
 
 :target a rdf:Property ;
     rdfs:label "target"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Action ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Target_Role_Player .
 
 :action a rdf:Property ;
     rdfs:label "action"@en ;
+    rdfs:subPropertyOf :proto_goal ;
     rdfs:domain :Action ;
-    rdfs:subPropertyOf :proto_goal .
+    rdfs:range :Action_Role_Player .
 
 ## Interaction Domain ##
 :interactor a rdf:Property ;
     rdfs:label "interactor"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Interaction ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Interactor_Role_Player .
 
 :interaction a rdf:Property ;
     rdfs:label "interaction"@en ;
+    rdfs:subPropertyOf :proto_goal ;
     rdfs:domain :Interaction ;
-    rdfs:subPropertyOf :proto_goal .
+    rdfs:range :Interaction_Role_Player .
 
 ## Control Domain ##
 :controller a rdf:Property ;
     rdfs:label "controller"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Control ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Controller_Role_Player .
 
 :rule a rdf:Property ;
     rdfs:label "rule"@en ;
+    rdfs:subPropertyOf :proto_instrument ;
     rdfs:domain :Control ;
-    rdfs:subPropertyOf :proto_instrument .
+    rdfs:range :Rule_Role_Player .
 
 :subordinate a rdf:Property ;
     rdfs:label "subordinate"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Control ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Subordinate_Role_Player .
 
 :regulation a rdf:Property ;
     rdfs:label "regulation"@en ;
+    rdfs:subPropertyOf :proto_goal ;
     rdfs:domain :Control ;
-    rdfs:subPropertyOf :proto_goal .
+    rdfs:range :Regulation_Role_Player .
 
 ## Authority Domain ##
 :ruler a rdf:Property ;
     rdfs:label "ruler"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Authority ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Ruler_Role_Player .
 
 :jurisdiction a rdf:Property ;
     rdfs:label "jurisdiction"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Authority ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Jurisdiction_Role_Player .
 
 ## Affiliation Domain ##
 :affiliator a rdf:Property ;
     rdfs:label "affiliator"@en ;
+    rdfs:subPropertyOf :proto_agent ;
     rdfs:domain :Affiliation ;
-    rdfs:subPropertyOf :proto_agent .
+    rdfs:range :Affiliator_Role_Player .
 
 :rite a rdf:Property ;
     rdfs:label "rite"@en ;
+    rdfs:subPropertyOf :proto_instrument ;
     rdfs:domain :Affiliation ;
-    rdfs:subPropertyOf :proto_instrument .
+    rdfs:range :Rite_Role_Player .
 
 :participant a rdf:Property ;
     rdfs:label "participant"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Affiliation ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Participant_Role_Player .
 
 :institution a rdf:Property ;
     rdfs:label "institution"@en ;
+    rdfs:subPropertyOf :proto_goal ;
     rdfs:domain :Affiliation ;
-    rdfs:subPropertyOf :proto_goal .
+    rdfs:range :Institution_Role_Player .
 
 :role a rdf:Property ;
     rdfs:label "role"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Affiliation ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Role_Role_Player .
 
 ## Kinship Domain ##
 :relative a rdf:Property ;
     rdfs:label "relative"@en ;
+    rdfs:subPropertyOf :proto_patient ;
     rdfs:domain :Kinship ;
-    rdfs:subPropertyOf :proto_patient .
+    rdfs:range :Relative_Role_Player .
 
 :relation a rdf:Property ;
     rdfs:label "relation"@en ;
+    rdfs:subPropertyOf :modifier ;
     rdfs:domain :Kinship ;
-    rdfs:subPropertyOf :modifier .
+    rdfs:range :Relation_Role_Player .
 
 ### Extended Roles (Ring 4) ###
 
 ## Creation - Extended ##
 :creator a rdf:Property ;
     rdfs:label "creator"@en ;
+    rdfs:subPropertyOf :maker ;
     rdfs:domain :Creation ;
-
-    rdfs:subPropertyOf :maker .
+    rdfs:range :Creator_Role_Player .
 
 :destroyer a rdf:Property ;
     rdfs:label "destroyer"@en ;
+    rdfs:subPropertyOf :maker ;
     rdfs:domain :Creation ;
-
-    rdfs:subPropertyOf :maker .
+    rdfs:range :Destroyer_Role_Player .
 
 ## Motion - Extended ##
 :driver a rdf:Property ;
     rdfs:label "driver"@en ;
+    rdfs:subPropertyOf :mover ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :mover .
+    rdfs:range :Driver_Role_Player .
 
 :applier a rdf:Property ;
     rdfs:label "applier"@en ;
+    rdfs:subPropertyOf :mover ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :mover .
+    rdfs:range :Applier_Role_Player .
 
 :remover a rdf:Property ;
     rdfs:label "remover"@en ;
+    rdfs:subPropertyOf :mover ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :mover .
+    rdfs:range :Remover_Role_Player .
 
 :provider a rdf:Property ;
     rdfs:label "provider"@en ;
+    rdfs:subPropertyOf :mover ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :mover .
+    rdfs:range :Provider_Role_Player .
 
 :depriver a rdf:Property ;
     rdfs:label "depriver"@en ;
+    rdfs:subPropertyOf :mover ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :mover .
+    rdfs:range :Depriver_Role_Player .
 
 :concealer a rdf:Property ;
     rdfs:label "concealer"@en ;
+    rdfs:subPropertyOf :mover ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :mover .
+    rdfs:range :Concealer_Role_Player .
 
 :revealer a rdf:Property ;
     rdfs:label "revealer"@en ;
+    rdfs:subPropertyOf :mover ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :mover .
+    rdfs:range :Revealer_Role_Player .
 
 :bearer a rdf:Property ;
     rdfs:label "bearer"@en ;
+    rdfs:subPropertyOf :conveyance ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :conveyance .
+    rdfs:range :Bearer_Role_Player .
 
 :wearer a rdf:Property ;
     rdfs:label "wearer"@en ;
+    rdfs:subPropertyOf :conveyance ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :conveyance .
+    rdfs:range :Wearer_Role_Player .
 
 :conduit a rdf:Property ;
     rdfs:label "conduit"@en ;
+    rdfs:subPropertyOf :conveyance ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :conveyance .
+    rdfs:range :Conduit_Role_Player .
 
 :vehicle a rdf:Property ;
     rdfs:label "vehicle"@en ;
+    rdfs:subPropertyOf :conveyance ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :conveyance .
+    rdfs:range :Vehicle_Role_Player .
 
 :cargo a rdf:Property ;
     rdfs:label "cargo"@en ;
+    rdfs:subPropertyOf :theme ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :theme .
+    rdfs:range :Cargo_Role_Player .
 
 :garment a rdf:Property ;
     rdfs:label "garment"@en ;
+    rdfs:subPropertyOf :theme ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :theme .
+    rdfs:range :Garment_Role_Player .
 
 :passenger a rdf:Property ;
     rdfs:label "passenger"@en ;
+    rdfs:subPropertyOf :theme ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :theme .
+    rdfs:range :Passenger_Role_Player .
 
 :origin a rdf:Property ;
     rdfs:label "origin"@en ;
+    rdfs:subPropertyOf :orientation ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :orientation .
+    rdfs:range :Origin_Role_Player .
 
 :trajectory a rdf:Property ;
     rdfs:label "trajectory"@en ;
+    rdfs:subPropertyOf :orientation ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :orientation .
+    rdfs:range :Trajectory_Role_Player .
 
 :location a rdf:Property ;
     rdfs:label "location"@en ;
+    rdfs:subPropertyOf :orientation ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :orientation .
+    rdfs:range :Location_Role_Player .
 
 :destination a rdf:Property ;
     rdfs:label "destination"@en ;
+    rdfs:subPropertyOf :orientation ;
     rdfs:domain :Motion ;
-
-    rdfs:subPropertyOf :orientation .
+    rdfs:range :Destination_Role_Player .
 
 ## Occurrence - Extended ##
 :start a rdf:Property ;
     rdfs:label "start"@en ;
+    rdfs:subPropertyOf :time ;
     rdfs:domain :Occurrence ;
-
-    rdfs:subPropertyOf :time .
+    rdfs:range :Start_Role_Player .
 
 :duration a rdf:Property ;
     rdfs:label "duration"@en ;
+    rdfs:subPropertyOf :time ;
     rdfs:domain :Occurrence ;
-
-    rdfs:subPropertyOf :time .
+    rdfs:range :Duration_Role_Player .
 
 :frequency a rdf:Property ;
     rdfs:label "frequency"@en ;
+    rdfs:subPropertyOf :time ;
     rdfs:domain :Occurrence ;
-
-    rdfs:subPropertyOf :time .
+    rdfs:range :Frequency_Role_Player .
 
 :instant a rdf:Property ;
     rdfs:label "instant"@en ;
+    rdfs:subPropertyOf :time ;
     rdfs:domain :Occurrence ;
-
-    rdfs:subPropertyOf :time .
+    rdfs:range :Instant_Role_Player .
 
 :end a rdf:Property ;
     rdfs:label "end"@en ;
+    rdfs:subPropertyOf :time ;
     rdfs:domain :Occurrence ;
-
-    rdfs:subPropertyOf :time .
+    rdfs:range :End_Role_Player .
 
 :before a rdf:Property ;
     rdfs:label "before"@en ;
+    rdfs:subPropertyOf :order ;
     rdfs:domain :Occurrence ;
-
-    rdfs:subPropertyOf :order .
+    rdfs:range :Before_Role_Player .
 
 :during a rdf:Property ;
     rdfs:label "during"@en ;
+    rdfs:subPropertyOf :order ;
     rdfs:domain :Occurrence ;
-
-    rdfs:subPropertyOf :order .
+    rdfs:range :During_Role_Player .
 
 ## Continuation - Extended ##
 :initial_state a rdf:Property ;
     rdfs:label "initial state"@en ;
+    rdfs:subPropertyOf :state ;
     rdfs:domain :Continuation ;
-
-    rdfs:subPropertyOf :state .
+    rdfs:range :Initial_state_Role_Player .
 
 :final_state a rdf:Property ;
     rdfs:label "final state"@en ;
+    rdfs:subPropertyOf :state ;
     rdfs:domain :Continuation ;
-
-    rdfs:subPropertyOf :state .
+    rdfs:range :Final_state_Role_Player .
 
 ## Affect - Extended ##
 :harmer a rdf:Property ;
     rdfs:label "harmer"@en ;
+    rdfs:subPropertyOf :affecter ;
     rdfs:domain :Affect ;
-
-    rdfs:subPropertyOf :affecter .
+    rdfs:range :Harmer_Role_Player .
 
 :helper a rdf:Property ;
     rdfs:label "helper"@en ;
+    rdfs:subPropertyOf :affecter ;
     rdfs:domain :Affect ;
-
-    rdfs:subPropertyOf :affecter .
+    rdfs:range :Helper_Role_Player .
 
 :beneficiary a rdf:Property ;
     rdfs:label "beneficiary"@en ;
+    rdfs:subPropertyOf :affectee ;
     rdfs:domain :Affect ;
-
-    rdfs:subPropertyOf :affectee .
+    rdfs:range :Beneficiary_Role_Player .
 
 :maleficiary a rdf:Property ;
     rdfs:label "maleficiary"@en ;
+    rdfs:subPropertyOf :affectee ;
     rdfs:domain :Affect ;
-
-    rdfs:subPropertyOf :affectee .
+    rdfs:range :Maleficiary_Role_Player .
 
 ## Volition - Extended ##
 :avoider a rdf:Property ;
     rdfs:label "avoider"@en ;
+    rdfs:subPropertyOf :intender ;
     rdfs:domain :Volition ;
-
-    rdfs:subPropertyOf :intender .
+    rdfs:range :Avoider_Role_Player .
 
 :dedicator a rdf:Property ;
     rdfs:label "dedicator"@en ;
+    rdfs:subPropertyOf :intender ;
     rdfs:domain :Volition ;
-
-    rdfs:subPropertyOf :intender .
+    rdfs:range :Dedicator_Role_Player .
 
 :pursuer a rdf:Property ;
     rdfs:label "pursuer"@en ;
+    rdfs:subPropertyOf :intender ;
     rdfs:domain :Volition ;
-
-    rdfs:subPropertyOf :intender .
+    rdfs:range :Pursuer_Role_Player .
 
 ## Evaluation - Extended ##
 :associator a rdf:Property ;
     rdfs:label "associator"@en ;
+    rdfs:subPropertyOf :evaluator ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :evaluator .
+    rdfs:range :Associator_Role_Player .
 
 :decider a rdf:Property ;
     rdfs:label "decider"@en ;
+    rdfs:subPropertyOf :evaluator ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :evaluator .
+    rdfs:range :Decider_Role_Player .
 
 :qualifier a rdf:Property ;
     rdfs:label "qualifier"@en ;
+    rdfs:subPropertyOf :evaluator ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :evaluator .
+    rdfs:range :Qualifier_Role_Player .
 
 :quantifier a rdf:Property ;
     rdfs:label "quantifier"@en ;
+    rdfs:subPropertyOf :evaluator ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :evaluator .
+    rdfs:range :Quantifier_Role_Player .
 
 :basis a rdf:Property ;
     rdfs:label "basis"@en ;
+    rdfs:subPropertyOf :standard ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :standard .
+    rdfs:range :Basis_Role_Player .
 
 :criterion a rdf:Property ;
     rdfs:label "criterion"@en ;
+    rdfs:subPropertyOf :standard ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :standard .
+    rdfs:range :Criterion_Role_Player .
 
 :evidence a rdf:Property ;
     rdfs:label "evidence"@en ;
+    rdfs:subPropertyOf :standard ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :standard .
+    rdfs:range :Evidence_Role_Player .
 
 :requirement a rdf:Property ;
     rdfs:label "requirement"@en ;
+    rdfs:subPropertyOf :standard ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :standard .
+    rdfs:range :Requirement_Role_Player .
 
 :unit a rdf:Property ;
     rdfs:label "unit"@en ;
+    rdfs:subPropertyOf :standard ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :standard .
+    rdfs:range :Unit_Role_Player .
 
 :analogue a rdf:Property ;
     rdfs:label "analogue"@en ;
+    rdfs:subPropertyOf :phenomenon ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :phenomenon .
+    rdfs:range :Analogue_Role_Player .
 
 :candidate a rdf:Property ;
     rdfs:label "candidate"@en ;
+    rdfs:subPropertyOf :phenomenon ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :phenomenon .
+    rdfs:range :Candidate_Role_Player .
 
 :container a rdf:Property ;
     rdfs:label "container"@en ;
+    rdfs:subPropertyOf :phenomenon ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :phenomenon .
+    rdfs:range :Container_Role_Player .
 
 :option a rdf:Property ;
     rdfs:label "option"@en ;
+    rdfs:subPropertyOf :phenomenon ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :phenomenon .
+    rdfs:range :Option_Role_Player .
 
 :decision a rdf:Property ;
     rdfs:label "decision"@en ;
+    rdfs:subPropertyOf :conclusion ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :conclusion .
+    rdfs:range :Decision_Role_Player .
 
 :quality a rdf:Property ;
     rdfs:label "quality"@en ;
+    rdfs:subPropertyOf :conclusion ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :conclusion .
+    rdfs:range :Quality_Role_Player .
 
 :quantity a rdf:Property ;
     rdfs:label "quantity"@en ;
+    rdfs:subPropertyOf :conclusion ;
     rdfs:domain :Evaluation ;
-
-    rdfs:subPropertyOf :conclusion .
+    rdfs:range :Quantity_Role_Player .
 
 ## Attitude - Extended ##
 :proponent a rdf:Property ;
     rdfs:label "proponent"@en ;
+    rdfs:subPropertyOf :adherent ;
     rdfs:domain :Attitude ;
-
-    rdfs:subPropertyOf :adherent .
+    rdfs:range :Proponent_Role_Player .
 
 :opponent a rdf:Property ;
     rdfs:label "opponent"@en ;
+    rdfs:subPropertyOf :adherent ;
     rdfs:domain :Attitude ;
-
-    rdfs:subPropertyOf :adherent .
+    rdfs:range :Opponent_Role_Player .
 
 ## Causation - Extended ##
 :facilitator a rdf:Property ;
     rdfs:label "facilitator"@en ;
+    rdfs:subPropertyOf :cause ;
     rdfs:domain :Causation ;
-
-    rdfs:subPropertyOf :cause .
+    rdfs:range :Facilitator_Role_Player .
 
 :preventer a rdf:Property ;
     rdfs:label "preventer"@en ;
+    rdfs:subPropertyOf :cause ;
     rdfs:domain :Causation ;
-
-    rdfs:subPropertyOf :cause .
+    rdfs:range :Preventer_Role_Player .
 
 ## Communication - Extended ##
 :adviser a rdf:Property ;
     rdfs:label "adviser"@en ;
+    rdfs:subPropertyOf :communicator ;
     rdfs:domain :Communication ;
-
-    rdfs:subPropertyOf :communicator .
+    rdfs:range :Adviser_Role_Player .
 
 :speaker a rdf:Property ;
     rdfs:label "speaker"@en ;
+    rdfs:subPropertyOf :communicator ;
     rdfs:domain :Communication ;
-
-    rdfs:subPropertyOf :communicator .
+    rdfs:range :Speaker_Role_Player .
 
 :requester a rdf:Property ;
     rdfs:label "requester"@en ;
+    rdfs:subPropertyOf :communicator ;
     rdfs:domain :Communication ;
-
-    rdfs:subPropertyOf :communicator .
+    rdfs:range :Requester_Role_Player .
 
 :responder a rdf:Property ;
     rdfs:label "responder"@en ;
+    rdfs:subPropertyOf :communicator ;
     rdfs:domain :Communication ;
-
-    rdfs:subPropertyOf :communicator .
+    rdfs:range :Responder_Role_Player .
 
 :announcer a rdf:Property ;
     rdfs:label "announcer"@en ;
+    rdfs:subPropertyOf :communicator ;
     rdfs:domain :Communication ;
-
-    rdfs:subPropertyOf :communicator .
+    rdfs:range :Announcer_Role_Player .
 
 :advice a rdf:Property ;
     rdfs:label "advice"@en ;
+    rdfs:subPropertyOf :message ;
     rdfs:domain :Communication ;
-
-    rdfs:subPropertyOf :message .
+    rdfs:range :Advice_Role_Player .
 
 :request a rdf:Property ;
     rdfs:label "request"@en ;
+    rdfs:subPropertyOf :message ;
     rdfs:domain :Communication ;
-
-    rdfs:subPropertyOf :message .
+    rdfs:range :Request_Role_Player .
 
 :response a rdf:Property ;
     rdfs:label "response"@en ;
+    rdfs:subPropertyOf :message ;
     rdfs:domain :Communication ;
-
-    rdfs:subPropertyOf :message .
+    rdfs:range :Response_Role_Player .
 
 :announcement a rdf:Property ;
     rdfs:label "announcement"@en ;
+    rdfs:subPropertyOf :message ;
     rdfs:domain :Communication ;
-
-    rdfs:subPropertyOf :message .
+    rdfs:range :Announcement_Role_Player .
 
 :advisee a rdf:Property ;
     rdfs:label "advisee"@en ;
+    rdfs:subPropertyOf :addressee ;
     rdfs:domain :Communication ;
-
-    rdfs:subPropertyOf :addressee .
+    rdfs:range :Advisee_Role_Player .
 
 :requestee a rdf:Property ;
     rdfs:label "requestee"@en ;
+    rdfs:subPropertyOf :addressee ;
     rdfs:domain :Communication ;
-
-    rdfs:subPropertyOf :addressee .
+    rdfs:range :Requestee_Role_Player .
 
 ## Information - Extended ##
 :utterance a rdf:Property ;
     rdfs:label "utterance"@en ;
+    rdfs:subPropertyOf :source ;
     rdfs:domain :Information ;
-
-    rdfs:subPropertyOf :source .
+    rdfs:range :Utterance_Role_Player .
 
 :document a rdf:Property ;
     rdfs:label "document"@en ;
+    rdfs:subPropertyOf :source ;
     rdfs:domain :Information ;
-
-    rdfs:subPropertyOf :source .
+    rdfs:range :Document_Role_Player .
 
 ## Transaction - Extended ##
 :issuer a rdf:Property ;
     rdfs:label "issuer"@en ;
+    rdfs:subPropertyOf :transactor ;
     rdfs:domain :Transaction ;
-
-    rdfs:subPropertyOf :transactor .
+    rdfs:range :Issuer_Role_Player .
 
 :buyer a rdf:Property ;
     rdfs:label "buyer"@en ;
+    rdfs:subPropertyOf :transactor ;
     rdfs:domain :Transaction ;
-
-    rdfs:subPropertyOf :transactor .
+    rdfs:range :Buyer_Role_Player .
 
 :seller a rdf:Property ;
     rdfs:label "seller"@en ;
+    rdfs:subPropertyOf :transactor ;
     rdfs:domain :Transaction ;
-
-    rdfs:subPropertyOf :transactor .
+    rdfs:range :Seller_Role_Player .
 
 :dealer a rdf:Property ;
     rdfs:label "dealer"@en ;
+    rdfs:subPropertyOf :transactor ;
     rdfs:domain :Transaction ;
-
-    rdfs:subPropertyOf :transactor .
+    rdfs:range :Dealer_Role_Player .
 
 :acquirer a rdf:Property ;
     rdfs:label "acquirer"@en ;
+    rdfs:subPropertyOf :transactor ;
     rdfs:domain :Transaction ;
-
-    rdfs:subPropertyOf :transactor .
+    rdfs:range :Acquirer_Role_Player .
 
 :acquisition a rdf:Property ;
     rdfs:label "acquisition"@en ;
+    rdfs:subPropertyOf :item ;
     rdfs:domain :Transaction ;
-
-    rdfs:subPropertyOf :item .
+    rdfs:range :Acquisition_Role_Player .
 
 ## Action - Extended ##
 :attacker a rdf:Property ;
     rdfs:label "attacker"@en ;
+    rdfs:subPropertyOf :actor ;
     rdfs:domain :Action ;
-
-    rdfs:subPropertyOf :actor .
+    rdfs:range :Attacker_Role_Player .
 
 :defender a rdf:Property ;
     rdfs:label "defender"@en ;
+    rdfs:subPropertyOf :actor ;
     rdfs:domain :Action ;
-
-    rdfs:subPropertyOf :actor .
+    rdfs:range :Defender_Role_Player .
 
 :guarantor a rdf:Property ;
     rdfs:label "guarantor"@en ;
+    rdfs:subPropertyOf :actor ;
     rdfs:domain :Action ;
-
-    rdfs:subPropertyOf :actor .
+    rdfs:range :Guarantor_Role_Player .
 
 :barrier a rdf:Property ;
     rdfs:label "barrier"@en ;
+    rdfs:subPropertyOf :implement ;
     rdfs:domain :Action ;
-
-    rdfs:subPropertyOf :implement .
+    rdfs:range :Barrier_Role_Player .
 
 :weapon a rdf:Property ;
     rdfs:label "weapon"@en ;
+    rdfs:subPropertyOf :implement ;
     rdfs:domain :Action ;
-
-    rdfs:subPropertyOf :implement .
+    rdfs:range :Weapon_Role_Player .
 
 :defendee a rdf:Property ;
     rdfs:label "defendee"@en ;
+    rdfs:subPropertyOf :target ;
     rdfs:domain :Action ;
-
-    rdfs:subPropertyOf :target .
+    rdfs:range :Defendee_Role_Player .
 
 :victim a rdf:Property ;
     rdfs:label "victim"@en ;
+    rdfs:subPropertyOf :target ;
     rdfs:domain :Action ;
-
-    rdfs:subPropertyOf :target .
+    rdfs:range :Victim_Role_Player .
 
 :inducee a rdf:Property ;
     rdfs:label "inducee"@en ;
+    rdfs:subPropertyOf :target ;
     rdfs:domain :Action ;
-
-    rdfs:subPropertyOf :target .
+    rdfs:range :Inducee_Role_Player .
 
 ## Interaction - Extended ##
 :reciprocator a rdf:Property ;
     rdfs:label "reciprocator"@en ;
+    rdfs:subPropertyOf :interactor ;
     rdfs:domain :Interaction ;
-
-    rdfs:subPropertyOf :interactor .
+    rdfs:range :Reciprocator_Role_Player .
 
 :collaborator a rdf:Property ;
     rdfs:label "collaborator"@en ;
+    rdfs:subPropertyOf :interactor ;
     rdfs:domain :Interaction ;
-
-    rdfs:subPropertyOf :interactor .
+    rdfs:range :Collaborator_Role_Player .
 
 ## Control - Extended ##
 :enforcer a rdf:Property ;
     rdfs:label "enforcer"@en ;
+    rdfs:subPropertyOf :controller ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :controller .
+    rdfs:range :Enforcer_Role_Player .
 
 :governor a rdf:Property ;
     rdfs:label "governor"@en ;
+    rdfs:subPropertyOf :controller ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :controller .
+    rdfs:range :Governor_Role_Player .
 
 :inducer a rdf:Property ;
     rdfs:label "inducer"@en ;
+    rdfs:subPropertyOf :controller ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :controller .
+    rdfs:range :Inducer_Role_Player .
 
 :liberator a rdf:Property ;
     rdfs:label "liberator"@en ;
+    rdfs:subPropertyOf :controller ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :controller .
+    rdfs:range :Liberator_Role_Player .
 
 :limiter a rdf:Property ;
     rdfs:label "limiter"@en ;
+    rdfs:subPropertyOf :controller ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :controller .
+    rdfs:range :Limiter_Role_Player .
 
 :obligor a rdf:Property ;
     rdfs:label "obligor"@en ;
+    rdfs:subPropertyOf :controller ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :controller .
+    rdfs:range :Obligor_Role_Player .
 
 :permitter a rdf:Property ;
     rdfs:label "permitter"@en ;
+    rdfs:subPropertyOf :controller ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :controller .
+    rdfs:range :Permitter_Role_Player .
 
 :prohibitor a rdf:Property ;
     rdfs:label "prohibitor"@en ;
+    rdfs:subPropertyOf :controller ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :controller .
+    rdfs:range :Prohibitor_Role_Player .
 
 :captive a rdf:Property ;
     rdfs:label "captive"@en ;
+    rdfs:subPropertyOf :subordinate ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :subordinate .
+    rdfs:range :Captive_Role_Player .
 
 :limitee a rdf:Property ;
     rdfs:label "limitee"@en ;
+    rdfs:subPropertyOf :subordinate ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :subordinate .
+    rdfs:range :Limitee_Role_Player .
 
 :obligee a rdf:Property ;
     rdfs:label "obligee"@en ;
+    rdfs:subPropertyOf :subordinate ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :subordinate .
+    rdfs:range :Obligee_Role_Player .
 
 :permittee a rdf:Property ;
     rdfs:label "permittee"@en ;
+    rdfs:subPropertyOf :subordinate ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :subordinate .
+    rdfs:range :Permittee_Role_Player .
 
 :prohibitee a rdf:Property ;
     rdfs:label "prohibitee"@en ;
+    rdfs:subPropertyOf :subordinate ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :subordinate .
+    rdfs:range :Prohibitee_Role_Player .
 
 :compliance a rdf:Property ;
     rdfs:label "compliance"@en ;
+    rdfs:subPropertyOf :regulation ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :regulation .
+    rdfs:range :Compliance_Role_Player .
 
 :constraint a rdf:Property ;
     rdfs:label "constraint"@en ;
+    rdfs:subPropertyOf :regulation ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :regulation .
+    rdfs:range :Constraint_Role_Player .
 
 :obligation a rdf:Property ;
     rdfs:label "obligation"@en ;
+    rdfs:subPropertyOf :regulation ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :regulation .
+    rdfs:range :Obligation_Role_Player .
 
 :permission a rdf:Property ;
     rdfs:label "permission"@en ;
+    rdfs:subPropertyOf :regulation ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :regulation .
+    rdfs:range :Permission_Role_Player .
 
 :prohibition a rdf:Property ;
     rdfs:label "prohibition"@en ;
+    rdfs:subPropertyOf :regulation ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :regulation .
+    rdfs:range :Prohibition_Role_Player .
 
 :scope a rdf:Property ;
     rdfs:label "scope"@en ;
+    rdfs:subPropertyOf :regulation ;
     rdfs:domain :Control ;
-
-    rdfs:subPropertyOf :regulation .
+    rdfs:range :Scope_Role_Player .
 
 ## Affiliation - Extended ##
 :gatekeeper a rdf:Property ;
     rdfs:label "gatekeeper"@en ;
+    rdfs:subPropertyOf :affiliator ;
     rdfs:domain :Affiliation ;
-
-    rdfs:subPropertyOf :affiliator .
+    rdfs:range :Gatekeeper_Role_Player .
 
 :employer a rdf:Property ;
     rdfs:label "employer"@en ;
+    rdfs:subPropertyOf :affiliator ;
     rdfs:domain :Affiliation ;
-
-    rdfs:subPropertyOf :affiliator .
+    rdfs:range :Employer_Role_Player .
 
 :expeller a rdf:Property ;
     rdfs:label "expeller"@en ;
+    rdfs:subPropertyOf :affiliator ;
     rdfs:domain :Affiliation ;
-
-    rdfs:subPropertyOf :affiliator .
+    rdfs:range :Expeller_Role_Player .
 
 :member a rdf:Property ;
     rdfs:label "member"@en ;
+    rdfs:subPropertyOf :participant ;
     rdfs:domain :Affiliation ;
-
-    rdfs:subPropertyOf :participant .
+    rdfs:range :Member_Role_Player .
 
 :employee a rdf:Property ;
     rdfs:label "employee"@en ;
+    rdfs:subPropertyOf :participant ;
     rdfs:domain :Affiliation ;
-
-    rdfs:subPropertyOf :participant .
+    rdfs:range :Employee_Role_Player .
 
 :engager a rdf:Property ;
     rdfs:label "engager"@en ;
+    rdfs:subPropertyOf :participant ;
     rdfs:domain :Affiliation ;
-
-    rdfs:subPropertyOf :participant .
+    rdfs:range :Engager_Role_Player .
 
 :refrainer a rdf:Property ;
     rdfs:label "refrainer"@en ;
+    rdfs:subPropertyOf :participant ;
     rdfs:domain :Affiliation ;
-
-    rdfs:subPropertyOf :participant .
+    rdfs:range :Refrainer_Role_Player .
 
 :industry a rdf:Property ;
     rdfs:label "industry"@en ;
+    rdfs:subPropertyOf :institution ;
     rdfs:domain :Affiliation ;
-
-    rdfs:subPropertyOf :institution .
+    rdfs:range :Industry_Role_Player .
 
 :organization a rdf:Property ;
     rdfs:label "organization"@en ;
+    rdfs:subPropertyOf :institution ;
     rdfs:domain :Affiliation ;
-
-    rdfs:subPropertyOf :institution .
+    rdfs:range :Organization_Role_Player .
 
 :occupation a rdf:Property ;
     rdfs:label "occupation"@en ;
+    rdfs:subPropertyOf :role ;
     rdfs:domain :Affiliation ;
-
-    rdfs:subPropertyOf :role .
+    rdfs:range :Occupation_Role_Player .
 
 :rank a rdf:Property ;
     rdfs:label "rank"@en ;
+    rdfs:subPropertyOf :role ;
     rdfs:domain :Affiliation ;
+    rdfs:range :Rank_Role_Player .
 
-    rdfs:subPropertyOf :role .
+# additional unsorted roles
 
-# Employment domain
+:carrier a rdf:Property ;
+    rdfs:label "carrier"@en ;
+    rdfs:subPropertyOf :mover ;
+    rdfs:domain :Carry ;
+    rdfs:range :Carrier_Role_Player .
 
-:employer a rdf:Property ;
-    rdfs:label "employer"@en ;
-    rdfs:subPropertyOf :affiliator .
+:sender a rdf:Property ;
+    rdfs:label "sender"@en ;
+    rdfs:subPropertyOf :mover ;
+    rdfs:domain :Send ;
+    rdfs:range :Sender_Role_Player .
 
-:employee a rdf:Property ;
-    rdfs:label "employee"@en ;
-    rdfs:subPropertyOf :participant .
+:thrower a rdf:Property ;
+    rdfs:label "thrower"@en ;
+    rdfs:subPropertyOf :mover ;
+    rdfs:domain :Throw ;
+    rdfs:range :Thrower_Role_Player .
 
-:industry a rdf:Property ;
-    rdfs:label "industry"@en ;
-    rdfs:subPropertyOf :institution .
+:cognizer a rdf:Property ;
+    rdfs:label "cognizer"@en ;
+    rdfs:subPropertyOf :proto_agent ;
+    rdfs:domain :Cognition ;
+    rdfs:range :Cognizer_Role_Player .
 
-:occupation a rdf:Property ;
-    rdfs:label "occupation"@en ;
-    rdfs:subPropertyOf :role .
+:attender a rdf:Property ;
+    rdfs:label "attender"@en ;
+    rdfs:subPropertyOf :perceiver ;
+    rdfs:domain :Attend ;
+    rdfs:range :Attender_Role_Player .
+
+:position a rdf:Property ;
+    rdfs:label "position"@en ;
+    rdfs:subPropertyOf :location ;
+    rdfs:domain :Location ;
+    rdfs:range :Position_Role_Player .
 
 ### Feature scores
 
 :physicalScore a rdf:Property ;
     rdfs:label "physicalScore"@en ;
-    rdfs:comment "This entity is a physical object with material substance and mass."@en ;
+    rdfs:comment "This entity is a physical object with material substance and mass ."@en ;
     rdfs:range xsd:float .
 
 :boundedScore a rdf:Property ;
     rdfs:label "boundedScore"@en ;
-    rdfs:comment "This entity is a discrete, countable, and individuated whole."@en ;
+    rdfs:comment "This entity is a discrete, countable, and individuated whole ."@en ;
     rdfs:range xsd:float .
 
 :locativeScore a rdf:Property ;
     rdfs:label "locativeScore"@en ;
-    rdfs:comment "This entity is a spatial region, place, or location that can be occupied."@en ;
+    rdfs:comment "This entity is a spatial region, place, or location that can be occupied ."@en ;
     rdfs:range xsd:float .
 
 :animateScore a rdf:Property ;
     rdfs:label "animateScore"@en ;
-    rdfs:comment "This entity is biologically alive and capable of autonomous movement."@en ;
+    rdfs:comment "This entity is biologically alive and capable of autonomous movement ."@en ;
     rdfs:range xsd:float .
 
 :sentientScore a rdf:Property ;
     rdfs:label "sentientScore"@en ;
-    rdfs:comment "This entity is a conscious being with subjective experience, perception, and feeling."@en ;
+    rdfs:comment "This entity is a conscious being with subjective experience, perception, and feeling ."@en ;
     rdfs:range xsd:float .
 
 :volitionalScore a rdf:Property ;
     rdfs:label "volitionalScore"@en ;
-    rdfs:comment "This entity is an agent with the capacity for intention, decision-making, and goal-directed behavior."@en ;
+    rdfs:comment "This entity is an agent with the capacity for intention, decision-making, and goal-directed behavior ."@en ;
     rdfs:range xsd:float .
 
 :institutionalScore a rdf:Property ;
     rdfs:label "institutionalScore"@en ;
-    rdfs:comment "This entity is a socially constructed role, an organization, or a legal reality."@en ;
+    rdfs:comment "This entity is a socially constructed role, an organization, or a legal reality ."@en ;
     rdfs:range xsd:float .
 
 :collectiveScore a rdf:Property ;
     rdfs:label "collectiveScore"@en ;
-    rdfs:comment "This entity is a plurality or group composed of multiple distinct members."@en ;
+    rdfs:comment "This entity is a plurality or group composed of multiple distinct members ."@en ;
     rdfs:range xsd:float .
 
 :telicScore a rdf:Property ;
     rdfs:label "telicScore"@en ;
-    rdfs:comment "This entity is an artifact or concept that has an intrinsic, designed purpose or intended use."@en ;
+    rdfs:comment "This entity is an artifact or concept that has an intrinsic, designed purpose or intended use ."@en ;
     rdfs:range xsd:float .
 
 :symbolicScore a rdf:Property ;
     rdfs:label "symbolicScore"@en ;
-    rdfs:comment "This entity exists to bear, convey, or represent decodable meaning, data, or information."@en ;
+    rdfs:comment "This entity exists to bear, convey, or represent decodable meaning, data, or information ."@en ;
     rdfs:range xsd:float .
 
 :scalarScore a rdf:Property ;
     rdfs:label "scalarScore"@en ;
-    rdfs:comment "This entity defines a magnitude, degree, or value within an ordered system."@en ;
+    rdfs:comment "This entity defines a magnitude, degree, or value within an ordered system ."@en ;
     rdfs:range xsd:float .
 
 :temporalScore a rdf:Property ;
     rdfs:label "temporalScore"@en ;
-    rdfs:comment "This entity is defined by, or bounded to, a specific time interval or temporal horizon."@en ;
+    rdfs:comment "This entity is defined by, or bounded to, a specific time interval or temporal horizon ."@en ;
     rdfs:range xsd:float .
+
+### ROLE PLAYER CLASSES ###
+
+:Role_Player a rdfs:Class ;
+    rdfs:label "Role Player"@en ;
+    rdfs:subClassOf :Entity .
+
+:Agonist_Role_Player a rdfs:Class ;
+    rdfs:label "Agonist Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Antagonist_Role_Player a rdfs:Class ;
+    rdfs:label "Antagonist Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Means_Role_Player a rdfs:Class ;
+    rdfs:label "Means Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Maker_Role_Player a rdfs:Class ;
+    rdfs:label "Maker Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Instrument_Role_Player a rdfs:Class ;
+    rdfs:label "Instrument Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Work_Role_Player a rdfs:Class ;
+    rdfs:label "Work Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Product_Role_Player a rdfs:Class ;
+    rdfs:label "Product Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Material_Role_Player a rdfs:Class ;
+    rdfs:label "Material Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Being_Role_Player a rdfs:Class ;
+    rdfs:label "Being Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Mode_Role_Player a rdfs:Class ;
+    rdfs:label "Mode Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Transformer_Role_Player a rdfs:Class ;
+    rdfs:label "Transformer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Catalyst_Role_Player a rdfs:Class ;
+    rdfs:label "Catalyst Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Undergoer_Role_Player a rdfs:Class ;
+    rdfs:label "Undergoer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Result_Role_Player a rdfs:Class ;
+    rdfs:label "Result Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Mover_Role_Player a rdfs:Class ;
+    rdfs:label "Mover Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Conveyance_Role_Player a rdfs:Class ;
+    rdfs:label "Conveyance Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Theme_Role_Player a rdfs:Class ;
+    rdfs:label "Theme Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Orientation_Role_Player a rdfs:Class ;
+    rdfs:label "Orientation Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Trajector_Role_Player a rdfs:Class ;
+    rdfs:label "Trajector Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Landmark_Role_Player a rdfs:Class ;
+    rdfs:label "Landmark Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Situation_Role_Player a rdfs:Class ;
+    rdfs:label "Situation Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Time_Role_Player a rdfs:Class ;
+    rdfs:label "Time Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Order_Role_Player a rdfs:Class ;
+    rdfs:label "Order Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Manner_Role_Player a rdfs:Class ;
+    rdfs:label "Manner Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Entity_Role_Player a rdfs:Class ;
+    rdfs:label "Entity Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:State_Role_Player a rdfs:Class ;
+    rdfs:label "State Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Perceiver_Role_Player a rdfs:Class ;
+    rdfs:label "Perceiver Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Sense_Role_Player a rdfs:Class ;
+    rdfs:label "Sense Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Percept_Role_Player a rdfs:Class ;
+    rdfs:label "Percept Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Affecter_Role_Player a rdfs:Class ;
+    rdfs:label "Affecter Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Affectee_Role_Player a rdfs:Class ;
+    rdfs:label "Affectee Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Reaction_Role_Player a rdfs:Class ;
+    rdfs:label "Reaction Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Experiencer_Role_Player a rdfs:Class ;
+    rdfs:label "Experiencer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Stimulus_Role_Player a rdfs:Class ;
+    rdfs:label "Stimulus Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Witness_Role_Player a rdfs:Class ;
+    rdfs:label "Witness Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Impression_Role_Player a rdfs:Class ;
+    rdfs:label "Impression Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Intender_Role_Player a rdfs:Class ;
+    rdfs:label "Intender Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Stratagem_Role_Player a rdfs:Class ;
+    rdfs:label "Stratagem Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Object_Role_Player a rdfs:Class ;
+    rdfs:label "Object Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Aversion_Role_Player a rdfs:Class ;
+    rdfs:label "Aversion Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Aim_Role_Player a rdfs:Class ;
+    rdfs:label "Aim Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Wisher_Role_Player a rdfs:Class ;
+    rdfs:label "Wisher Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Wish_Role_Player a rdfs:Class ;
+    rdfs:label "Wish Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Educator_Role_Player a rdfs:Class ;
+    rdfs:label "Educator Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Method_Role_Player a rdfs:Class ;
+    rdfs:label "Method Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Concept_Role_Player a rdfs:Class ;
+    rdfs:label "Concept Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Student_Role_Player a rdfs:Class ;
+    rdfs:label "Student Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Field_Role_Player a rdfs:Class ;
+    rdfs:label "Field Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Knower_Role_Player a rdfs:Class ;
+    rdfs:label "Knower Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Knowledge_Role_Player a rdfs:Class ;
+    rdfs:label "Knowledge Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Evaluator_Role_Player a rdfs:Class ;
+    rdfs:label "Evaluator Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Standard_Role_Player a rdfs:Class ;
+    rdfs:label "Standard Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Phenomenon_Role_Player a rdfs:Class ;
+    rdfs:label "Phenomenon Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Conclusion_Role_Player a rdfs:Class ;
+    rdfs:label "Conclusion Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Value_Role_Player a rdfs:Class ;
+    rdfs:label "Value Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Multiplier_Role_Player a rdfs:Class ;
+    rdfs:label "Multiplier Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Attribute_Role_Player a rdfs:Class ;
+    rdfs:label "Attribute Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Sentiment_Role_Player a rdfs:Class ;
+    rdfs:label "Sentiment Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Adherent_Role_Player a rdfs:Class ;
+    rdfs:label "Adherent Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Proposition_Role_Player a rdfs:Class ;
+    rdfs:label "Proposition Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Polarity_Role_Player a rdfs:Class ;
+    rdfs:label "Polarity Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Modality_Role_Player a rdfs:Class ;
+    rdfs:label "Modality Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Certainty_Role_Player a rdfs:Class ;
+    rdfs:label "Certainty Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Attitude_Role_Player a rdfs:Class ;
+    rdfs:label "Attitude Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Executor_Role_Player a rdfs:Class ;
+    rdfs:label "Executor Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Task_Role_Player a rdfs:Class ;
+    rdfs:label "Task Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Modulation_Role_Player a rdfs:Class ;
+    rdfs:label "Modulation Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Phase_Role_Player a rdfs:Class ;
+    rdfs:label "Phase Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Cause_Role_Player a rdfs:Class ;
+    rdfs:label "Cause Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Causee_Role_Player a rdfs:Class ;
+    rdfs:label "Causee Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Effect_Role_Player a rdfs:Class ;
+    rdfs:label "Effect Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Communicator_Role_Player a rdfs:Class ;
+    rdfs:label "Communicator Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Medium_Role_Player a rdfs:Class ;
+    rdfs:label "Medium Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Message_Role_Player a rdfs:Class ;
+    rdfs:label "Message Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Addressee_Role_Player a rdfs:Class ;
+    rdfs:label "Addressee Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Characterization_Role_Player a rdfs:Class ;
+    rdfs:label "Characterization Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Language_Role_Player a rdfs:Class ;
+    rdfs:label "Language Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Signal_Role_Player a rdfs:Class ;
+    rdfs:label "Signal Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Topic_Role_Player a rdfs:Class ;
+    rdfs:label "Topic Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Content_Role_Player a rdfs:Class ;
+    rdfs:label "Content Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Source_Role_Player a rdfs:Class ;
+    rdfs:label "Source Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Transactor_Role_Player a rdfs:Class ;
+    rdfs:label "Transactor Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Asset_Role_Player a rdfs:Class ;
+    rdfs:label "Asset Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Item_Role_Player a rdfs:Class ;
+    rdfs:label "Item Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Recipient_Role_Player a rdfs:Class ;
+    rdfs:label "Recipient Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Possessor_Role_Player a rdfs:Class ;
+    rdfs:label "Possessor Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Possession_Role_Player a rdfs:Class ;
+    rdfs:label "Possession Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Actor_Role_Player a rdfs:Class ;
+    rdfs:label "Actor Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Implement_Role_Player a rdfs:Class ;
+    rdfs:label "Implement Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Target_Role_Player a rdfs:Class ;
+    rdfs:label "Target Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Action_Role_Player a rdfs:Class ;
+    rdfs:label "Action Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Interactor_Role_Player a rdfs:Class ;
+    rdfs:label "Interactor Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Interaction_Role_Player a rdfs:Class ;
+    rdfs:label "Interaction Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Controller_Role_Player a rdfs:Class ;
+    rdfs:label "Controller Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Rule_Role_Player a rdfs:Class ;
+    rdfs:label "Rule Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Subordinate_Role_Player a rdfs:Class ;
+    rdfs:label "Subordinate Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Regulation_Role_Player a rdfs:Class ;
+    rdfs:label "Regulation Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Ruler_Role_Player a rdfs:Class ;
+    rdfs:label "Ruler Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Jurisdiction_Role_Player a rdfs:Class ;
+    rdfs:label "Jurisdiction Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Affiliator_Role_Player a rdfs:Class ;
+    rdfs:label "Affiliator Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Rite_Role_Player a rdfs:Class ;
+    rdfs:label "Rite Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Participant_Role_Player a rdfs:Class ;
+    rdfs:label "Participant Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Institution_Role_Player a rdfs:Class ;
+    rdfs:label "Institution Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Role_Role_Player a rdfs:Class ;
+    rdfs:label "Role Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Relative_Role_Player a rdfs:Class ;
+    rdfs:label "Relative Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Relation_Role_Player a rdfs:Class ;
+    rdfs:label "Relation Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Creator_Role_Player a rdfs:Class ;
+    rdfs:label "Creator Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Destroyer_Role_Player a rdfs:Class ;
+    rdfs:label "Destroyer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Driver_Role_Player a rdfs:Class ;
+    rdfs:label "Driver Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Applier_Role_Player a rdfs:Class ;
+    rdfs:label "Applier Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Remover_Role_Player a rdfs:Class ;
+    rdfs:label "Remover Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Provider_Role_Player a rdfs:Class ;
+    rdfs:label "Provider Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Depriver_Role_Player a rdfs:Class ;
+    rdfs:label "Depriver Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Concealer_Role_Player a rdfs:Class ;
+    rdfs:label "Concealer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Revealer_Role_Player a rdfs:Class ;
+    rdfs:label "Revealer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Bearer_Role_Player a rdfs:Class ;
+    rdfs:label "Bearer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Wearer_Role_Player a rdfs:Class ;
+    rdfs:label "Wearer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Conduit_Role_Player a rdfs:Class ;
+    rdfs:label "Conduit Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Vehicle_Role_Player a rdfs:Class ;
+    rdfs:label "Vehicle Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Cargo_Role_Player a rdfs:Class ;
+    rdfs:label "Cargo Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Garment_Role_Player a rdfs:Class ;
+    rdfs:label "Garment Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Passenger_Role_Player a rdfs:Class ;
+    rdfs:label "Passenger Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Origin_Role_Player a rdfs:Class ;
+    rdfs:label "Origin Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Trajectory_Role_Player a rdfs:Class ;
+    rdfs:label "Trajectory Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Location_Role_Player a rdfs:Class ;
+    rdfs:label "Location Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Destination_Role_Player a rdfs:Class ;
+    rdfs:label "Destination Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Start_Role_Player a rdfs:Class ;
+    rdfs:label "Start Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Duration_Role_Player a rdfs:Class ;
+    rdfs:label "Duration Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Frequency_Role_Player a rdfs:Class ;
+    rdfs:label "Frequency Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Instant_Role_Player a rdfs:Class ;
+    rdfs:label "Instant Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:End_Role_Player a rdfs:Class ;
+    rdfs:label "End Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Before_Role_Player a rdfs:Class ;
+    rdfs:label "Before Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:During_Role_Player a rdfs:Class ;
+    rdfs:label "During Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Initial_state_Role_Player a rdfs:Class ;
+    rdfs:label "Initial State Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Final_state_Role_Player a rdfs:Class ;
+    rdfs:label "Final State Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Harmer_Role_Player a rdfs:Class ;
+    rdfs:label "Harmer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Helper_Role_Player a rdfs:Class ;
+    rdfs:label "Helper Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Beneficiary_Role_Player a rdfs:Class ;
+    rdfs:label "Beneficiary Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Maleficiary_Role_Player a rdfs:Class ;
+    rdfs:label "Maleficiary Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Avoider_Role_Player a rdfs:Class ;
+    rdfs:label "Avoider Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Dedicator_Role_Player a rdfs:Class ;
+    rdfs:label "Dedicator Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Pursuer_Role_Player a rdfs:Class ;
+    rdfs:label "Pursuer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Associator_Role_Player a rdfs:Class ;
+    rdfs:label "Associator Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Decider_Role_Player a rdfs:Class ;
+    rdfs:label "Decider Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Qualifier_Role_Player a rdfs:Class ;
+    rdfs:label "Qualifier Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Quantifier_Role_Player a rdfs:Class ;
+    rdfs:label "Quantifier Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Basis_Role_Player a rdfs:Class ;
+    rdfs:label "Basis Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Criterion_Role_Player a rdfs:Class ;
+    rdfs:label "Criterion Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Evidence_Role_Player a rdfs:Class ;
+    rdfs:label "Evidence Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Requirement_Role_Player a rdfs:Class ;
+    rdfs:label "Requirement Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Unit_Role_Player a rdfs:Class ;
+    rdfs:label "Unit Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Analogue_Role_Player a rdfs:Class ;
+    rdfs:label "Analogue Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Candidate_Role_Player a rdfs:Class ;
+    rdfs:label "Candidate Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Container_Role_Player a rdfs:Class ;
+    rdfs:label "Container Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Option_Role_Player a rdfs:Class ;
+    rdfs:label "Option Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Decision_Role_Player a rdfs:Class ;
+    rdfs:label "Decision Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Quality_Role_Player a rdfs:Class ;
+    rdfs:label "Quality Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Quantity_Role_Player a rdfs:Class ;
+    rdfs:label "Quantity Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Proponent_Role_Player a rdfs:Class ;
+    rdfs:label "Proponent Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Opponent_Role_Player a rdfs:Class ;
+    rdfs:label "Opponent Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Facilitator_Role_Player a rdfs:Class ;
+    rdfs:label "Facilitator Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Preventer_Role_Player a rdfs:Class ;
+    rdfs:label "Preventer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Adviser_Role_Player a rdfs:Class ;
+    rdfs:label "Adviser Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Speaker_Role_Player a rdfs:Class ;
+    rdfs:label "Speaker Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Requester_Role_Player a rdfs:Class ;
+    rdfs:label "Requester Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Responder_Role_Player a rdfs:Class ;
+    rdfs:label "Responder Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Announcer_Role_Player a rdfs:Class ;
+    rdfs:label "Announcer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Advice_Role_Player a rdfs:Class ;
+    rdfs:label "Advice Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Request_Role_Player a rdfs:Class ;
+    rdfs:label "Request Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Response_Role_Player a rdfs:Class ;
+    rdfs:label "Response Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Announcement_Role_Player a rdfs:Class ;
+    rdfs:label "Announcement Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Advisee_Role_Player a rdfs:Class ;
+    rdfs:label "Advisee Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Requestee_Role_Player a rdfs:Class ;
+    rdfs:label "Requestee Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Utterance_Role_Player a rdfs:Class ;
+    rdfs:label "Utterance Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Document_Role_Player a rdfs:Class ;
+    rdfs:label "Document Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Issuer_Role_Player a rdfs:Class ;
+    rdfs:label "Issuer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Buyer_Role_Player a rdfs:Class ;
+    rdfs:label "Buyer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Seller_Role_Player a rdfs:Class ;
+    rdfs:label "Seller Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Dealer_Role_Player a rdfs:Class ;
+    rdfs:label "Dealer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Acquirer_Role_Player a rdfs:Class ;
+    rdfs:label "Acquirer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Acquisition_Role_Player a rdfs:Class ;
+    rdfs:label "Acquisition Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Attacker_Role_Player a rdfs:Class ;
+    rdfs:label "Attacker Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Defender_Role_Player a rdfs:Class ;
+    rdfs:label "Defender Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Guarantor_Role_Player a rdfs:Class ;
+    rdfs:label "Guarantor Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Barrier_Role_Player a rdfs:Class ;
+    rdfs:label "Barrier Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Weapon_Role_Player a rdfs:Class ;
+    rdfs:label "Weapon Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Defendee_Role_Player a rdfs:Class ;
+    rdfs:label "Defendee Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Victim_Role_Player a rdfs:Class ;
+    rdfs:label "Victim Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Inducee_Role_Player a rdfs:Class ;
+    rdfs:label "Inducee Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Reciprocator_Role_Player a rdfs:Class ;
+    rdfs:label "Reciprocator Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Collaborator_Role_Player a rdfs:Class ;
+    rdfs:label "Collaborator Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Enforcer_Role_Player a rdfs:Class ;
+    rdfs:label "Enforcer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Governor_Role_Player a rdfs:Class ;
+    rdfs:label "Governor Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Inducer_Role_Player a rdfs:Class ;
+    rdfs:label "Inducer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Liberator_Role_Player a rdfs:Class ;
+    rdfs:label "Liberator Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Limiter_Role_Player a rdfs:Class ;
+    rdfs:label "Limiter Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Obligor_Role_Player a rdfs:Class ;
+    rdfs:label "Obligor Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Permitter_Role_Player a rdfs:Class ;
+    rdfs:label "Permitter Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Prohibitor_Role_Player a rdfs:Class ;
+    rdfs:label "Prohibitor Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Captive_Role_Player a rdfs:Class ;
+    rdfs:label "Captive Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Limitee_Role_Player a rdfs:Class ;
+    rdfs:label "Limitee Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Obligee_Role_Player a rdfs:Class ;
+    rdfs:label "Obligee Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Permittee_Role_Player a rdfs:Class ;
+    rdfs:label "Permittee Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Prohibitee_Role_Player a rdfs:Class ;
+    rdfs:label "Prohibitee Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Compliance_Role_Player a rdfs:Class ;
+    rdfs:label "Compliance Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Constraint_Role_Player a rdfs:Class ;
+    rdfs:label "Constraint Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Obligation_Role_Player a rdfs:Class ;
+    rdfs:label "Obligation Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Permission_Role_Player a rdfs:Class ;
+    rdfs:label "Permission Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Prohibition_Role_Player a rdfs:Class ;
+    rdfs:label "Prohibition Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Scope_Role_Player a rdfs:Class ;
+    rdfs:label "Scope Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Gatekeeper_Role_Player a rdfs:Class ;
+    rdfs:label "Gatekeeper Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Employer_Role_Player a rdfs:Class ;
+    rdfs:label "Employer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Expeller_Role_Player a rdfs:Class ;
+    rdfs:label "Expeller Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Member_Role_Player a rdfs:Class ;
+    rdfs:label "Member Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Employee_Role_Player a rdfs:Class ;
+    rdfs:label "Employee Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Engager_Role_Player a rdfs:Class ;
+    rdfs:label "Engager Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Refrainer_Role_Player a rdfs:Class ;
+    rdfs:label "Refrainer Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Industry_Role_Player a rdfs:Class ;
+    rdfs:label "Industry Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Organization_Role_Player a rdfs:Class ;
+    rdfs:label "Organization Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Occupation_Role_Player a rdfs:Class ;
+    rdfs:label "Occupation Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
+
+:Rank_Role_Player a rdfs:Class ;
+    rdfs:label "Rank Role Player"@en ;
+    rdfs:subClassOf :Role_Player .
