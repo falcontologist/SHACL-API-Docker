@@ -898,23 +898,45 @@ public class App {
         Property lemmaProp = ontologyModel.createProperty(ONT_NS + "lemma");
         Property p3sgProp  = ontologyModel.createProperty(ONT_NS + "present3sg");
 
-        Set<String> lemmas = new HashSet<>();
-        inputModel.listObjectsOfProperty(lemmaProp).forEach(o -> {
-            if (o.isLiteral()) lemmas.add(o.asLiteral().getString());
-        });
+        // ── Bridge: resolve literal :lemma values to ontology lemma nodes ────
+        // The input has:  temp:s1 :lemma "work" .
+        // The rules need: temp:s1 :lemma <lemma-node> .  <lemma-node> :lemma "work" ; :present3sg "works" .
+        //
+        // Step 1: Collect all (subject, literal) pairs for :lemma
+        // Step 2: Look up each literal in the ontology to find the lemma node
+        // Step 3: Rewrite the literal to a resource link + inject the lemma node
 
         Model lemmaModel = ModelFactory.createDefaultModel();
-        lemmas.forEach(lemma -> {
-            ontologyModel.listSubjectsWithProperty(lemmaProp, lemma).forEach(lemmaNode -> {
+        List<Statement> toRemove = new ArrayList<>();
+        List<Statement> toAdd = new ArrayList<>();
+
+        inputModel.listStatements(null, lemmaProp, (RDFNode) null).forEach(stmt -> {
+            if (!stmt.getObject().isLiteral()) return;
+            String lemmaStr = stmt.getObject().asLiteral().getString();
+
+            // Find the lemma node in the ontology
+            ontologyModel.listSubjectsWithProperty(lemmaProp, lemmaStr).forEach(lemmaNode -> {
                 Statement p3sg = lemmaNode.getProperty(p3sgProp);
                 if (p3sg != null) {
+                    // Inject the lemma node with its properties
                     Resource ln = lemmaModel.createResource(lemmaNode.getURI());
-                    ln.addProperty(lemmaModel.createProperty(ONT_NS + "lemma"), lemma);
+                    ln.addProperty(lemmaModel.createProperty(ONT_NS + "lemma"), lemmaStr);
                     ln.addProperty(lemmaModel.createProperty(ONT_NS + "present3sg"),
                         p3sg.getLiteral().getString());
+
+                    // Rewrite: replace literal link with resource link
+                    toRemove.add(stmt);
+                    toAdd.add(inputModel.createStatement(
+                        stmt.getSubject(), lemmaProp, ln));
                 }
             });
         });
+
+        // Apply rewrites
+        toRemove.forEach(inputModel::remove);
+        toAdd.forEach(inputModel::add);
+
+        System.out.println("[infer] Lemma bridge: " + toAdd.size() + " literals → resource links");
 
         Model dataModel = ModelFactory.createDefaultModel();
         dataModel.add(inputModel);
@@ -932,6 +954,9 @@ public class App {
             return;
         }
 
+        System.out.println("[infer] Inferred: " + inferredModel.size() + " triples");
+
+        // Clean up: remove bridge artifacts from the output
         dataModel.removeAll(null, dataModel.createProperty(ONT_NS + "lemma"), null);
         dataModel.removeAll(null, dataModel.createProperty(ONT_NS + "synset"), null);
         dataModel.removeAll(null, dataModel.createProperty(ONT_NS + "present3sg"), null);
