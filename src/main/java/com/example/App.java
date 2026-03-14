@@ -1026,7 +1026,7 @@ public class App {
         StringWriter sw = new StringWriter();
         dataModel.write(sw, "TURTLE");
 
-        int totalInferred = inferredModel.size() + rdfsEntailments.size();
+        long totalInferred = inferredModel.size() + rdfsEntailments.size();
 
         ctx.json(Map.of(
             "success", true,
