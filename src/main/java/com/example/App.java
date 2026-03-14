@@ -3,6 +3,7 @@ package com.example;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.reasoner.ReasonerRegistry;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.Lang;
 import org.topbraid.shacl.rules.RuleUtil;
@@ -897,6 +898,7 @@ public class App {
 
         Property lemmaProp = ontologyModel.createProperty(ONT_NS + "lemma");
         Property p3sgProp  = ontologyModel.createProperty(ONT_NS + "present3sg");
+        Property typeProp  = ontologyModel.createProperty(RDF_NS + "type");
 
         // ── Bridge: inject lemma nodes from the ontology into the data model ──
         // The SPARQL rules join on the literal value:
@@ -907,7 +909,6 @@ public class App {
         // The lemma node lives in the ontologyModel (loaded from lexical.ttl).
         // RuleUtil executes SPARQL against the dataModel only, so we must copy
         // the relevant lemma node triples into the dataModel for the join to work.
-        // We do NOT rewrite the literal — the literal IS the join key.
 
         Set<String> lemmas = new HashSet<>();
         inputModel.listObjectsOfProperty(lemmaProp).forEach(o -> {
@@ -930,14 +931,74 @@ public class App {
         System.out.println("[infer] Lemma bridge: " + lemmas.size() + " lemma(s), "
             + lemmaModel.size() + " triples injected");
 
+        // ── RDFS Entailment ──────────────────────────────────────────────────
+        // Compute RDFS closure over the user data + ontology so that:
+        //   1. rdfs:subClassOf → subclass type inference
+        //      (temp:s5 a :Absorb → also a :Situation, enabling Situation_shape rules)
+        //   2. rdfs:range → role player type inference
+        //      (temp:s5 :acquirer <NVIDIA> → <NVIDIA> a :Acquirer_Role_Player)
+        //   3. rdfs:domain → domain type inference
+        //
+        // We compute entailments over a union of inputModel + ontologyModel,
+        // then extract ONLY the new rdf:type triples about user data resources
+        // (not the ontology's own class hierarchy triples).
+
+        Model rdfsEntailments = ModelFactory.createDefaultModel();
+        try {
+            // Create a union model for RDFS reasoning
+            Model unionForRdfs = ModelFactory.createDefaultModel();
+            unionForRdfs.add(inputModel);
+            unionForRdfs.add(ontologyModel);
+
+            InfModel infModel = ModelFactory.createRDFSModel(unionForRdfs);
+
+            // Extract only rdf:type inferences about resources that appear in the input
+            // (subjects or objects of user triples), not ontology-internal triples
+            Set<Resource> userResources = new HashSet<>();
+            inputModel.listSubjects().forEachRemaining(userResources::add);
+            inputModel.listObjects().forEachRemaining(obj -> {
+                if (obj.isResource()) userResources.add(obj.asResource());
+            });
+
+            for (Resource res : userResources) {
+                StmtIterator it = infModel.listStatements(res, typeProp, (RDFNode) null);
+                while (it.hasNext()) {
+                    Statement stmt = it.next();
+                    // Only include types from the ontology namespace (skip RDFS/OWL meta-types)
+                    String typeUri = stmt.getObject().isResource()
+                        ? stmt.getObject().asResource().getURI() : null;
+                    if (typeUri != null && typeUri.startsWith(ONT_NS)) {
+                        // Skip if this type was already explicitly asserted in the input
+                        if (!inputModel.contains(res, typeProp, stmt.getObject())) {
+                            rdfsEntailments.add(
+                                rdfsEntailments.createStatement(
+                                    rdfsEntailments.createResource(res.getURI()),
+                                    rdfsEntailments.createProperty(RDF_NS + "type"),
+                                    rdfsEntailments.createResource(typeUri)));
+                        }
+                    }
+                }
+            }
+
+            System.out.println("[infer] RDFS entailments: " + rdfsEntailments.size()
+                + " new rdf:type triples (subclass + domain + range)");
+
+        } catch (Exception e) {
+            System.err.println("[infer] RDFS entailment warning: " + e.getMessage());
+            // Non-fatal: continue without entailments
+        }
+
+        // ── Assemble data model for SHACL rule execution ─────────────────────
         Model dataModel = ModelFactory.createDefaultModel();
         dataModel.add(inputModel);
         dataModel.add(lemmaModel);
+        dataModel.add(rdfsEntailments);  // Include entailed types so sh:targetClass matches
         dataModel.setNsPrefix("",     ONT_NS);
         dataModel.setNsPrefix("temp", "https://falcontologist.github.io/shacl-demo/temp/");
         dataModel.setNsPrefix("rdfs", RDFS_NS);
         dataModel.setNsPrefix("rdf",  RDF_NS);
 
+        // ── Execute SHACL rules ──────────────────────────────────────────────
         Model inferredModel;
         try {
             inferredModel = RuleUtil.executeRules(dataModel, ontologyModel, null, null);
@@ -948,24 +1009,33 @@ public class App {
             return;
         }
 
-        System.out.println("[infer] Inferred: " + inferredModel.size() + " triples");
+        System.out.println("[infer] SHACL rules inferred: " + inferredModel.size() + " triples");
 
-        // Clean up: remove bridge artifacts from the output
+        // ── Assemble output ──────────────────────────────────────────────────
+        // Remove bridge artifacts (lemma, synset, present3sg) but KEEP:
+        //   - RDFS entailments (role player types, subclass types)
+        //   - SHACL rule inferences (opaque properties)
+
         dataModel.removeAll(null, dataModel.createProperty(ONT_NS + "lemma"), null);
         dataModel.removeAll(null, dataModel.createProperty(ONT_NS + "synset"), null);
         dataModel.removeAll(null, dataModel.createProperty(ONT_NS + "present3sg"), null);
         dataModel.remove(lemmaModel);
         dataModel.add(inferredModel);
+        // rdfsEntailments are already in dataModel and are NOT removed
 
         StringWriter sw = new StringWriter();
         dataModel.write(sw, "TURTLE");
+
+        int totalInferred = inferredModel.size() + rdfsEntailments.size();
 
         ctx.json(Map.of(
             "success", true,
             "inferred_data", sw.toString(),
             "stats", Map.of(
                 "input_triples",    inputModel.size(),
-                "inferred_triples", inferredModel.size(),
+                "inferred_triples", totalInferred,
+                "shacl_triples",    inferredModel.size(),
+                "rdfs_triples",     rdfsEntailments.size(),
                 "total_triples",    dataModel.size()
             )
         ));

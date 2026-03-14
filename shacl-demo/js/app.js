@@ -1504,14 +1504,31 @@ function showInferenceReport(stats) {
   reportHeader.style.color = success ? "#93c5fd" : "#fde047";
   
   let message = `Asserted triples: ${stats.input_triples}
-Inferred triples: ${stats.inferred_triples}
-Total triples: ${stats.total_triples}`;
+Inferred triples: ${stats.inferred_triples}`;
+
+  // Show breakdown if RDFS stats are available
+  if (stats.shacl_triples !== undefined) {
+    message += ` (SHACL: ${stats.shacl_triples}, RDFS: ${stats.rdfs_triples})`;
+  }
+
+  message += `\nTotal triples: ${stats.total_triples}`;
 
   if (success) {
-    const plural = stats.inferred_triples === 1 ? 'property' : 'properties';
-    message += `\n\n✓ Successfully generated ${stats.inferred_triples} opaque ${plural}`;
+    const parts = [];
+    if (stats.shacl_triples > 0) {
+      const plural = stats.shacl_triples === 1 ? 'property' : 'properties';
+      parts.push(`${stats.shacl_triples} opaque ${plural}`);
+    }
+    if (stats.rdfs_triples > 0) {
+      parts.push(`${stats.rdfs_triples} type inference(s)`);
+    }
+    if (parts.length > 0) {
+      message += `\n\n✓ ${parts.join(', ')}`;
+    } else {
+      message += `\n\n✓ Successfully inferred ${stats.inferred_triples} triple(s)`;
+    }
   } else {
-    message += `\n\n⚠ No opaque properties were generated.
+    message += `\n\n⚠ No triples were inferred.
 Check that your data has :lemma and :synset properties.`;
   }
   

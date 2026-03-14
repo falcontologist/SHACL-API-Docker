@@ -3,35 +3,6 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-### unsorted
-
-:Information_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Information Entity"@en .
-
-:Manner_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Manner Entity"@en .
-
-:Numerical_Multiplier_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Numerical Multiplier Entity"@en .
-
-:Substance_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Substance Entity"@en .
-
-:Unit_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Unit Entity"@en .
-
-:Unknown_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Unknown Entity"@en ;
-    sh:description "An existential placeholder for a required role where the specific entity or value is unknown or undisclosed."@en .
-
-### alphabetical sort
-
 :Absorb a rdfs:Class ;
     rdfs:label "Absorb"@en ;
     rdfs:subClassOf :Situation ;
@@ -1585,6 +1556,10 @@
     rdfs:label "Work Role Player"@en ;
     rdfs:subClassOf :Role_Player .
 
+:absorber a rdf:Property ;
+    rdfs:label "absorber"@en ;
+    rdfs:range :Absorber_Role_Player .
+
 :acquirer a rdf:Property ;
     rdfs:label "acquirer"@en ;
     rdfs:domain :Transaction ;
@@ -2050,6 +2025,10 @@
     rdfs:range :Final_state_Role_Player ;
     rdfs:subPropertyOf :state .
 
+:focus a rdf:Property ;
+    rdfs:label "focus"@en ;
+    rdfs:range :Focus_Role_Player .
+
 :frequency a rdf:Property ;
     rdfs:label "frequency"@en ;
     rdfs:domain :Occurrence ;
@@ -2116,6 +2095,10 @@
     rdfs:range :Industry_Role_Player ;
     rdfs:subPropertyOf :institution .
 
+:initial a rdf:Property ;
+    rdfs:label "initial"@en ;
+    rdfs:range :Initial_Role_Player .
+
 :initial_state a rdf:Property ;
     rdfs:label "initial state"@en ;
     rdfs:domain :Continuation ;
@@ -2138,6 +2121,10 @@
     rdfs:domain :Creation ;
     rdfs:range :Instrument_Role_Player ;
     rdfs:subPropertyOf :proto_instrument .
+
+:intent a rdf:Property ;
+    rdfs:label "intent"@en ;
+    rdfs:range :Intent_Role_Player .
 
 :interaction a rdf:Property ;
     rdfs:label "interaction"@en ;
@@ -2447,6 +2434,10 @@
     rdfs:range :Provider_Role_Player ;
     rdfs:subPropertyOf :mover .
 
+:purpose a rdf:Property ;
+    rdfs:label "purpose"@en ;
+    rdfs:range :Purpose_Role_Player .
+
 :pursuer a rdf:Property ;
     rdfs:label "pursuer"@en ;
     rdfs:domain :Volition ;
@@ -2672,6 +2663,10 @@
     rdfs:domain :Cognition ;
     rdfs:range :Student_Role_Player ;
     rdfs:subPropertyOf :proto_goal .
+
+:substance a rdf:Property ;
+    rdfs:label "substance"@en ;
+    rdfs:range :Substance_Role_Player .
 
 :symbolicScore a rdf:Property ;
     rdfs:label "symbolicScore"@en ;
