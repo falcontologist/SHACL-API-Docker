@@ -3,7 +3,6 @@ package com.example;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.reasoner.ReasonerRegistry;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.Lang;
 import org.topbraid.shacl.rules.RuleUtil;
@@ -471,152 +470,38 @@ public class App {
             // ── Property shapes (fields) ────────────────────────────────────
             List<Map<String, Object>> fields = new ArrayList<>();
 
+            // Collect properties declared directly on this shape
             shape.listProperties(shProperty).forEach(propStmt -> {
                 Resource prop = propStmt.getObject().asResource();
-                Map<String, Object> field = new LinkedHashMap<>();
-
-                // sh:name — display label
-                Statement nameSt = prop.getProperty(shName);
-                if (nameSt == null) return; // Skip unnamed properties
-                field.put("label", getLiteralString(nameSt));
-
-                // sh:path — the RDF property
-                Statement pathSt = prop.getProperty(shPath);
-                if (pathSt == null) return;
-                field.put("path", pathSt.getObject().toString());
-
-                // sh:minCount / sh:maxCount — cardinality
-                Statement minSt = prop.getProperty(shMinCount);
-                field.put("required", minSt != null && minSt.getLiteral().getInt() > 0);
-                if (minSt != null) field.put("minCount", minSt.getLiteral().getInt());
-
-                Statement maxSt = prop.getProperty(shMaxCount);
-                if (maxSt != null) field.put("maxCount", maxSt.getLiteral().getInt());
-
-                // sh:order — display order
-                Statement orderSt = prop.getProperty(shOrder);
-                if (orderSt != null) {
-                    field.put("order", orderSt.getLiteral().getFloat());
-                }
-
-                // sh:description — help text / tooltip
-                Statement fieldDescSt = prop.getProperty(shDescription);
-                if (fieldDescSt != null) field.put("description", getLiteralString(fieldDescSt));
-
-                // sh:nodeKind — BlankNodeOrIRI, Literal, IRI, BlankNode
-                Statement nodeKindSt = prop.getProperty(shNodeKind);
-                if (nodeKindSt != null) {
-                    field.put("nodeKind", nodeKindSt.getObject().asResource().getLocalName());
-                }
-
-                // dash:editor — the DASH editor widget URI
-                Statement editorSt = prop.getProperty(dashEditor);
-                if (editorSt != null) {
-                    field.put("editor", editorSt.getObject().asResource().getLocalName());
-                }
-
-                // dash:viewer — the DASH viewer widget URI
-                Statement viewerSt = prop.getProperty(dashViewer);
-                if (viewerSt != null) {
-                    field.put("viewer", viewerSt.getObject().asResource().getLocalName());
-                }
-
-                // dash:singleLine
-                Statement singleLineSt = prop.getProperty(dashSingleLine);
-                if (singleLineSt != null) {
-                    field.put("singleLine", singleLineSt.getLiteral().getBoolean());
-                }
-
-                // sh:datatype (direct, not inside sh:or)
-                Statement datatypeSt = prop.getProperty(shDatatype);
-                if (datatypeSt != null) {
-                    field.put("datatype", datatypeSt.getObject().asResource().getLocalName());
-                }
-
-                // sh:class (direct, not inside sh:or)
-                Statement classSt = prop.getProperty(shClass);
-                if (classSt != null) {
-                    field.put("class", classSt.getObject().asResource().getLocalName());
-                }
-
-                // sh:pattern
-                Statement patternSt = prop.getProperty(shPattern);
-                if (patternSt != null) field.put("pattern", patternSt.getLiteral().getString());
-
-                // sh:minLength / sh:maxLength
-                Statement minLenSt = prop.getProperty(shMinLength);
-                if (minLenSt != null) field.put("minLength", minLenSt.getLiteral().getInt());
-                Statement maxLenSt = prop.getProperty(shMaxLength);
-                if (maxLenSt != null) field.put("maxLength", maxLenSt.getLiteral().getInt());
-
-                // sh:in — enumerated values
-                Statement inSt = prop.getProperty(shIn);
-                if (inSt != null) {
-                    List<String> enumValues = new ArrayList<>();
-                    try {
-                        RDFList rdfList = inSt.getObject().as(RDFList.class);
-                        rdfList.iterator().forEachRemaining(node -> {
-                            if (node.isLiteral()) enumValues.add(node.asLiteral().getString());
-                            else if (node.isResource()) enumValues.add(node.asResource().getLocalName());
-                        });
-                    } catch (Exception e) { /* not a valid list */ }
-                    if (!enumValues.isEmpty()) field.put("in", enumValues);
-                }
-
-                // ── sh:or — parse constraint alternatives ───────────────────
-                Statement orSt = prop.getProperty(shOr);
-                if (orSt != null) {
-                    List<Map<String, Object>> orConstraints = parseShOrList(orSt.getObject(), shClass, shDatatype, shNode);
-                    if (!orConstraints.isEmpty()) {
-                        field.put("or", orConstraints);
-
-                        // Extract convenience lists for the frontend
-                        List<String> allowedClasses = new ArrayList<>();
-                        List<String> allowedDatatypes = new ArrayList<>();
-                        List<String> allowedNodes = new ArrayList<>();
-
-                        for (Map<String, Object> constraint : orConstraints) {
-                            if (constraint.containsKey("class")) {
-                                allowedClasses.add((String) constraint.get("class"));
-                            }
-                            if (constraint.containsKey("datatype")) {
-                                allowedDatatypes.add((String) constraint.get("datatype"));
-                            }
-                            if (constraint.containsKey("node")) {
-                                allowedNodes.add((String) constraint.get("node"));
-                            }
-                        }
-
-                        if (!allowedClasses.isEmpty()) field.put("allowedClasses", allowedClasses);
-                        if (!allowedDatatypes.isEmpty()) field.put("allowedDatatypes", allowedDatatypes);
-                        if (!allowedNodes.isEmpty()) field.put("allowedNodes", allowedNodes);
-                    }
-                }
-
-                // ── sh:node — for DetailsEditor, extract nested shape fields ──
-                Statement nodeSt = prop.getProperty(shNode);
-                if (nodeSt != null && nodeSt.getObject().isResource()) {
-                    Resource nestedShape = nodeSt.getObject().asResource();
-                    String nestedShapeId = nestedShape.isURIResource()
-                        ? nestedShape.getLocalName() : null;
-                    if (nestedShapeId != null) {
-                        field.put("nodeShape", nestedShapeId);
-
-                        // Extract nested shape's fields recursively (one level)
-                        List<Map<String, Object>> nestedFields = extractPropertyFields(
-                            nestedShape, shProperty, shName, shPath, shMinCount, shMaxCount,
-                            shOrder, shDescription, shNodeKind, dashEditor, dashViewer,
-                            dashSingleLine, shDatatype, shClass, shOr, shNode, shIn,
-                            shPattern, shMinLength, shMaxLength
-                        );
-                        if (!nestedFields.isEmpty()) {
-                            field.put("nestedFields", nestedFields);
-                        }
-                    }
-                }
-
-                fields.add(field);
+                Map<String, Object> field = extractSingleField(prop,
+                    shName, shPath, shMinCount, shMaxCount, shOrder, shDescription,
+                    shNodeKind, dashEditor, dashViewer, dashSingleLine, shDatatype,
+                    shClass, shOr, shNode, shIn, shPattern, shMinLength, shMaxLength,
+                    shProperty);
+                if (field != null) fields.add(field);
             });
+
+            // Inherit properties from the base Situation_shape (e.g. start, end)
+            // unless this IS the base shape
+            Resource baseShape = ontologyModel.createResource(ONT_NS + "Situation_shape");
+            if (!shape.equals(baseShape)) {
+                Set<String> ownPaths = new HashSet<>();
+                for (Map<String, Object> f : fields) {
+                    if (f.containsKey("path")) ownPaths.add((String) f.get("path"));
+                }
+
+                baseShape.listProperties(shProperty).forEach(propStmt -> {
+                    Resource prop = propStmt.getObject().asResource();
+                    Map<String, Object> field = extractSingleField(prop,
+                        shName, shPath, shMinCount, shMaxCount, shOrder, shDescription,
+                        shNodeKind, dashEditor, dashViewer, dashSingleLine, shDatatype,
+                        shClass, shOr, shNode, shIn, shPattern, shMinLength, shMaxLength,
+                        shProperty);
+                    if (field != null && !ownPaths.contains(field.get("path"))) {
+                        fields.add(field);
+                    }
+                });
+            }
 
             // Sort fields by sh:order
             fields.sort((a, b) -> {
@@ -650,6 +535,118 @@ public class App {
     }
 
     /**
+     * Extract all DASH/SHACL metadata from a single property shape resource.
+     * Returns null if the property has no sh:name or sh:path.
+     */
+    private static Map<String, Object> extractSingleField(
+            Resource prop, Property shName, Property shPath,
+            Property shMinCount, Property shMaxCount, Property shOrder, Property shDescription,
+            Property shNodeKind, Property dashEditor, Property dashViewer, Property dashSingleLine,
+            Property shDatatype, Property shClass, Property shOr, Property shNode,
+            Property shIn, Property shPattern, Property shMinLength, Property shMaxLength,
+            Property shProperty) {
+
+        Map<String, Object> field = new LinkedHashMap<>();
+
+        Statement nameSt = prop.getProperty(shName);
+        if (nameSt == null) return null;
+        field.put("label", getLiteralString(nameSt));
+
+        Statement pathSt = prop.getProperty(shPath);
+        if (pathSt == null) return null;
+        field.put("path", pathSt.getObject().toString());
+
+        Statement minSt = prop.getProperty(shMinCount);
+        field.put("required", minSt != null && minSt.getLiteral().getInt() > 0);
+        if (minSt != null) field.put("minCount", minSt.getLiteral().getInt());
+
+        Statement maxSt = prop.getProperty(shMaxCount);
+        if (maxSt != null) field.put("maxCount", maxSt.getLiteral().getInt());
+
+        Statement orderSt = prop.getProperty(shOrder);
+        if (orderSt != null) field.put("order", orderSt.getLiteral().getFloat());
+
+        Statement fieldDescSt = prop.getProperty(shDescription);
+        if (fieldDescSt != null) field.put("description", getLiteralString(fieldDescSt));
+
+        Statement nodeKindSt = prop.getProperty(shNodeKind);
+        if (nodeKindSt != null) field.put("nodeKind", nodeKindSt.getObject().asResource().getLocalName());
+
+        Statement editorSt = prop.getProperty(dashEditor);
+        if (editorSt != null) field.put("editor", editorSt.getObject().asResource().getLocalName());
+
+        Statement viewerSt = prop.getProperty(dashViewer);
+        if (viewerSt != null) field.put("viewer", viewerSt.getObject().asResource().getLocalName());
+
+        Statement singleLineSt = prop.getProperty(dashSingleLine);
+        if (singleLineSt != null) field.put("singleLine", singleLineSt.getLiteral().getBoolean());
+
+        Statement datatypeSt = prop.getProperty(shDatatype);
+        if (datatypeSt != null) field.put("datatype", datatypeSt.getObject().asResource().getLocalName());
+
+        Statement classSt = prop.getProperty(shClass);
+        if (classSt != null) field.put("class", classSt.getObject().asResource().getLocalName());
+
+        Statement patternSt = prop.getProperty(shPattern);
+        if (patternSt != null) field.put("pattern", patternSt.getLiteral().getString());
+
+        Statement minLenSt = prop.getProperty(shMinLength);
+        if (minLenSt != null) field.put("minLength", minLenSt.getLiteral().getInt());
+        Statement maxLenSt = prop.getProperty(shMaxLength);
+        if (maxLenSt != null) field.put("maxLength", maxLenSt.getLiteral().getInt());
+
+        Statement inSt = prop.getProperty(shIn);
+        if (inSt != null) {
+            List<String> enumValues = new ArrayList<>();
+            try {
+                RDFList rdfList = inSt.getObject().as(RDFList.class);
+                rdfList.iterator().forEachRemaining(node -> {
+                    if (node.isLiteral()) enumValues.add(node.asLiteral().getString());
+                    else if (node.isResource()) enumValues.add(node.asResource().getLocalName());
+                });
+            } catch (Exception e) { /* not a valid list */ }
+            if (!enumValues.isEmpty()) field.put("in", enumValues);
+        }
+
+        Statement orSt = prop.getProperty(shOr);
+        if (orSt != null) {
+            List<Map<String, Object>> orConstraints = parseShOrList(orSt.getObject(), shClass, shDatatype, shNode);
+            if (!orConstraints.isEmpty()) {
+                field.put("or", orConstraints);
+                List<String> allowedClasses = new ArrayList<>();
+                List<String> allowedDatatypes = new ArrayList<>();
+                List<String> allowedNodes = new ArrayList<>();
+                for (Map<String, Object> constraint : orConstraints) {
+                    if (constraint.containsKey("class")) allowedClasses.add((String) constraint.get("class"));
+                    if (constraint.containsKey("datatype")) allowedDatatypes.add((String) constraint.get("datatype"));
+                    if (constraint.containsKey("node")) allowedNodes.add((String) constraint.get("node"));
+                }
+                if (!allowedClasses.isEmpty()) field.put("allowedClasses", allowedClasses);
+                if (!allowedDatatypes.isEmpty()) field.put("allowedDatatypes", allowedDatatypes);
+                if (!allowedNodes.isEmpty()) field.put("allowedNodes", allowedNodes);
+            }
+        }
+
+        Statement nodeSt = prop.getProperty(shNode);
+        if (nodeSt != null && nodeSt.getObject().isResource()) {
+            Resource nestedShape = nodeSt.getObject().asResource();
+            String nestedShapeId = nestedShape.isURIResource() ? nestedShape.getLocalName() : null;
+            if (nestedShapeId != null) {
+                field.put("nodeShape", nestedShapeId);
+                List<Map<String, Object>> nestedFields = extractPropertyFields(
+                    nestedShape, shProperty, shName, shPath, shMinCount, shMaxCount,
+                    shOrder, shDescription, shNodeKind, dashEditor, dashViewer,
+                    dashSingleLine, shDatatype, shClass, shOr, shNode, shIn,
+                    shPattern, shMinLength, shMaxLength
+                );
+                if (!nestedFields.isEmpty()) field.put("nestedFields", nestedFields);
+            }
+        }
+
+        return field;
+    }
+
+    /**
      * Extract property fields from a shape node (used for both top-level and nested shapes).
      */
     private static List<Map<String, Object>> extractPropertyFields(
@@ -663,83 +660,13 @@ public class App {
 
         shape.listProperties(shProperty).forEach(propStmt -> {
             Resource prop = propStmt.getObject().asResource();
-            Map<String, Object> field = new LinkedHashMap<>();
-
-            Statement nameSt = prop.getProperty(shName);
-            if (nameSt == null) return;
-            field.put("label", getLiteralString(nameSt));
-
-            Statement pathSt = prop.getProperty(shPath);
-            if (pathSt == null) return;
-            field.put("path", pathSt.getObject().toString());
-
-            Statement minSt = prop.getProperty(shMinCount);
-            field.put("required", minSt != null && minSt.getLiteral().getInt() > 0);
-            if (minSt != null) field.put("minCount", minSt.getLiteral().getInt());
-
-            Statement maxSt = prop.getProperty(shMaxCount);
-            if (maxSt != null) field.put("maxCount", maxSt.getLiteral().getInt());
-
-            Statement orderSt = prop.getProperty(shOrder);
-            if (orderSt != null) field.put("order", orderSt.getLiteral().getFloat());
-
-            Statement fieldDescSt = prop.getProperty(shDescription);
-            if (fieldDescSt != null) field.put("description", getLiteralString(fieldDescSt));
-
-            Statement nodeKindSt = prop.getProperty(shNodeKind);
-            if (nodeKindSt != null) field.put("nodeKind", nodeKindSt.getObject().asResource().getLocalName());
-
-            Statement editorSt = prop.getProperty(dashEditor);
-            if (editorSt != null) field.put("editor", editorSt.getObject().asResource().getLocalName());
-
-            Statement viewerSt = prop.getProperty(dashViewer);
-            if (viewerSt != null) field.put("viewer", viewerSt.getObject().asResource().getLocalName());
-
-            Statement singleLineSt = prop.getProperty(dashSingleLine);
-            if (singleLineSt != null) field.put("singleLine", singleLineSt.getLiteral().getBoolean());
-
-            Statement datatypeSt = prop.getProperty(shDatatype);
-            if (datatypeSt != null) field.put("datatype", datatypeSt.getObject().asResource().getLocalName());
-
-            Statement classSt = prop.getProperty(shClass);
-            if (classSt != null) field.put("class", classSt.getObject().asResource().getLocalName());
-
-            Statement patternSt = prop.getProperty(shPattern);
-            if (patternSt != null) field.put("pattern", patternSt.getLiteral().getString());
-
-            Statement minLenSt = prop.getProperty(shMinLength);
-            if (minLenSt != null) field.put("minLength", minLenSt.getLiteral().getInt());
-            Statement maxLenSt = prop.getProperty(shMaxLength);
-            if (maxLenSt != null) field.put("maxLength", maxLenSt.getLiteral().getInt());
-
-            Statement inSt = prop.getProperty(shIn);
-            if (inSt != null) {
-                List<String> enumValues = new ArrayList<>();
-                try {
-                    RDFList rdfList = inSt.getObject().as(RDFList.class);
-                    rdfList.iterator().forEachRemaining(node -> {
-                        if (node.isLiteral()) enumValues.add(node.asLiteral().getString());
-                        else if (node.isResource()) enumValues.add(node.asResource().getLocalName());
-                    });
-                } catch (Exception e) { /* ignore */ }
-                if (!enumValues.isEmpty()) field.put("in", enumValues);
-            }
-
-            Statement orSt = prop.getProperty(shOr);
-            if (orSt != null) {
-                List<Map<String, Object>> orConstraints = parseShOrList(orSt.getObject(), shClass, shDatatype, shNode);
-                if (!orConstraints.isEmpty()) {
-                    field.put("or", orConstraints);
-                    List<String> allowedClasses = new ArrayList<>();
-                    List<String> allowedDatatypes = new ArrayList<>();
-                    for (Map<String, Object> c : orConstraints) {
-                        if (c.containsKey("class")) allowedClasses.add((String) c.get("class"));
-                        if (c.containsKey("datatype")) allowedDatatypes.add((String) c.get("datatype"));
-                    }
-                    if (!allowedClasses.isEmpty()) field.put("allowedClasses", allowedClasses);
-                    if (!allowedDatatypes.isEmpty()) field.put("allowedDatatypes", allowedDatatypes);
-                }
-            }
+            Map<String, Object> field = extractSingleField(prop,
+                shName, shPath, shMinCount, shMaxCount, shOrder, shDescription,
+                shNodeKind, dashEditor, dashViewer, dashSingleLine, shDatatype,
+                shClass, shOr, shNode, shIn, shPattern, shMinLength, shMaxLength,
+                shProperty);
+            if (field != null) fields.add(field);
+        });
 
             fields.add(field);
         });
