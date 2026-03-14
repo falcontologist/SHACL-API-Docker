@@ -737,6 +737,33 @@ textarea#ttlInput {
   white-space: nowrap;
 }
 
+.category-only-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.65rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 1px 5px;
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  min-height: auto;
+  text-transform: lowercase;
+  letter-spacing: 0.3px;
+}
+
+.category-filter-item:hover .category-only-btn {
+  opacity: 1;
+}
+
+.category-only-btn:hover {
+  background: rgba(56, 189, 248, 0.18);
+  transform: none;
+  box-shadow: none;
+  filter: none;
+}
+
 /* Scrollbar for popover */
 .category-filter-popover::-webkit-scrollbar {
   width: 6px;

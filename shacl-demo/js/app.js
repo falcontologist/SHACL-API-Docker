@@ -672,6 +672,7 @@ function renderAutoCompleteWidget(container, field, rowIndex) {
               <label class="category-filter-item">
                 <input type="checkbox" value="${c}" checked>
                 <span>${formatCategoryLabel(c)}</span>
+                <button type="button" class="category-only-btn" data-category="${c}" title="Only ${formatCategoryLabel(c)}">only</button>
               </label>
             `).join('')}
           </div>
@@ -779,6 +780,18 @@ function wireCategoryFilter(container) {
   // Update label on individual checkbox change
   checkboxes.forEach(cb => {
     cb.addEventListener('change', () => {
+      updateCategoryLabel(checkboxes, labelSpan, toggleAllBtn);
+    });
+  });
+
+  // "Only" buttons — uncheck everything else, check just this one
+  const onlyBtns = container.querySelectorAll('.category-only-btn');
+  onlyBtns.forEach(onlyBtn => {
+    onlyBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const target = onlyBtn.dataset.category;
+      checkboxes.forEach(cb => { cb.checked = (cb.value === target); });
       updateCategoryLabel(checkboxes, labelSpan, toggleAllBtn);
     });
   });
