@@ -89,10 +89,10 @@
             BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
             BIND(SUBSTR(STR(?hash), 1, 12) AS ?hashSub)
             
-            OPTIONAL { 
+            OPTIONAL {
                 ?this :absorber ?absorber . 
-                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?hashSub)) AS ?opaqueProperty)
             }
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?hashSub)) AS ?opaqueProperty)
             
             OPTIONAL {
                 ?this :absorber ?absorber ;
@@ -108,20 +108,6 @@
         """ ;
             sh:order 6 ] ;
     sh:targetClass :Absorb .
-
-:Acquisition_Inference_Rule a sh:NodeShape ;
-    sh:rule [ a sh:SPARQLRule ;
-            sh:construct """
-            PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
-            CONSTRUCT { ?agent :acquires ?target . }
-            WHERE {
-                ?this :acquirer ?agent .
-                ?this :acquisition ?target .
-            }
-        """ ;
-            sh:order 1 ;
-            sh:prefixes :Ontology_Prefixes ] ;
-    sh:targetClass :Acquisition .
 
 :Acquisition_shape a sh:NodeShape,
         :Situation_shape ;
@@ -302,8 +288,8 @@
             # Inference 2: <actor> <performs> <action>
             OPTIONAL {
                 ?this :action ?action .
-                BIND(IRI(CONCAT(STR(:), "performs_", ?hashSub)) AS ?propPerforms)
             }
+                BIND(IRI(CONCAT(STR(:), "performs_", ?hashSub)) AS ?propPerforms)
         }
         """ ;
             sh:order 8 ] ;
@@ -388,20 +374,20 @@
             # Inference 1: <adviser> <advises> <advisee>
             OPTIONAL {
                 ?this :advisee ?advisee .
-                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?hashSub)) AS ?opaqueProperty)
             }
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?hashSub)) AS ?opaqueProperty)
             
             # Inference 2: <adviser> <advises_on> <topic>
             OPTIONAL {
                 ?this :topic ?topic .
-                BIND(IRI(CONCAT(STR(:), ?verbForm, "_on_", ?hashSub)) AS ?propOn)
             }
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_on_", ?hashSub)) AS ?propOn)
 
             # Inference 3: <adviser> <advises_in> <industry>
             OPTIONAL {
                 ?this :industry ?industry .
-                BIND(IRI(CONCAT(STR(:), ?verbForm, "_in_", ?hashSub)) AS ?propIn)
             }
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_in_", ?hashSub)) AS ?propIn)
         }
         """ ;
             sh:order 8 ] ;
@@ -468,15 +454,15 @@
             OPTIONAL {
                 ?this :affecter ?affecter ;
                       :affectee ?affectee .
-                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?hashSub)) AS ?opaqueProperty)
             }
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?hashSub)) AS ?opaqueProperty)
 
             # Causal Reaction: <affectee> <results_in> <reaction>
             OPTIONAL {
                 ?this :affectee ?affectee ;
                       :reaction ?reaction .
-                BIND(IRI(CONCAT(STR(:), "results_in_", ?hashSub)) AS ?propReaction)
             }
+                BIND(IRI(CONCAT(STR(:), "results_in_", ?hashSub)) AS ?propReaction)
         }
         """ ;
             sh:order 6 ] ;
@@ -619,26 +605,26 @@
             # Inference 2: <affiliator> <verb_participant_from> <origin>
             OPTIONAL {
                 ?this :origin ?origin .
-                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?pName, "_from_", ?hashSub)) AS ?propFrom)
             }
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?pName, "_from_", ?hashSub)) AS ?propFrom)
             
             # Inference 3: <affiliator> <verb_participant_into> <institution>
             OPTIONAL {
                 ?this :institution ?institution .
-                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?pName, "_into_", ?hashSub)) AS ?propInto)
             }
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?pName, "_into_", ?hashSub)) AS ?propInto)
 
             # Inference 4: <affiliator> <verb_participant_as> <role>
             OPTIONAL {
                 ?this :role ?role .
-                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?pName, "_as_", ?hashSub)) AS ?propAs)
             }
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?pName, "_as_", ?hashSub)) AS ?propAs)
 
             # Inference 5: <affiliator> <verb_participant_to> <destination>
             OPTIONAL {
                 ?this :destination ?destination .
-                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?pName, "_to_", ?hashSub)) AS ?propTo)
             }
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?pName, "_to_", ?hashSub)) AS ?propTo)
         }
         """ ;
             sh:order 13 ] ;
@@ -752,14 +738,14 @@
             # Inference 2: <announcer> <verb_announcement_to> <addressee>
             OPTIONAL {
                 ?this :addressee ?addressee .
-                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?annName, "_to_", ?hashSub)) AS ?propTo)
             }
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?annName, "_to_", ?hashSub)) AS ?propTo)
             
             # Inference 3: <announcer> <verb_announcement_about> <topic>
             OPTIONAL {
                 ?this :topic ?topic .
-                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?annName, "_about_", ?hashSub)) AS ?propAbout)
             }
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?annName, "_about_", ?hashSub)) AS ?propAbout)
         }
         """ ;
             sh:order 10 ] ;
@@ -3775,20 +3761,20 @@
             # Conditionally match employer and bind the "_at_" property
             OPTIONAL {
                 ?this :employer ?employer .
-                BIND(IRI(CONCAT(STR(:), ?verbForm, "_at_", ?hashSub)) AS ?propAt)
             }
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_at_", ?hashSub)) AS ?propAt)
             
             # Conditionally match occupation and bind the "_as_a_" property
             OPTIONAL {
                 ?this :occupation ?occupation .
-                BIND(IRI(CONCAT(STR(:), ?verbForm, "_as_a_", ?hashSub)) AS ?propAsA)
             }
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_as_a_", ?hashSub)) AS ?propAsA)
             
             # Conditionally match industry and bind the "_in_" property
             OPTIONAL {
                 ?this :industry ?industry .
-                BIND(IRI(CONCAT(STR(:), ?verbForm, "_in_", ?hashSub)) AS ?propIn)
             }
+                BIND(IRI(CONCAT(STR(:), ?verbForm, "_in_", ?hashSub)) AS ?propIn)
         }
         """ ;
             sh:order 8 ] ;
@@ -5967,8 +5953,7 @@
                 BIND(IF(BOUND(?mLabel), CONCAT(STR(?val), " ", STR(?mLabel), " ", STR(?uLabel)), CONCAT(STR(?val), " ", STR(?uLabel))) AS ?quantity)
             }
         """ ;
-            sh:order 7 ;
-            sh:prefixes :Ontology_Prefixes ] ;
+            sh:order 7 ] ;
     sh:targetClass :Measurement .
 
 :Membership_shape a sh:NodeShape,
@@ -6210,6 +6195,15 @@
             sh:order 4 ;
             sh:path :time ] ;
     sh:targetClass :Occurrence .
+
+:Ontology_Prefixes sh:declare [ sh:namespace "https://falcontologist.github.io/shacl-demo/ontology/"^^xsd:anyURI ;
+            sh:prefix "" ],
+        [ sh:namespace "http://www.w3.org/1999/02/22-rdf-syntax-ns#"^^xsd:anyURI ;
+            sh:prefix "rdf" ],
+        [ sh:namespace "http://www.w3.org/2000/01/rdf-schema#"^^xsd:anyURI ;
+            sh:prefix "rdfs" ],
+        [ sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ;
+            sh:prefix "xsd" ] .
 
 :Optional a :Usage ;
     rdfs:label "Optional"@en .
@@ -8016,15 +8010,6 @@
     rdfs:label "substance"@en ;
     rdfs:subPropertyOf :product,
         :theme .
-
-:Ontology_Prefixes sh:declare [ sh:namespace "https://falcontologist.github.io/shacl-demo/ontology/"^^xsd:anyURI ;
-            sh:prefix "" ],
-        [ sh:namespace "http://www.w3.org/1999/02/22-rdf-syntax-ns#"^^xsd:anyURI ;
-            sh:prefix "rdf" ],
-        [ sh:namespace "http://www.w3.org/2000/01/rdf-schema#"^^xsd:anyURI ;
-            sh:prefix "rdfs" ],
-        [ sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ;
-            sh:prefix "xsd" ] .
 
 :TemporalPropertyGroup a sh:PropertyGroup ;
     rdfs:label "Temporal"@en ;
