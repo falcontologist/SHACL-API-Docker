@@ -31,6 +31,11 @@ import java.util.zip.GZIPInputStream;
  *   - Runtime suggest hits local Lucene (sub-10ms), zero Virtuoso queries
  *   - Sense resolution falls back to Virtuoso SPARQL if not in local index
  *
+ * Multi-category queries:
+ *   - suggestMulti() queries multiple FST suggesters in parallel, merges,
+ *     deduplicates by IRI, and returns a unified result set.
+ *   - suggestAll() queries ALL categories (used for "All Entities" mode).
+ *
  * Build the index locally with BuildFSTIndex.java, upload to GCS.
  */
 public class EntitySuggestService {
@@ -179,24 +184,15 @@ public class EntitySuggestService {
             HttpResponse.BodyHandlers.ofFile(target));
 
         if (resp.statusCode() != 200) {
-            throw new IOException("Download failed: HTTP " + resp.statusCode());
+            throw new IOException("Download failed with status " + resp.statusCode());
         }
 
-        long size = Files.size(target);
-        System.out.printf("[entity-suggest]   Downloaded: %,d bytes%n", size);
+        long sizeKB = Files.size(target) / 1024;
+        System.out.println("[entity-suggest]   Downloaded " + sizeKB + " KB");
     }
 
     private void extractTarGz(Path archive, Path targetDir) throws Exception {
         System.out.println("[entity-suggest]   Extracting to " + targetDir + " ...");
-
-        // Clean target directory
-        if (Files.exists(targetDir)) {
-            try (var walk = Files.walk(targetDir)) {
-                walk.sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-            }
-        }
         Files.createDirectories(targetDir);
 
         // Use system tar for efficiency
@@ -215,10 +211,10 @@ public class EntitySuggestService {
         System.out.println("[entity-suggest]   Extracted " + fileCount + " files");
     }
 
-    // ── Suggest ───────────────────────────────────────────────────────────────
+    // ── Suggest (single category) ─────────────────────────────────────────────
 
     /**
-     * Sub-10ms autocomplete via Lucene FST.
+     * Sub-10ms autocomplete via Lucene FST — single category.
      */
     public List<Map<String, String>> suggest(String category, String query, int limit) throws Exception {
         if (!ready) return List.of();
@@ -227,7 +223,57 @@ public class EntitySuggestService {
         if (suggester == null) return List.of();
 
         List<Lookup.LookupResult> results = suggester.lookup(query, false, limit);
+        return deduplicateResults(results, category);
+    }
 
+    // ── Suggest (multiple categories) ─────────────────────────────────────────
+
+    /**
+     * Query multiple FST suggesters and merge results.
+     * Used when the user has selected specific category filters.
+     *
+     * Each category contributes up to `limit` results; the merged set is
+     * deduplicated by IRI and truncated to `limit`.
+     */
+    public List<Map<String, String>> suggestMulti(List<String> categories, String query, int limit) throws Exception {
+        if (!ready) return List.of();
+
+        // Query each category's FST and merge
+        LinkedHashMap<String, Map<String, String>> merged = new LinkedHashMap<>();
+
+        for (String category : categories) {
+            AnalyzingInfixSuggester suggester = suggesters.get(category);
+            if (suggester == null) continue;
+
+            List<Lookup.LookupResult> results = suggester.lookup(query, false, limit);
+            for (Map<String, String> entry : deduplicateResults(results, category)) {
+                String iri = entry.get("iri");
+                if (!merged.containsKey(iri)) {
+                    merged.put(iri, entry);
+                }
+            }
+        }
+
+        // Truncate to limit
+        List<Map<String, String>> out = new ArrayList<>(merged.values());
+        if (out.size() > limit) {
+            out = out.subList(0, limit);
+        }
+        return out;
+    }
+
+    /**
+     * Query ALL categories and merge results.
+     * Used for "All Entities" mode. Queries every loaded FST.
+     */
+    public List<Map<String, String>> suggestAll(String query, int limit) throws Exception {
+        return suggestMulti(new ArrayList<>(suggesters.keySet()), query, limit);
+    }
+
+    /**
+     * Convert Lucene lookup results into deduplicated maps.
+     */
+    private List<Map<String, String>> deduplicateResults(List<Lookup.LookupResult> results, String category) {
         LinkedHashMap<String, Map<String, String>> deduped = new LinkedHashMap<>();
         for (Lookup.LookupResult result : results) {
             String payload = result.payload != null ? result.payload.utf8ToString() : "";
@@ -257,7 +303,6 @@ public class EntitySuggestService {
                 deduped.put(iri, entry);
             }
         }
-
         return new ArrayList<>(deduped.values());
     }
 

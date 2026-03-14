@@ -203,16 +203,22 @@ public class App {
     }
 
     // ── Entity suggest (autocomplete — hits Lucene FST, sub-10ms) ─────────────
+    // Supports:
+    //   ?type=all                           → search all categories
+    //   ?type=Person_Entity                  → single category
+    //   ?type=Person_Entity,Location_Entity  → multiple categories (comma-separated)
+    //   ?role=Acquirer_Role_Player           → (optional) role class for score boosting
     static void entitySuggest(Context ctx) {
-        String category = ctx.queryParam("type");
+        String typeParam = ctx.queryParam("type");
         String query = ctx.queryParam("q");
+        String roleClass = ctx.queryParam("role");  // Optional: for future score boosting
         int limit = 10;
         try {
             String limitParam = ctx.queryParam("limit");
             if (limitParam != null) limit = Integer.parseInt(limitParam);
         } catch (NumberFormatException ignored) {}
 
-        if (category == null || category.isBlank()) {
+        if (typeParam == null || typeParam.isBlank()) {
             ctx.status(400).json(Map.of("error", "Missing 'type' parameter"));
             return;
         }
@@ -221,54 +227,86 @@ public class App {
             return;
         }
 
-        // Resolve friendly short names
-        if (!EntitySuggestService.CATEGORIES.contains(category)) {
-            String resolved = switch (category.toLowerCase()) {
-                case "person" -> "Person_Entity";
-                case "organization", "org" -> "Organization_Entity";
-                case "geopoliticalentity", "geopolitical", "gpe" -> "Geopolitical_Entity";
-                case "product" -> "Product_Entity";
-                case "unit" -> "Unit_Entity";
-                case "occupation" -> "Occupation_Entity";
-                case "creative_work", "creativework" -> "Creative_Work_Entity";
-                case "quantity_dimension", "quantitydimension", "dimension" -> "Quantity_Dimension_Entity";
-                case "location" -> "Location_Entity";
-                case "food" -> "Food_Entity";
-                case "language" -> "Language_Entity";
-                case "organism" -> "Organism_Entity";
-                case "equity" -> "Equity_Entity";
-                case "index" -> "Index_Entity";
-                case "corporate_bond", "corporatebond" -> "Corporate_Bond_Entity";
-                case "government_bond", "governmentbond" -> "Government_Bond_Entity";
-                default -> null;
-            };
-            if (resolved != null) {
-                category = resolved;
-            } else {
-                ctx.status(400).json(Map.of(
-                    "error", "Invalid category. Must be one of: " + EntitySuggestService.CATEGORIES
-                ));
-                return;
-            }
-        }
-
         try {
             long start = System.nanoTime();
-            List<Map<String, String>> results = entitySuggestService.suggest(category, query, limit);
+            List<Map<String, String>> results;
+            String resolvedType;
+
+            if ("all".equalsIgnoreCase(typeParam)) {
+                // All-categories mode
+                results = entitySuggestService.suggestAll(query, limit);
+                resolvedType = "all";
+            } else if (typeParam.contains(",")) {
+                // Multi-category mode: comma-separated list
+                List<String> categories = new ArrayList<>();
+                for (String raw : typeParam.split(",")) {
+                    String resolved = resolveCategory(raw.trim());
+                    if (resolved != null) categories.add(resolved);
+                }
+                if (categories.isEmpty()) {
+                    ctx.status(400).json(Map.of("error", "No valid categories in: " + typeParam));
+                    return;
+                }
+                results = entitySuggestService.suggestMulti(categories, query, limit);
+                resolvedType = String.join(",", categories);
+            } else {
+                // Single category mode (original behavior)
+                String resolved = resolveCategory(typeParam);
+                if (resolved == null) {
+                    ctx.status(400).json(Map.of(
+                        "error", "Invalid category. Must be one of: all, " + EntitySuggestService.CATEGORIES
+                    ));
+                    return;
+                }
+                results = entitySuggestService.suggest(resolved, query, limit);
+                resolvedType = resolved;
+            }
+
             long elapsedMicros = (System.nanoTime() - start) / 1000;
 
-            ctx.json(Map.of(
-                "results", results,
-                "count", results.size(),
-                "query", query,
-                "type", category,
-                "latencyMicros", elapsedMicros,
-                "ready", entitySuggestService.isReady()
-            ));
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("results", results);
+            response.put("count", results.size());
+            response.put("query", query);
+            response.put("type", resolvedType);
+            response.put("latencyMicros", elapsedMicros);
+            response.put("ready", entitySuggestService.isReady());
+            if (roleClass != null && !roleClass.isBlank()) {
+                response.put("roleClass", roleClass);
+            }
+
+            ctx.json(response);
         } catch (Exception e) {
             System.err.println("[entity-suggest] Error: " + e.getMessage());
             ctx.status(500).json(Map.of("error", "Suggest failed: " + e.getMessage()));
         }
+    }
+
+    /**
+     * Resolve a category name to a canonical CATEGORIES entry.
+     * Returns null if not recognized.
+     */
+    private static String resolveCategory(String category) {
+        if (EntitySuggestService.CATEGORIES.contains(category)) return category;
+        return switch (category.toLowerCase()) {
+            case "person" -> "Person_Entity";
+            case "organization", "org" -> "Organization_Entity";
+            case "geopoliticalentity", "geopolitical", "gpe" -> "Geopolitical_Entity";
+            case "product" -> "Product_Entity";
+            case "unit" -> "Unit_Entity";
+            case "occupation" -> "Occupation_Entity";
+            case "creative_work", "creativework" -> "Creative_Work_Entity";
+            case "quantity_dimension", "quantitydimension", "dimension" -> "Quantity_Dimension_Entity";
+            case "location" -> "Location_Entity";
+            case "food" -> "Food_Entity";
+            case "language" -> "Language_Entity";
+            case "organism" -> "Organism_Entity";
+            case "equity" -> "Equity_Entity";
+            case "index" -> "Index_Entity";
+            case "corporate_bond", "corporatebond" -> "Corporate_Bond_Entity";
+            case "government_bond", "governmentbond" -> "Government_Bond_Entity";
+            default -> null;
+        };
     }
 
     // ── Entity senses ──────────────────────────────────────────────────────────

@@ -430,8 +430,19 @@ async function validateGraph() {
 // ============================================
 // ENTITY SUGGEST API
 // ============================================
-async function fetchEntitySuggestions(category, query, signal) {
-  const url = `${CONFIG.API_BASE_URL}/entity-suggest?type=${encodeURIComponent(category)}&q=${encodeURIComponent(query)}&limit=${CONFIG.SUGGEST_MAX_RESULTS}`;
+
+/**
+ * Query the entity suggest endpoint.
+ * @param {string} typeParam - "all", single category, or comma-separated categories
+ * @param {string} query - search text
+ * @param {AbortSignal} signal - abort controller signal
+ * @param {string} [roleClass] - optional role player class for score boosting
+ */
+async function fetchEntitySuggestions(typeParam, query, signal, roleClass) {
+  let url = `${CONFIG.API_BASE_URL}/entity-suggest?type=${encodeURIComponent(typeParam)}&q=${encodeURIComponent(query)}&limit=${CONFIG.SUGGEST_MAX_RESULTS}`;
+  if (roleClass) {
+    url += `&role=${encodeURIComponent(roleClass)}`;
+  }
   const resp = await fetch(url, { signal });
   if (!resp.ok) throw new Error(`Suggest returned ${resp.status}`);
   return resp.json();
@@ -620,11 +631,21 @@ function createDashRow(field, rowIndex, widgetType) {
 
 /**
  * dash:AutoCompleteEditor — entity search with FST suggest.
- * Shows a category dropdown filtered by sh:or class constraints,
- * a search input with autocomplete, and a sense selector.
+ * 
+ * Layout:
+ *   [Type: Entity ▾] [🔍 All Entities ▾] [Search input...] [Sense ▾]
+ *
+ * The category filter button defaults to "All Entities" (searches across
+ * all 17 FST indices). Clicking it opens a checkbox popover where the user
+ * can select specific categories to narrow the search.
+ *
+ * The field's sh:class (role player class) is passed to the API as a
+ * score-boosting hint — entities that have filled this role before will
+ * rank higher.
  */
 function renderAutoCompleteWidget(container, field, rowIndex) {
-  const categories = DASH.extractEntityCategories(field);
+  // Extract the role player class from the field's sh:class (e.g. "Acquirer_Role_Player")
+  const roleClass = field.defaultClass || field['class'] || '';
 
   container.innerHTML = `
     <select class="type-select">
@@ -635,17 +656,33 @@ function renderAutoCompleteWidget(container, field, rowIndex) {
       <option value="BNode">_:</option>
     </select>
     <div class="entity-suggest-wrapper">
-      <select class="entity-category-select">
-        ${categories.map(c => 
-          `<option value="${c}">${formatCategoryLabel(c)}</option>`
-        ).join('')}
-      </select>
+      <div class="category-filter-wrapper">
+        <button type="button" class="category-filter-btn" title="Filter entity categories">
+          <span class="category-filter-label">All Entities</span>
+          <span class="category-filter-chevron">▾</span>
+        </button>
+        <div class="category-filter-popover hidden">
+          <div class="category-filter-header">
+            <span>Filter categories</span>
+            <button type="button" class="category-filter-toggle-all">Select all</button>
+          </div>
+          <div class="category-filter-list">
+            ${CONFIG.ENTITY_CATEGORIES.map(c => `
+              <label class="category-filter-item">
+                <input type="checkbox" value="${c}" checked>
+                <span>${formatCategoryLabel(c)}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      </div>
       <div class="suggest-input-container">
         <input class="entity-search-input" type="text" 
                placeholder="Search entities..." 
                autocomplete="off"
                data-role="${field.label}" 
-               data-path="${field.path}">
+               data-path="${field.path}"
+               data-role-class="${roleClass}">
         <div class="suggest-spinner hidden"></div>
         <div class="suggest-dropdown hidden"></div>
       </div>
@@ -689,8 +726,99 @@ function renderAutoCompleteWidget(container, field, rowIndex) {
   textInput.classList.add('hidden');
   instanceSelect.classList.add('hidden');
 
+  // Wire category filter popover
+  wireCategoryFilter(container);
+
   // Wire entity autocomplete
   wireAutoComplete(container, rowIndex, field);
+}
+
+/**
+ * Wire the category filter button + checkbox popover.
+ */
+function wireCategoryFilter(container) {
+  const btn = container.querySelector('.category-filter-btn');
+  const popover = container.querySelector('.category-filter-popover');
+  const toggleAllBtn = container.querySelector('.category-filter-toggle-all');
+  const checkboxes = container.querySelectorAll('.category-filter-item input[type="checkbox"]');
+  const labelSpan = container.querySelector('.category-filter-label');
+
+  if (!btn || !popover) return;
+
+  // Toggle popover
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // Close other open popovers first
+    document.querySelectorAll('.category-filter-popover').forEach(p => {
+      if (p !== popover) p.classList.add('hidden');
+    });
+    popover.classList.toggle('hidden');
+  });
+
+  // Close popover when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.category-filter-wrapper')) {
+      popover.classList.add('hidden');
+    }
+  });
+
+  // Prevent popover clicks from closing it
+  popover.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+
+  // Toggle all / none
+  toggleAllBtn.addEventListener('click', () => {
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    checkboxes.forEach(cb => { cb.checked = !allChecked; });
+    toggleAllBtn.textContent = allChecked ? 'Select all' : 'Clear all';
+    updateCategoryLabel(checkboxes, labelSpan, toggleAllBtn);
+  });
+
+  // Update label on individual checkbox change
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      updateCategoryLabel(checkboxes, labelSpan, toggleAllBtn);
+    });
+  });
+}
+
+/**
+ * Update the filter button label based on checkbox state.
+ */
+function updateCategoryLabel(checkboxes, labelSpan, toggleAllBtn) {
+  const checked = Array.from(checkboxes).filter(cb => cb.checked);
+  const total = checkboxes.length;
+
+  if (checked.length === 0) {
+    labelSpan.textContent = 'None selected';
+    labelSpan.classList.add('category-filter-warn');
+  } else if (checked.length === total) {
+    labelSpan.textContent = 'All Entities';
+    labelSpan.classList.remove('category-filter-warn');
+    toggleAllBtn.textContent = 'Clear all';
+  } else if (checked.length <= 2) {
+    labelSpan.textContent = checked.map(cb => formatCategoryLabel(cb.value)).join(', ');
+    labelSpan.classList.remove('category-filter-warn');
+    toggleAllBtn.textContent = 'Select all';
+  } else {
+    labelSpan.textContent = `${checked.length} categories`;
+    labelSpan.classList.remove('category-filter-warn');
+    toggleAllBtn.textContent = 'Select all';
+  }
+}
+
+/**
+ * Get the type parameter string from the category filter checkboxes.
+ * Returns "all" if all are checked, or comma-separated category names.
+ */
+function getCategoryTypeParam(container) {
+  const checkboxes = container.querySelectorAll('.category-filter-item input[type="checkbox"]');
+  const checked = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+  
+  if (checked.length === 0) return 'all'; // Fallback: search everything
+  if (checked.length === checkboxes.length) return 'all';
+  return checked.join(',');
 }
 
 /**
@@ -900,21 +1028,25 @@ function renderTextFieldWidget(container, field, rowIndex) {
 // ============================================
 function wireAutoComplete(container, rowIndex, field) {
   const searchInput = container.querySelector('.entity-search-input');
-  const categorySelect = container.querySelector('.entity-category-select');
   const dropdown = container.querySelector('.suggest-dropdown');
   const spinner = container.querySelector('.suggest-spinner');
   const senseSelect = container.querySelector('.entity-sense-select');
 
-  if (!searchInput || !categorySelect || !dropdown) return;
+  if (!searchInput || !dropdown) return;
+
+  // Extract role class for score boosting
+  const roleClass = field.defaultClass || field['class'] || '';
 
   const debouncedSuggest = debounce(async () => {
     const query = searchInput.value.trim();
-    const category = categorySelect.value;
     
     if (query.length < CONFIG.SUGGEST_MIN_CHARS) {
       dropdown.classList.add('hidden');
       return;
     }
+
+    // Get the category type param from the checkbox filter
+    const typeParam = getCategoryTypeParam(container);
 
     const prevController = State.entitySuggestControllers.get(rowIndex);
     if (prevController) prevController.abort();
@@ -925,7 +1057,7 @@ function wireAutoComplete(container, rowIndex, field) {
     if (spinner) spinner.classList.remove('hidden');
 
     try {
-      const data = await fetchEntitySuggestions(category, query, controller.signal);
+      const data = await fetchEntitySuggestions(typeParam, query, controller.signal, roleClass);
       renderSuggestDropdown(dropdown, data.results, searchInput, senseSelect, container.closest('.role-row'));
       if (spinner) spinner.classList.add('hidden');
     } catch (err) {
@@ -937,6 +1069,16 @@ function wireAutoComplete(container, rowIndex, field) {
   }, CONFIG.SUGGEST_DEBOUNCE_MS);
 
   searchInput.addEventListener('input', debouncedSuggest);
+
+  // Re-query when category filter changes
+  const checkboxes = container.querySelectorAll('.category-filter-item input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (searchInput.value.trim().length >= CONFIG.SUGGEST_MIN_CHARS) {
+        debouncedSuggest();
+      }
+    });
+  });
 
   // Keyboard navigation
   searchInput.addEventListener('keydown', (e) => {
@@ -969,18 +1111,6 @@ function wireAutoComplete(container, rowIndex, field) {
 
   searchInput.addEventListener('blur', () => {
     setTimeout(() => dropdown.classList.add('hidden'), 200);
-  });
-
-  categorySelect.addEventListener('change', () => {
-    searchInput.value = '';
-    if (senseSelect) {
-      senseSelect.classList.add('hidden');
-      senseSelect.innerHTML = '<option value="">-- Select Sense --</option>';
-    }
-    dropdown.classList.add('hidden');
-    delete searchInput.dataset.resolvedIri;
-    delete searchInput.dataset.resolvedLabel;
-    searchInput.focus();
   });
 }
 
