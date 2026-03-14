@@ -668,9 +668,6 @@ public class App {
             if (field != null) fields.add(field);
         });
 
-            fields.add(field);
-        });
-
         fields.sort((a, b) -> {
             float oa = a.containsKey("order") ? ((Number) a.get("order")).floatValue() : Float.MAX_VALUE;
             float ob = b.containsKey("order") ? ((Number) b.get("order")).floatValue() : Float.MAX_VALUE;
