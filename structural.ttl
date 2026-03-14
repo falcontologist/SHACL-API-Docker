@@ -6,31 +6,6 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-:Information_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Information Entity"@en .
-
-:Manner_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Manner Entity"@en .
-
-:Numerical_Multiplier_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Numerical Multiplier Entity"@en .
-
-:Substance_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Substance Entity"@en .
-
-:Unit_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Unit Entity"@en .
-
-:Unknown_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Unknown Entity"@en ;
-    sh:description "An existential placeholder for a required role where the specific entity or value is unknown or undisclosed."@en .
-
 :Absorb_shape a sh:NodeShape,
         :Situation_shape ;
     rdfs:label "Absorb (shape)"@en ;
@@ -8051,7 +8026,33 @@
             sh:nodeKind sh:Literal ;
             sh:or ( [ sh:datatype xsd:date ] [ sh:datatype xsd:gYearMonth ] [ sh:datatype xsd:gYear ] ) ;
             sh:order 99.0 ;
-            sh:path :end ] .
+            sh:path :end ] ;
+    sh:rule [ a sh:SPARQLRule ;
+            rdfs:label "Role Player Type Inference"@en ;
+            rdfs:comment "Infers rdf:type for entities that fill roles in situations. When an entity appears as the value of a role property (e.g. :acquirer), and the property shape declares sh:class pointing to a subclass of :Role_Player, this rule asserts that the entity is a member of that role player class. This populates the warm cache for autocomplete relevance boosting."@en ;
+            sh:construct """
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
+        PREFIX sh: <http://www.w3.org/ns/shacl#>
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+        CONSTRUCT {
+            ?value a ?roleClass .
+        }
+        WHERE {
+            $this ?prop ?value .
+            FILTER(isIRI(?value))
+
+            ?shape sh:targetClass ?type .
+            $this a ?type .
+            ?shape sh:property ?ps .
+            ?ps sh:path ?prop ;
+                sh:class ?roleClass .
+            ?roleClass rdfs:subClassOf* :Role_Player .
+        }
+        """ ;
+            sh:order 0.0 ] ;
+    sh:targetClass :Situation .
 
 :RolesPropertyGroup a sh:PropertyGroup ;
     rdfs:label "Roles"@en ;
