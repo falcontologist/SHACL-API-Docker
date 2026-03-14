@@ -898,45 +898,37 @@ public class App {
         Property lemmaProp = ontologyModel.createProperty(ONT_NS + "lemma");
         Property p3sgProp  = ontologyModel.createProperty(ONT_NS + "present3sg");
 
-        // ── Bridge: resolve literal :lemma values to ontology lemma nodes ────
-        // The input has:  temp:s1 :lemma "work" .
-        // The rules need: temp:s1 :lemma <lemma-node> .  <lemma-node> :lemma "work" ; :present3sg "works" .
+        // ── Bridge: inject lemma nodes from the ontology into the data model ──
+        // The SPARQL rules join on the literal value:
+        //   ?this :lemma ?lemma .           ← binds ?lemma to "work" (literal)
+        //   ?lemmaNode :lemma ?lemma .      ← finds lemma node with same literal
+        //   ?lemmaNode :present3sg ?verb .  ← gets the inflected form
         //
-        // Step 1: Collect all (subject, literal) pairs for :lemma
-        // Step 2: Look up each literal in the ontology to find the lemma node
-        // Step 3: Rewrite the literal to a resource link + inject the lemma node
+        // The lemma node lives in the ontologyModel (loaded from lexical.ttl).
+        // RuleUtil executes SPARQL against the dataModel only, so we must copy
+        // the relevant lemma node triples into the dataModel for the join to work.
+        // We do NOT rewrite the literal — the literal IS the join key.
+
+        Set<String> lemmas = new HashSet<>();
+        inputModel.listObjectsOfProperty(lemmaProp).forEach(o -> {
+            if (o.isLiteral()) lemmas.add(o.asLiteral().getString());
+        });
 
         Model lemmaModel = ModelFactory.createDefaultModel();
-        List<Statement> toRemove = new ArrayList<>();
-        List<Statement> toAdd = new ArrayList<>();
-
-        inputModel.listStatements(null, lemmaProp, (RDFNode) null).forEach(stmt -> {
-            if (!stmt.getObject().isLiteral()) return;
-            String lemmaStr = stmt.getObject().asLiteral().getString();
-
-            // Find the lemma node in the ontology
-            ontologyModel.listSubjectsWithProperty(lemmaProp, lemmaStr).forEach(lemmaNode -> {
+        lemmas.forEach(lemma -> {
+            ontologyModel.listSubjectsWithProperty(lemmaProp, lemma).forEach(lemmaNode -> {
                 Statement p3sg = lemmaNode.getProperty(p3sgProp);
                 if (p3sg != null) {
-                    // Inject the lemma node with its properties
                     Resource ln = lemmaModel.createResource(lemmaNode.getURI());
-                    ln.addProperty(lemmaModel.createProperty(ONT_NS + "lemma"), lemmaStr);
+                    ln.addProperty(lemmaModel.createProperty(ONT_NS + "lemma"), lemma);
                     ln.addProperty(lemmaModel.createProperty(ONT_NS + "present3sg"),
                         p3sg.getLiteral().getString());
-
-                    // Rewrite: replace literal link with resource link
-                    toRemove.add(stmt);
-                    toAdd.add(inputModel.createStatement(
-                        stmt.getSubject(), lemmaProp, ln));
                 }
             });
         });
 
-        // Apply rewrites
-        toRemove.forEach(inputModel::remove);
-        toAdd.forEach(inputModel::add);
-
-        System.out.println("[infer] Lemma bridge: " + toAdd.size() + " literals → resource links");
+        System.out.println("[infer] Lemma bridge: " + lemmas.size() + " lemma(s), "
+            + lemmaModel.size() + " triples injected");
 
         Model dataModel = ModelFactory.createDefaultModel();
         dataModel.add(inputModel);
@@ -950,6 +942,8 @@ public class App {
         try {
             inferredModel = RuleUtil.executeRules(dataModel, ontologyModel, null, null);
         } catch (Exception e) {
+            System.err.println("[infer] Rule execution error: " + e.getMessage());
+            e.printStackTrace();
             ctx.status(500).result("Inference error: " + e.getMessage());
             return;
         }

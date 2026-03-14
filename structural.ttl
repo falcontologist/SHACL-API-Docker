@@ -78,7 +78,7 @@
             ?absorber ?propFrom ?origin .
         }
         WHERE {
-            $this a :Absorb ;
+            ?this a :Absorb ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :substance ?substance .
@@ -90,12 +90,12 @@
             BIND(SUBSTR(STR(?hash), 1, 12) AS ?hashSub)
             
             OPTIONAL { 
-                $this :absorber ?absorber . 
+                ?this :absorber ?absorber . 
                 BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?hashSub)) AS ?opaqueProperty)
             }
             
             OPTIONAL {
-                $this :absorber ?absorber ;
+                ?this :absorber ?absorber ;
                       :origin ?origin .
                 
                 OPTIONAL { ?substance rdfs:label ?subLabel . }
@@ -115,8 +115,8 @@
             PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
             CONSTRUCT { ?agent :acquires ?target . }
             WHERE {
-                $this :acquirer ?agent .
-                $this :acquisition ?target .
+                ?this :acquirer ?agent .
+                ?this :acquisition ?target .
             }
         """ ;
             sh:order 1 ;
@@ -171,7 +171,7 @@
             ?acquirer ?propFor ?costString .
         }
         WHERE {
-            $this a :Acquisition ;
+            ?this a :Acquisition ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :acquirer ?acquirer ;
@@ -189,7 +189,7 @@
             
             # Inference 2: <acquirer> <acquires_target_for> "Value Multiplier Unit"
             OPTIONAL {
-                $this :cost ?costNode .
+                ?this :cost ?costNode .
                 ?costNode :value ?value ;
                           :unit ?unitNode .
                 
@@ -283,7 +283,7 @@
             ?actor ?propPerforms ?action .
         }
         WHERE {
-            $this a :Action ;
+            ?this a :Action ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :actor ?actor ;
@@ -301,7 +301,7 @@
             
             # Inference 2: <actor> <performs> <action>
             OPTIONAL {
-                $this :action ?action .
+                ?this :action ?action .
                 BIND(IRI(CONCAT(STR(:), "performs_", ?hashSub)) AS ?propPerforms)
             }
         }
@@ -373,7 +373,7 @@
             ?adviser ?propIn ?industry .
         }
         WHERE {
-            $this a :Advising ;
+            ?this a :Advising ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :adviser ?adviser .
@@ -387,19 +387,19 @@
             
             # Inference 1: <adviser> <advises> <advisee>
             OPTIONAL {
-                $this :advisee ?advisee .
+                ?this :advisee ?advisee .
                 BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?hashSub)) AS ?opaqueProperty)
             }
             
             # Inference 2: <adviser> <advises_on> <topic>
             OPTIONAL {
-                $this :topic ?topic .
+                ?this :topic ?topic .
                 BIND(IRI(CONCAT(STR(:), ?verbForm, "_on_", ?hashSub)) AS ?propOn)
             }
 
             # Inference 3: <adviser> <advises_in> <industry>
             OPTIONAL {
-                $this :industry ?industry .
+                ?this :industry ?industry .
                 BIND(IRI(CONCAT(STR(:), ?verbForm, "_in_", ?hashSub)) AS ?propIn)
             }
         }
@@ -453,7 +453,7 @@
             ?affectee ?propReaction ?reaction .
         }
         WHERE {
-            $this a :Affect ;
+            ?this a :Affect ;
                   :lemma ?lemma ;
                   :synset ?synset .
             
@@ -466,14 +466,14 @@
             
             # Core Relation: <affecter> <affects> <affectee>
             OPTIONAL {
-                $this :affecter ?affecter ;
+                ?this :affecter ?affecter ;
                       :affectee ?affectee .
                 BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?hashSub)) AS ?opaqueProperty)
             }
 
             # Causal Reaction: <affectee> <results_in> <reaction>
             OPTIONAL {
-                $this :affectee ?affectee ;
+                ?this :affectee ?affectee ;
                       :reaction ?reaction .
                 BIND(IRI(CONCAT(STR(:), "results_in_", ?hashSub)) AS ?propReaction)
             }
@@ -595,7 +595,7 @@
             ?affiliator ?propTo ?destination .
         }
         WHERE {
-            $this a :Affiliation ;
+            ?this a :Affiliation ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :affiliator ?affiliator ;
@@ -618,25 +618,25 @@
             
             # Inference 2: <affiliator> <verb_participant_from> <origin>
             OPTIONAL {
-                $this :origin ?origin .
+                ?this :origin ?origin .
                 BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?pName, "_from_", ?hashSub)) AS ?propFrom)
             }
             
             # Inference 3: <affiliator> <verb_participant_into> <institution>
             OPTIONAL {
-                $this :institution ?institution .
+                ?this :institution ?institution .
                 BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?pName, "_into_", ?hashSub)) AS ?propInto)
             }
 
             # Inference 4: <affiliator> <verb_participant_as> <role>
             OPTIONAL {
-                $this :role ?role .
+                ?this :role ?role .
                 BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?pName, "_as_", ?hashSub)) AS ?propAs)
             }
 
             # Inference 5: <affiliator> <verb_participant_to> <destination>
             OPTIONAL {
-                $this :destination ?destination .
+                ?this :destination ?destination .
                 BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?pName, "_to_", ?hashSub)) AS ?propTo)
             }
         }
@@ -728,7 +728,7 @@
             ?announcer ?propAbout ?topic .
         }
         WHERE {
-            $this a :Announcement ;
+            ?this a :Announcement ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :announcer ?announcer ;
@@ -751,13 +751,13 @@
             
             # Inference 2: <announcer> <verb_announcement_to> <addressee>
             OPTIONAL {
-                $this :addressee ?addressee .
+                ?this :addressee ?addressee .
                 BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?annName, "_to_", ?hashSub)) AS ?propTo)
             }
             
             # Inference 3: <announcer> <verb_announcement_about> <topic>
             OPTIONAL {
-                $this :topic ?topic .
+                ?this :topic ?topic .
                 BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?annName, "_about_", ?hashSub)) AS ?propAbout)
             }
         }
@@ -798,7 +798,7 @@
         ?item1 ?opaqueProperty ?item2 .
     }
     WHERE {
-        $this a :Association ;
+        ?this a :Association ;
               :lemma ?lemma ;
               :synset ?synset ;
               :item ?item1, ?item2 .
@@ -878,7 +878,7 @@
             ?actor ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Attack ;
+            ?this a :Attack ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :actor ?actor ;
@@ -1069,7 +1069,7 @@
             ?associator ?opaqueProperty ?analogue .
         }
         WHERE {
-            $this a :Base_and_Deduce ;
+            ?this a :Base_and_Deduce ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :associator ?associator ;
@@ -1194,7 +1194,7 @@
             ?transformer ?opaqueProperty ?theme .
         }
         WHERE {
-            $this a :Basic_Change_of_State ;
+            ?this a :Basic_Change_of_State ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :transformer ?transformer ;
@@ -1303,7 +1303,7 @@
             ?antagonist ?opaqueProperty ?agonist .
         }
         WHERE {
-            $this a :Basic_Force ;
+            ?this a :Basic_Force ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :antagonist ?antagonist ;
@@ -1404,7 +1404,7 @@
             ?mover ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Basic_Incremental ;
+            ?this a :Basic_Incremental ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :mover ?mover ;
@@ -1497,7 +1497,7 @@
             ?mover ?opaqueProperty ?theme .
         }
         WHERE {
-            $this a :Basic_Motion ;
+            ?this a :Basic_Motion ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :mover ?mover ;
@@ -1852,7 +1852,7 @@
             ?transformer ?opaqueProperty ?theme .
         }
         WHERE {
-            $this a :Causative_Change_of_State ;
+            ?this a :Causative_Change_of_State ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :transformer ?transformer ;
@@ -1985,7 +1985,7 @@
             ?maker ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Causative_Creation ;
+            ?this a :Causative_Creation ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :maker ?maker ;
@@ -2086,7 +2086,7 @@
             ?mover ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Causative_Incremental ;
+            ?this a :Causative_Incremental ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :mover ?mover ;
@@ -2147,7 +2147,7 @@
             ?employer ?opaqueProperty ?employee .
         }
         WHERE {
-            $this a :CauseEmployment ;
+            ?this a :CauseEmployment ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :employer ?employer ;
@@ -2255,7 +2255,7 @@
             ?affiliator ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Cause_Membership ;
+            ?this a :Cause_Membership ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :affiliator ?affiliator ;
@@ -2364,7 +2364,7 @@
             ?affiliator ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Cause_Role ;
+            ?this a :Cause_Role ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :affiliator ?affiliator ;
@@ -2523,7 +2523,7 @@
             ?transactor ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Commercial_Transaction ;
+            ?this a :Commercial_Transaction ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :transactor ?transactor ;
@@ -2624,7 +2624,7 @@
             ?communicator ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Communicate ;
+            ?this a :Communicate ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :communicator ?communicator ;
@@ -2725,7 +2725,7 @@
             ?communicator ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Communication ;
+            ?this a :Communication ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :communicator ?communicator ;
@@ -2810,7 +2810,7 @@
             ?associator ?opaqueProperty ?analogue .
         }
         WHERE {
-            $this a :Compare_and_Contrast ;
+            ?this a :Compare_and_Contrast ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :associator ?associator ;
@@ -2911,7 +2911,7 @@
             ?mover ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Concealment ;
+            ?this a :Concealment ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :mover ?mover ;
@@ -3020,7 +3020,7 @@
             ?antagonist ?opaqueProperty ?agonist .
         }
         WHERE {
-            $this a :Constrain ;
+            ?this a :Constrain ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :antagonist ?antagonist ;
@@ -3097,7 +3097,7 @@
             ?controller ?opaqueProperty ?subordinate .
         }
         WHERE {
-            $this a :Control ;
+            ?this a :Control ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :controller ?controller ;
@@ -3175,7 +3175,7 @@
             ?evaluator ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Conversion ;
+            ?this a :Conversion ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :evaluator ?evaluator ;
@@ -3368,7 +3368,7 @@
             ?maker ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Creation ;
+            ?this a :Creation ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :maker ?maker ;
@@ -3445,7 +3445,7 @@
             ?actor ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Defend ;
+            ?this a :Defend ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :actor ?actor ;
@@ -3544,7 +3544,7 @@
             ?transactor ?opaqueProperty ?item .
         }
         WHERE {
-            $this a :Dynamic_Possession ;
+            ?this a :Dynamic_Possession ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :transactor ?transactor ;
@@ -3677,7 +3677,7 @@
             ?maker ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Emission ;
+            ?this a :Emission ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :maker ?maker ;
@@ -3759,7 +3759,7 @@
             ?employee ?propIn ?industry .
         }
         WHERE {
-            $this a :Employment ;
+            ?this a :Employment ;
                   :lemma ?lemmaNode ;
                   :synset ?synsetNode ;
                   :employee ?employee .
@@ -3774,19 +3774,19 @@
             
             # Conditionally match employer and bind the "_at_" property
             OPTIONAL {
-                $this :employer ?employer .
+                ?this :employer ?employer .
                 BIND(IRI(CONCAT(STR(:), ?verbForm, "_at_", ?hashSub)) AS ?propAt)
             }
             
             # Conditionally match occupation and bind the "_as_a_" property
             OPTIONAL {
-                $this :occupation ?occupation .
+                ?this :occupation ?occupation .
                 BIND(IRI(CONCAT(STR(:), ?verbForm, "_as_a_", ?hashSub)) AS ?propAsA)
             }
             
             # Conditionally match industry and bind the "_in_" property
             OPTIONAL {
-                $this :industry ?industry .
+                ?this :industry ?industry .
                 BIND(IRI(CONCAT(STR(:), ?verbForm, "_in_", ?hashSub)) AS ?propIn)
             }
         }
@@ -3914,7 +3914,7 @@
             ?transactor ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Exchange ;
+            ?this a :Exchange ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :transactor ?transactor ;
@@ -3975,7 +3975,7 @@
             ?executor ?opaqueProperty ?task .
         }
         WHERE {
-            $this a :Execution ;
+            ?this a :Execution ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :executor ?executor ;
@@ -4204,7 +4204,7 @@
             ?transformer ?opaqueProperty ?theme .
         }
         WHERE {
-            $this a :Feeding ;
+            ?this a :Feeding ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :transformer ?transformer ;
@@ -4282,7 +4282,7 @@
             ?evaluator ?opaqueProperty ?phenomenon .
         }
         WHERE {
-            $this a :Feel ;
+            ?this a :Feel ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :evaluator ?evaluator ;
@@ -4391,7 +4391,7 @@
             ?antagonist ?opaqueProperty ?agonist .
         }
         WHERE {
-            $this a :Force ;
+            ?this a :Force ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :antagonist ?antagonist ;
@@ -4524,7 +4524,7 @@
             ?maker ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Form ;
+            ?this a :Form ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :maker ?maker ;
@@ -4601,7 +4601,7 @@
             ?transactor ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Future_Having ;
+            ?this a :Future_Having ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :transactor ?transactor ;
@@ -4750,7 +4750,7 @@
             ?transformer ?opaqueProperty ?theme .
         }
         WHERE {
-            $this a :Hurt ;
+            ?this a :Hurt ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :transformer ?transformer ;
@@ -4883,7 +4883,7 @@
             ?maker ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Image_Creation ;
+            ?this a :Image_Creation ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :maker ?maker ;
@@ -4984,7 +4984,7 @@
             ?mover ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Incremental ;
+            ?this a :Incremental ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :mover ?mover ;
@@ -5061,7 +5061,7 @@
             ?actor ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Inducive ;
+            ?this a :Inducive ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :actor ?actor ;
@@ -5210,7 +5210,7 @@
             ?transformer ?opaqueProperty ?theme .
         }
         WHERE {
-            $this a :Ingestion ;
+            ?this a :Ingestion ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :transformer ?transformer ;
@@ -5403,7 +5403,7 @@
             ?communicator ?opaqueProperty ?topic .
         }
         WHERE {
-            $this a :Joint_Statement ;
+            ?this a :Joint_Statement ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :communicator ?communicator ;
@@ -5481,7 +5481,7 @@
             ?evaluator ?opaqueProperty ?phenomenon .
         }
         WHERE {
-            $this a :Judge ;
+            ?this a :Judge ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :evaluator ?evaluator ;
@@ -5678,7 +5678,7 @@
             ?associator ?opaqueProperty ?analogue .
         }
         WHERE {
-            $this a :Liken_and_Differentiate ;
+            ?this a :Liken_and_Differentiate ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :associator ?associator ;
@@ -5890,7 +5890,7 @@
             ?antagonist ?opaqueProperty ?agonist .
         }
         WHERE {
-            $this a :Manipulate ;
+            ?this a :Manipulate ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :antagonist ?antagonist ;
@@ -5952,14 +5952,14 @@
                 ?item :costs ?quantity .
             }
             WHERE {
-                $this :item ?item .
-                $this :value ?val .
-                $this :unit ?uNode .
+                ?this :item ?item .
+                ?this :value ?val .
+                ?this :unit ?uNode .
                 ?uNode rdfs:label ?uLabel .
                 
                 # Optional multiplier handling
                 OPTIONAL { 
-                    $this :multiplier ?mNode .
+                    ?this :multiplier ?mNode .
                     ?mNode rdfs:label ?mLabel .
                 }
                 
@@ -6154,7 +6154,7 @@
             ?mover ?opaqueProperty ?theme .
         }
         WHERE {
-            $this a :Motion ;
+            ?this a :Motion ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :mover ?mover ;
@@ -6409,7 +6409,7 @@
             ?mover ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Pick_Up_and_Drop_Off ;
+            ?this a :Pick_Up_and_Drop_Off ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :mover ?mover ;
@@ -6486,7 +6486,7 @@
             ?transactor ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Possession ;
+            ?this a :Possession ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :transactor ?transactor ;
@@ -6585,7 +6585,7 @@
             ?pursuer ?opaqueProperty ?theme .
         }
         WHERE {
-            $this a :Pursuit ;
+            ?this a :Pursuit ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :pursuer ?pursuer ;
@@ -6663,7 +6663,7 @@
             ?evaluator ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Quantification ;
+            ?this a :Quantification ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :evaluator ?evaluator ;
@@ -6770,7 +6770,7 @@
             ?transactor ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Replace ;
+            ?this a :Replace ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :transactor ?transactor ;
@@ -6871,7 +6871,7 @@
             ?communicator ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Request ;
+            ?this a :Request ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :communicator ?communicator ;
@@ -6956,7 +6956,7 @@
             ?associator ?opaqueProperty ?analogue .
         }
         WHERE {
-            $this a :Require_and_Satisfy ;
+            ?this a :Require_and_Satisfy ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :associator ?associator ;
@@ -7057,7 +7057,7 @@
             ?communicator ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Response ;
+            ?this a :Response ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :communicator ?communicator ;
@@ -7393,7 +7393,7 @@
             ?communicator ?opaqueProperty ?message .
         }
         WHERE {
-            $this a :Statement ;
+            ?this a :Statement ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :communicator ?communicator ;
@@ -7548,7 +7548,7 @@
             ?transactor ?opaqueProperty ?item .
         }
         WHERE {
-            $this a :Transaction ;
+            ?this a :Transaction ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :transactor ?transactor ;
@@ -7625,7 +7625,7 @@
             ?transactor ?opaqueProperty ?affectee .
         }
         WHERE {
-            $this a :Transfer_of_Possession ;
+            ?this a :Transfer_of_Possession ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :transactor ?transactor ;
@@ -7750,7 +7750,7 @@
             ?transformer ?opaqueProperty ?theme .
         }
         WHERE {
-            $this a :Transformation ;
+            ?this a :Transformation ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :transformer ?transformer ;
@@ -7848,7 +7848,7 @@
             ?driver ?opaqueProperty ?theme .
         }
         WHERE {
-            $this a :Vehicular_Motion ;
+            ?this a :Vehicular_Motion ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :driver ?driver ;
@@ -8065,11 +8065,11 @@
             ?value a ?roleClass .
         }
         WHERE {
-            $this ?prop ?value .
+            ?this ?prop ?value .
             FILTER(isIRI(?value))
 
             ?shape sh:targetClass ?type .
-            $this a ?type .
+            ?this a ?type .
             ?shape sh:property ?ps .
             ?ps sh:path ?prop ;
                 sh:class ?roleClass .
@@ -8082,4 +8082,3 @@
 :RolesPropertyGroup a sh:PropertyGroup ;
     rdfs:label "Roles"@en ;
     sh:order 0.0 .
-
