@@ -755,53 +755,52 @@
         :Situation_shape ;
     rdfs:label "Association (shape)"@en ;
     dash:defaultViewForRole dash:all ;
-    sh:description "A situation where a conceptual association is drawn between exactly two items, in terms of some attribute."@en ;
+    sh:description "A situation where a conceptual association holds between exactly two concepts."@en ;
     sh:property [ dash:editor dash:AutoCompleteEditor ;
+            dash:nillable true ;
             dash:viewer dash:LabelViewer ;
-            sh:class :Item_Role_Player ;
-            sh:description "The entities that are being conceptually associated with each other (requires exactly two)."@en ;
+            sh:class :Concept_Role_Player ;
+            sh:description "The two concepts that are associated with each other."@en ;
             sh:group :RolesPropertyGroup ;
-            sh:maxCount 2 ;
             sh:minCount 2 ;
-            sh:name "item"@en ;
+            sh:maxCount 2 ;
+            sh:name "concept"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 1 ;
-            sh:path :item ],
+            sh:path :concept ],
         [ dash:editor dash:AutoCompleteEditor ;
             dash:viewer dash:LabelViewer ;
-            sh:class :Attribute_Role_Player ;
-            sh:description "The specific feature, quality, or context that forms the basis of the association."@en ;
+            sh:class :Basis_Role_Player ;
+            sh:description "The specific feature, evidence, or context that forms the basis of the association."@en ;
             sh:group :RolesPropertyGroup ;
-            sh:name "attribute"@en ;
+            sh:name "basis"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 2 ;
-            sh:path :attribute ] ;
+            sh:path :basis ] ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
-    PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
-    
-    CONSTRUCT {
-        ?item1 ?opaqueProperty ?item2 .
-    }
-    WHERE {
-        ?this a :Association ;
-              :lemma ?lemma ;
-              :synset ?synset ;
-              :item ?item1, ?item2 .
-              
-        # Ensure we are capturing the two distinct items
-        FILTER(?item1 != ?item2)
-        
-        # Look up the proper 3ps inflection from the lemma node
-        ?lemmaNode :lemma ?lemma ;
-                   :present3sg ?verbForm .
-        
-        # Construct the property URI combining the verb form and 'with'
-        BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
-        BIND(IRI(CONCAT(STR(:), ?verbForm, "_with_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
-    }
-    """ ;
-            sh:order 5 ] ;
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
+
+        CONSTRUCT {
+            ?concept1 ?opaqueProperty ?concept2 .
+        }
+        WHERE {
+            ?this a :Association ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :concept ?concept1 ;
+                  :concept ?concept2 .
+
+            FILTER(?concept1 != ?concept2)
+
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_with_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 4 ] ;
     sh:targetClass :Association .
 
 :Attack_shape a sh:NodeShape,

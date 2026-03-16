@@ -1182,11 +1182,6 @@
     rdfs:label "Qualifier Role Player"@en ;
     rdfs:subClassOf :Role_Player .
 
-:Quality_Dimension a rdfs:Class ;
-    rdfs:label "Quality Dimension"@en ;
-    rdfs:subClassOf :Entity ;
-    :semantic_domain :Evaluation .
-
 :Quality_Role_Player a rdfs:Class ;
     rdfs:label "Quality Role Player"@en ;
     rdfs:subClassOf :Role_Player .
@@ -1608,12 +1603,6 @@
     rdfs:range :Aim_Role_Player ;
     rdfs:subPropertyOf :proto_goal .
 
-:analogue a rdf:Property ;
-    rdfs:label "analogue"@en ;
-    rdfs:domain :Evaluation ;
-    rdfs:range :Analogue_Role_Player ;
-    rdfs:subPropertyOf :phenomenon .
-
 :animateScore a rdf:Property ;
     rdfs:label "animateScore"@en ;
     rdfs:comment "This entity is biologically alive and capable of autonomous movement ."@en ;
@@ -1817,7 +1806,7 @@
 
 :concept a rdf:Property ;
     rdfs:label "concept"@en ;
-    rdfs:domain :Cognition ;
+    rdfs:domain :Evaluation ;
     rdfs:range :Concept_Role_Player ;
     rdfs:subPropertyOf :proto_patient .
 
