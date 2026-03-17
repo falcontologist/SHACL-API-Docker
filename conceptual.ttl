@@ -2030,7 +2030,9 @@
 
 :focus a rdf:Property ;
     rdfs:label "focus"@en ;
-    rdfs:range :Focus_Role_Player .
+    rdfs:domain :Attend ;
+    rdfs:range :Focus_Role_Player ;
+    rdfs:subPropertyOf :percept .
 
 :frequency a rdf:Property ;
     rdfs:label "frequency"@en ;

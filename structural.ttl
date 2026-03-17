@@ -895,22 +895,52 @@
         :Situation_shape ;
     rdfs:label "Attend (shape)"@en ;
     dash:defaultViewForRole dash:all ;
+    skos:example "Investors fear a recession as the Dow drops nearly 500 points following new U.S. tariffs."@en ;
+    sh:description "A situation where an attender directs cognitive or emotional attention toward a focus."@en ;
     sh:property [ dash:editor dash:AutoCompleteEditor ;
+            dash:nillable true ;
             dash:viewer dash:LabelViewer ;
             sh:class :Attender_Role_Player ;
+            sh:description "The perceiver directing attention or emotion toward the focus."@en ;
             sh:group :RolesPropertyGroup ;
+            sh:minCount 1 ;
             sh:name "attender"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 1 ;
             sh:path :attender ],
         [ dash:editor dash:AutoCompleteEditor ;
+            dash:nillable true ;
             dash:viewer dash:LabelViewer ;
             sh:class :Focus_Role_Player ;
+            sh:description "The stimulus that is the object of attention."@en ;
             sh:group :RolesPropertyGroup ;
+            sh:minCount 1 ;
             sh:name "focus"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 2 ;
             sh:path :focus ] ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
+
+        CONSTRUCT {
+            ?attender ?opaqueProperty ?focus .
+        }
+        WHERE {
+            ?this a :Attend ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :attender ?attender ;
+                  :focus ?focus .
+
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 4 ] ;
     sh:targetClass :Attend .
 
 :Attitude_shape a sh:NodeShape,
