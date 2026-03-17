@@ -139,7 +139,7 @@
 :Attack a rdfs:Class ;
     rdfs:label "Attack"@en ;
     rdfs:subClassOf :Situation ;
-    :semantic_domain :Affiliation .
+    :semantic_domain :Action .
 
 :Attacker_Role_Player a rdfs:Class ;
     rdfs:label "Attacker Role Player"@en ;
@@ -1660,7 +1660,7 @@
 
 :attacker a rdf:Property ;
     rdfs:label "attacker"@en ;
-    rdfs:domain :Action ;
+    rdfs:domain :Attack ;
     rdfs:range :Attacker_Role_Player ;
     rdfs:subPropertyOf :actor .
 
@@ -3058,3 +3058,29 @@
     rdfs:comment "Superproperty for all modifier properties ."@en ;
     rdfs:subPropertyOf :shape_element .
 
+### additions to sort
+
+:Information_Entity a rdfs:Class,
+        sh:NodeShape ;
+    rdfs:label "Information Entity"@en .
+
+:Manner_Entity a rdfs:Class,
+        sh:NodeShape ;
+    rdfs:label "Manner Entity"@en .
+
+:Numerical_Multiplier_Entity a rdfs:Class,
+        sh:NodeShape ;
+    rdfs:label "Numerical Multiplier Entity"@en .
+
+:Substance_Entity a rdfs:Class,
+        sh:NodeShape ;
+    rdfs:label "Substance Entity"@en .
+
+:Unit_Entity a rdfs:Class,
+        sh:NodeShape ;
+    rdfs:label "Unit Entity"@en .
+
+:Unknown_Entity a rdfs:Class,
+        sh:NodeShape ;
+    rdfs:label "Unknown Entity"@en ;
+    sh:description "An existential placeholder for a required role where the specific entity or value is unknown or undisclosed."@en .

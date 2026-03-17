@@ -6,31 +6,6 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-:Information_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Information Entity"@en .
-
-:Manner_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Manner Entity"@en .
-
-:Numerical_Multiplier_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Numerical Multiplier Entity"@en .
-
-:Substance_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Substance Entity"@en .
-
-:Unit_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Unit Entity"@en .
-
-:Unknown_Entity a rdfs:Class,
-        sh:NodeShape ;
-    rdfs:label "Unknown Entity"@en ;
-    sh:description "An existential placeholder for a required role where the specific entity or value is unknown or undisclosed."@en .
-
 :Absorb_shape a sh:NodeShape,
         :Situation_shape ;
     rdfs:label "Absorb (shape)"@en ;
@@ -859,69 +834,53 @@
         :Situation_shape ;
     rdfs:label "Attack (shape)"@en ;
     dash:defaultViewForRole dash:all ;
+    skos:example "Russia attacks Ukraine with cruise missiles."@en ;
+    sh:description "A situation where an attacker directs an act of violence or aggression at a victim, possibly using a weapon."@en ;
     sh:property [ dash:editor dash:AutoCompleteEditor ;
+            dash:nillable true ;
             dash:viewer dash:LabelViewer ;
-            sh:class :Actor_Role_Player ;
+            sh:class :Attacker_Role_Player ;
+            sh:description "The initiator of the attack."@en ;
             sh:group :RolesPropertyGroup ;
-            sh:name "actor"@en ;
+            sh:minCount 1 ;
+            sh:name "attacker"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 1 ;
-            sh:path :actor ],
+            sh:path :attacker ],
         [ dash:editor dash:AutoCompleteEditor ;
             dash:viewer dash:LabelViewer ;
-            sh:class :Affectee_Role_Player ;
+            sh:class :Weapon_Role_Player ;
+            sh:description "The implement used in the attack."@en ;
             sh:group :RolesPropertyGroup ;
-            sh:name "affectee"@en ;
+            sh:name "weapon"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 2 ;
-            sh:path :affectee ],
+            sh:path :weapon ],
         [ dash:editor dash:AutoCompleteEditor ;
+            dash:nillable true ;
             dash:viewer dash:LabelViewer ;
-            sh:class :Target_Role_Player ;
+            sh:class :Victim_Role_Player ;
+            sh:description "The target of the attack."@en ;
             sh:group :RolesPropertyGroup ;
-            sh:name "target"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 6 ;
-            sh:path :target ],
-        [ dash:editor dash:AutoCompleteEditor ;
-            dash:viewer dash:LabelViewer ;
-            sh:class :Action_Role_Player ;
-            sh:group :RolesPropertyGroup ;
-            sh:name "action"@en ;
+            sh:minCount 1 ;
+            sh:name "victim"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 3 ;
-            sh:path :action ],
-        [ dash:editor dash:AutoCompleteEditor ;
-            dash:viewer dash:LabelViewer ;
-            sh:class :Attribute_Role_Player ;
-            sh:group :RolesPropertyGroup ;
-            sh:name "attribute"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 4 ;
-            sh:path :attribute ],
-        [ dash:editor dash:AutoCompleteEditor ;
-            dash:viewer dash:LabelViewer ;
-            sh:class :Manner_Role_Player ;
-            sh:group :RolesPropertyGroup ;
-            sh:name "manner"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 5 ;
-            sh:path :manner ] ;
+            sh:path :victim ] ;
     sh:rule [ a sh:SPARQLRule ;
             sh:construct """
         PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
         
         CONSTRUCT {
-            ?actor ?opaqueProperty ?affectee .
+            ?attacker ?opaqueProperty ?victim .
         }
         WHERE {
             ?this a :Attack ;
                   :lemma ?lemma ;
                   :synset ?synset ;
-                  :actor ?actor ;
-                  :affectee ?affectee .
+                  :attacker ?attacker ;
+                  :victim ?victim .
             
-            # Look up the proper 3ps inflection from the lemma node
             ?lemmaNode :lemma ?lemma ;
                        :present3sg ?verbForm .
             
@@ -929,7 +888,7 @@
             BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
         }
         """ ;
-            sh:order 9 ] ;
+            sh:order 4 ] ;
     sh:targetClass :Attack .
 
 :Attend_shape a sh:NodeShape,
