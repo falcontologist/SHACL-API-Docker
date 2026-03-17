@@ -751,9 +751,9 @@
             sh:order 10 ] ;
     sh:targetClass :Announcement .
 
-:Association_shape a sh:NodeShape,
+:Being_Associated_shape a sh:NodeShape,
         :Situation_shape ;
-    rdfs:label "Association (shape)"@en ;
+    rdfs:label "Being Associated (shape)"@en ;
     dash:defaultViewForRole dash:all ;
     sh:description "A situation where a conceptual association holds between exactly two concepts."@en ;
     sh:property [ dash:editor dash:AutoCompleteEditor ;
@@ -785,7 +785,7 @@
             ?concept1 ?opaqueProperty ?concept2 .
         }
         WHERE {
-            ?this a :Association ;
+            ?this a :Being_Associated ;
                   :lemma ?lemma ;
                   :synset ?synset ;
                   :concept ?concept1 ;
@@ -801,7 +801,59 @@
         }
         """ ;
             sh:order 4 ] ;
-    sh:targetClass :Association .
+    sh:targetClass :Being_Associated .
+
+:Making_Association_shape a sh:NodeShape,
+        :Situation_shape ;
+    rdfs:label "Making Association (shape)"@en ;
+    dash:defaultViewForRole dash:all ;
+    sh:description "A situation where an associator draws a conceptual association between two concepts."@en ;
+    sh:property [ dash:editor dash:AutoCompleteEditor ;
+            dash:nillable true ;
+            dash:viewer dash:LabelViewer ;
+            sh:class :Associator_Role_Player ;
+            sh:description "The entity that draws or establishes the association."@en ;
+            sh:group :RolesPropertyGroup ;
+            sh:minCount 1 ;
+            sh:name "associator"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path :associator ],
+        [ dash:editor dash:DetailsEditor ;
+            dash:viewer dash:DetailsViewer ;
+            sh:description "The conceptual association being drawn between two concepts."@en ;
+            sh:group :RolesPropertyGroup ;
+            sh:minCount 1 ;
+            sh:name "association"@en ;
+            sh:nodeKind sh:BlankNode ;
+            sh:node :Being_Associated_shape ;
+            sh:order 2 ;
+            sh:path :association ] ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
+
+        CONSTRUCT {
+            ?associator ?opaqueProperty ?association .
+        }
+        WHERE {
+            ?this a :Making_Association ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :associator ?associator .
+
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(SUBSTR(STR(?hash), 1, 12) AS ?hashSub)
+
+            OPTIONAL { ?this :association ?association . }
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", ?hashSub)) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 4 ] ;
+    sh:targetClass :Making_Association .
 
 :Attack_shape a sh:NodeShape,
         :Situation_shape ;

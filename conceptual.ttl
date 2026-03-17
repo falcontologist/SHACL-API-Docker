@@ -225,6 +225,20 @@
     rdfs:label "Before Role Player"@en ;
     rdfs:subClassOf :Role_Player .
 
+:Being_Associated a rdfs:Class ;
+    rdfs:label "Being Associated"@en ;
+    rdfs:subClassOf :Situation ;
+    :semantic_domain :Association ;
+    :aspect :Proto_State ;
+    :realm :Mental .
+
+:Making_Association a rdfs:Class ;
+    rdfs:label "Making Association"@en ;
+    rdfs:subClassOf :Situation ;
+    :semantic_domain :Association ;
+    :aspect :Proto_Change ;
+    :realm :Mental .
+
 :Being_Role_Player a rdfs:Class ;
     rdfs:label "Being Role Player"@en ;
     rdfs:subClassOf :Role_Player .
