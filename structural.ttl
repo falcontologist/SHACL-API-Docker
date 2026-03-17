@@ -1035,10 +1035,13 @@
         :Situation_shape ;
     rdfs:label "Authority (shape)"@en ;
     dash:defaultViewForRole dash:all ;
+    skos:example "The SEC regulates the U.S. securities industry."@en ;
+    sh:description "A situation where a ruler holds authority, influence, or regulatory power over a jurisdiction."@en ;
     sh:property [ dash:editor dash:AutoCompleteEditor ;
             dash:nillable true ;
             dash:viewer dash:LabelViewer ;
             sh:class :Ruler_Role_Player ;
+            sh:description "The entity that holds authority or regulatory power."@en ;
             sh:group :RolesPropertyGroup ;
             sh:minCount 1 ;
             sh:name "ruler"@en ;
@@ -1049,12 +1052,35 @@
             dash:nillable true ;
             dash:viewer dash:LabelViewer ;
             sh:class :Jurisdiction_Role_Player ;
+            sh:description "The domain, sector, or entity over which authority is exercised."@en ;
             sh:group :RolesPropertyGroup ;
             sh:minCount 1 ;
             sh:name "jurisdiction"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 2 ;
             sh:path :jurisdiction ] ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
+
+        CONSTRUCT {
+            ?ruler ?opaqueProperty ?jurisdiction .
+        }
+        WHERE {
+            ?this a :Authority ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :ruler ?ruler ;
+                  :jurisdiction ?jurisdiction .
+
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 4 ] ;
     sh:targetClass :Authority .
 
 :Base_and_Deduce_shape a sh:NodeShape,

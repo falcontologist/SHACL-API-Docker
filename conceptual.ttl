@@ -176,6 +176,7 @@
 :Authority a rdfs:Class ;
     rdfs:label "Authority"@en ;
     rdfs:subClassOf :Situation ;
+    :semantic_domain :Control ;
     :aspect :Proto_State ;
     :realm :Social .
 
