@@ -139,18 +139,20 @@
 :Attack a rdfs:Class ;
     rdfs:label "Attack"@en ;
     rdfs:subClassOf :Situation ;
-    :semantic_domain :Action .
+    :semantic_domain :Action ;
+    :aspect :Proto-Change ;
+    :realm :Social .
 
 :Attacker_Role_Player a rdfs:Class ;
     rdfs:label "Attacker Role Player"@en ;
     rdfs:subClassOf :Role_Player .
 
-:Attend a rdfs:Class,
-        :Semantic_Domain ;
+:Attend a rdfs:Class ;
     rdfs:label "Attend"@en ;
     rdfs:subClassOf :Situation ;
-    :semantic_domain :Attend,
-        :Perception .
+    :semantic_domain :Perception ;
+    :aspect :Proto-State ;
+    :realm :Mental .
 
 :Attender_Role_Player a rdfs:Class ;
     rdfs:label "Attender Role Player"@en ;
@@ -159,6 +161,7 @@
 :Attitude a rdfs:Class ;
     rdfs:label "Attitude"@en ;
     rdfs:subClassOf :Situation ;
+    :semantic_domain :Evaluation ;
     :aspect :Proto_State ;
     :realm :Mental .
 

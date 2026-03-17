@@ -947,10 +947,13 @@
         :Situation_shape ;
     rdfs:label "Attitude (shape)"@en ;
     dash:defaultViewForRole dash:all ;
+    skos:example "Wall Street analysts believe the Federal Reserve will cut interest rates in September."@en ;
+    sh:description "A situation where an adherent holds a mental attitude or stance toward a proposition, with optional polarity, certainty, and modality."@en ;
     sh:property [ dash:editor dash:AutoCompleteEditor ;
             dash:nillable true ;
             dash:viewer dash:LabelViewer ;
             sh:class :Adherent_Role_Player ;
+            sh:description "The holder of an attitude or a belief."@en ;
             sh:group :RolesPropertyGroup ;
             sh:minCount 1 ;
             sh:name "adherent"@en ;
@@ -958,47 +961,74 @@
             sh:order 1 ;
             sh:path :adherent ],
         [ dash:editor dash:AutoCompleteEditor ;
+            dash:nillable true ;
             dash:viewer dash:LabelViewer ;
-            sh:class :Polarity_Role_Player ;
+            sh:class :Proposition_Role_Player ;
+            sh:description "The content or claim toward which the attitude is directed."@en ;
             sh:group :RolesPropertyGroup ;
-            sh:name "polarity"@en ;
+            sh:minCount 1 ;
+            sh:name "proposition"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 2 ;
-            sh:path :polarity ],
+            sh:path :proposition ],
         [ dash:editor dash:AutoCompleteEditor ;
             dash:viewer dash:LabelViewer ;
             sh:class :Attitude_Role_Player ;
+            sh:description "The specific mental state or disposition (e.g. optimism, skepticism)."@en ;
             sh:group :RolesPropertyGroup ;
             sh:name "attitude"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 3 ;
             sh:path :attitude ],
         [ dash:editor dash:AutoCompleteEditor ;
-            dash:nillable true ;
-            dash:viewer dash:LabelViewer ;
-            sh:class :Proposition_Role_Player ;
-            sh:group :RolesPropertyGroup ;
-            sh:minCount 1 ;
-            sh:name "proposition"@en ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 4 ;
-            sh:path :proposition ],
-        [ dash:editor dash:AutoCompleteEditor ;
             dash:viewer dash:LabelViewer ;
             sh:class :Certainty_Role_Player ;
+            sh:description "The degree of confidence or conviction in the attitude."@en ;
             sh:group :RolesPropertyGroup ;
             sh:name "certainty"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 5 ;
+            sh:order 4 ;
             sh:path :certainty ],
         [ dash:editor dash:AutoCompleteEditor ;
             dash:viewer dash:LabelViewer ;
             sh:class :Modality_Role_Player ;
+            sh:description "The modal qualification of the attitude (e.g. possibility, necessity, obligation)."@en ;
             sh:group :RolesPropertyGroup ;
             sh:name "modality"@en ;
             sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path :modality ],
+        [ dash:editor dash:AutoCompleteEditor ;
+            dash:viewer dash:LabelViewer ;
+            sh:class :Polarity_Role_Player ;
+            sh:description "Whether the attitude is positive or negative."@en ;
+            sh:group :RolesPropertyGroup ;
+            sh:name "polarity"@en ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 6 ;
-            sh:path :modality ] ;
+            sh:path :polarity ] ;
+    sh:rule [ a sh:SPARQLRule ;
+            sh:construct """
+        PREFIX : <https://falcontologist.github.io/shacl-demo/ontology/>
+
+        CONSTRUCT {
+            ?adherent ?opaqueProperty ?proposition .
+        }
+        WHERE {
+            ?this a :Attitude ;
+                  :lemma ?lemma ;
+                  :synset ?synset ;
+                  :adherent ?adherent ;
+                  :proposition ?proposition .
+
+            ?lemmaNode :lemma ?lemma ;
+                       :present3sg ?verbForm .
+
+            BIND(SHA256(CONCAT(?lemma, "|", ?synset)) AS ?hash)
+            BIND(IRI(CONCAT(STR(:), ?verbForm, "_", SUBSTR(STR(?hash), 1, 12))) AS ?opaqueProperty)
+        }
+        """ ;
+            sh:order 4 ] ;
     sh:targetClass :Attitude .
 
 :Authority_shape a sh:NodeShape,
